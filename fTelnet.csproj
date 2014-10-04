@@ -20,18 +20,121 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="index.html" />
+    <Content Include="source\client\savefilesbutton\Down.png" />
+    <Content Include="source\client\savefilesbutton\filesave-48.png" />
+    <Content Include="source\client\savefilesbutton\Over.png" />
+    <Content Include="source\client\savefilesbutton\Up.png" />
+    <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
+    <Content Include="source\randm\crt\font\PNG\437-12x23.png" />
+    <Content Include="source\randm\crt\font\PNG\437-6x8.png" />
+    <Content Include="source\randm\crt\font\PNG\437-7x12.png" />
+    <Content Include="source\randm\crt\font\PNG\437-8x12.png" />
+    <Content Include="source\randm\crt\font\PNG\437-8x13.png" />
+    <Content Include="source\randm\crt\font\PNG\437-8x14.png" />
+    <Content Include="source\randm\crt\font\PNG\437-8x8.png" />
+    <Content Include="source\randm\crt\font\PNG\437-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\737-12x23.png" />
+    <Content Include="source\randm\crt\font\PNG\737-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\775-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\850-10x19.png" />
+    <Content Include="source\randm\crt\font\PNG\850-12x23.png" />
+    <Content Include="source\randm\crt\font\PNG\850-8x13.png" />
+    <Content Include="source\randm\crt\font\PNG\850-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\852-10x19.png" />
+    <Content Include="source\randm\crt\font\PNG\852-12x23.png" />
+    <Content Include="source\randm\crt\font\PNG\852-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\855-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\857-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\860-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\861-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\862-10x19.png" />
+    <Content Include="source\randm\crt\font\PNG\863-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\865-10x19.png" />
+    <Content Include="source\randm\crt\font\PNG\865-12x23.png" />
+    <Content Include="source\randm\crt\font\PNG\865-8x13.png" />
+    <Content Include="source\randm\crt\font\PNG\865-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\866-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\869-9x16.png" />
+    <Content Include="source\randm\crt\font\PNG\ATASCII-Arabic-16x16.png" />
+    <Content Include="source\randm\crt\font\PNG\ATASCII-Arabic-HalfWidth-8x16.png" />
+    <Content Include="source\randm\crt\font\PNG\ATASCII-Graphics-16x16.png" />
+    <Content Include="source\randm\crt\font\PNG\ATASCII-Graphics-HalfWidth-8x16.png" />
+    <Content Include="source\randm\crt\font\PNG\ATASCII-International-16x16.png" />
+    <Content Include="source\randm\crt\font\PNG\ATASCII-International-HalfWidth-8x16.png" />
+    <Content Include="source\randm\crt\font\PNG\BStrict-8x8.png" />
+    <Content Include="source\randm\crt\font\PNG\BStruct-8x8.png" />
+    <Content Include="source\randm\crt\font\PNG\MicroKnight-8x8.png" />
+    <Content Include="source\randm\crt\font\PNG\MoSoul-8x8.png" />
+    <Content Include="source\randm\crt\font\PNG\PETSCII-Lower-16x16.png" />
+    <Content Include="source\randm\crt\font\PNG\PETSCII-Upper-16x16.png" />
+    <Content Include="source\randm\crt\font\PNG\PotNoodle-8x11.png" />
+    <Content Include="source\randm\crt\font\PNG\Topaz-8x11.png" />
+    <Content Include="source\randm\crt\font\PNG\TopazPlus-8x11.png" />
+    <Content Include="source\randm\crt\font\RIP\RIP-16x14.png" />
+    <Content Include="source\randm\crt\font\RIP\RIP-7x14.png" />
+    <Content Include="source\randm\crt\font\RIP\RIP-7x8.png" />
+    <Content Include="source\randm\crt\font\RIP\RIP-8x14.png" />
+    <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="source\client\savefilesbutton\TSaveFilesButton.ts" />
+    <TypeScriptCompile Include="source\Helper.ts" />
+    <TypeScriptCompile Include="source\HtmlTerm.ts" />
+    <TypeScriptCompile Include="source\ImpliedGlobals.ts" />
+    <TypeScriptCompile Include="source\randm\actionscript\ByteArray.ts" />
+    <TypeScriptCompile Include="source\randm\actionscript\FileReference.ts" />
+    <TypeScriptCompile Include="source\randm\actionscript\Keyboard.ts" />
+    <TypeScriptCompile Include="source\randm\actionscript\Point.ts" />
+    <TypeScriptCompile Include="source\randm\ansi\Ansi.ts" />
+    <TypeScriptCompile Include="source\randm\ansi\AnsiParserState.ts" />
+    <TypeScriptCompile Include="source\randm\ansi\ESCQEvent.ts" />
+    <TypeScriptCompile Include="source\randm\crt\BorderStyle.ts" />
+    <TypeScriptCompile Include="source\randm\crt\ContentAlignment.ts" />
+    <TypeScriptCompile Include="source\randm\crt\Crt.ts" />
+    <TypeScriptCompile Include="source\randm\crt\cursor\BlinkState.ts" />
+    <TypeScriptCompile Include="source\randm\crt\cursor\TCursor.ts" />
+    <TypeScriptCompile Include="source\randm\crt\font\TFont.ts" />
+    <TypeScriptCompile Include="source\randm\crt\font\TFont437.ts" />
+    <TypeScriptCompile Include="source\randm\crt\font\TFontAmiga.ts" />
+    <TypeScriptCompile Include="source\randm\crt\font\TFontAtari.ts" />
+    <TypeScriptCompile Include="source\randm\crt\font\TFontC64.ts" />
+    <TypeScriptCompile Include="source\randm\crt\font\TFontIntl.ts" />
+    <TypeScriptCompile Include="source\randm\crt\KeyPressEvent.ts" />
+    <TypeScriptCompile Include="source\randm\crt\ProgressBarStyle.ts" />
+    <TypeScriptCompile Include="source\randm\crt\TCharInfo.ts" />
+    <TypeScriptCompile Include="source\randm\crt\TCrtControl.ts" />
+    <TypeScriptCompile Include="source\randm\crt\TCrtLabel.ts" />
+    <TypeScriptCompile Include="source\randm\crt\TCrtPanel.ts" />
+    <TypeScriptCompile Include="source\randm\crt\TCrtProgressBar.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetCommand.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetNegotiationState.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetOption.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\telnet\TTelnetConnection.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\TTcpConnection.ts" />
+    <TypeScriptCompile Include="source\randm\xfer\CRC.ts" />
+    <TypeScriptCompile Include="source\randm\xfer\TFileRecord.ts" />
+    <TypeScriptCompile Include="source\randm\xfer\TYModemReceive.ts" />
+    <TypeScriptCompile Include="source\randm\xfer\TYModemSend.ts" />
+    <TypeScriptCompile Include="source\string-base64.ts" />
+    <TypeScriptCompile Include="source\StringUtils.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="source\client\savefilesbutton\Icon Source.url" />
+    <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
+    <Content Include="source\randm\tcp\rlogin\RLoginCommand.as" />
+    <Content Include="source\randm\tcp\rlogin\RLoginNegotiationState.as" />
+    <Content Include="source\randm\tcp\rlogin\TRLoginConnection.as" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
     <None Include="web.Release.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="release\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
@@ -62,6 +165,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
+    <TypeScriptOutFile>release\ftelnet.js</TypeScriptOutFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TypeScriptRemoveComments>true</TypeScriptRemoveComments>
