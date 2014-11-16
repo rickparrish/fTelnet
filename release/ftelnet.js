@@ -3,14 +3,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var fTelnet = (function () {
@@ -796,127 +796,19 @@ var Offset;
     }
     Offset.getOffset = getOffset;
 })(Offset || (Offset = {}));
-/* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-// From: http://hg.mozilla.org/mozilla-central/raw-file/ec10630b1a54/js/src/devtools/jint/sunspider/string-base64.js
-/*jslint white: false, bitwise: false, plusplus: false */
-/*global console */
-var Base64 = {
-    /* Convert data (an array of integers) to a Base64 string. */
-    toBase64Table: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split(''),
-    base64Pad: '=',
-    encode: function (data) {
-        'use strict';
-        var result = '';
-        var toBase64Table = Base64.toBase64Table;
-        var base64Pad = Base64.base64Pad;
-        var length = data.length;
-        var i;
-
-        for (i = 0; i < (length - 2); i += 3) {
-            result += toBase64Table[data[i] >> 2];
-            result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
-            result += toBase64Table[((data[i + 1] & 0x0f) << 2) + (data[i + 2] >> 6)];
-            result += toBase64Table[data[i + 2] & 0x3f];
-        }
-
-        /* END LOOP */
-        // Convert the remaining 1 or 2 bytes, pad out to 4 characters.
-        if (length % 3) {
-            i = length - (length % 3);
-            result += toBase64Table[data[i] >> 2];
-            if ((length % 3) === 2) {
-                result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
-                result += toBase64Table[(data[i + 1] & 0x0f) << 2];
-                result += base64Pad;
-            } else {
-                result += toBase64Table[(data[i] & 0x03) << 4];
-                result += base64Pad + base64Pad;
-            }
-        }
-
-        return result;
-    },
-    /* Convert Base64 data to a string */
-    toBinaryTable: [
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
-        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 0, -1, -1,
-        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
-    ],
-    decode: function (data, offset) {
-        'use strict';
-        offset = typeof (offset) !== 'undefined' ? offset : 0;
-        var toBinaryTable = Base64.toBinaryTable;
-        var base64Pad = Base64.base64Pad;
-        var result, result_length, idx, i, c, padding;
-        var leftbits = 0;
-        var leftdata = 0;
-        var data_length = data.indexOf('=') - offset;
-
-        if (data_length < 0) {
-            data_length = data.length - offset;
-        }
-
-        /* Every four characters is 3 resulting numbers */
-        result_length = (data_length >> 2) * 3 + Math.floor((data_length % 4) / 1.5);
-        result = new Array(result_length);
-
-        for (idx = 0, i = offset; i < data.length; i++) {
-            c = toBinaryTable[data.charCodeAt(i) & 0x7f];
-            padding = (data.charAt(i) === base64Pad);
-
-            // Skip illegal characters and whitespace
-            if (c === -1) {
-                console.error('Illegal character code ' + data.charCodeAt(i) + ' at position ' + i);
-            } else {
-                // Collect data into leftdata, update bitcount
-                leftdata = (leftdata << 6) | c;
-                leftbits += 6;
-
-                // If we have 8 or more bits, append 8 bits to the result
-                if (leftbits >= 8) {
-                    leftbits -= 8;
-
-                    // Append if not padding.
-                    if (!padding) {
-                        result[idx++] = (leftdata >> leftbits) & 0xff;
-                    }
-                    leftdata &= (1 << leftbits) - 1;
-                }
-            }
-        }
-
-        /* END LOOP */
-        // If there are any bits left, the base64 string was corrupted
-        if (leftbits) {
-            throw {
-                name: 'Base64-Error',
-                message: 'Corrupted base64 string'
-            };
-        }
-
-        return result;
-    }
-};
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var SaveFilesButton = (function () {
@@ -1005,14 +897,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var ByteArray = (function () {
@@ -1205,14 +1097,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var Keyboard;
@@ -1258,14 +1150,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var Point = (function () {
@@ -1280,14 +1172,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var Ansi = (function () {
@@ -2096,14 +1988,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <summary>
@@ -2141,14 +2033,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var ESCQEvent = (function () {
@@ -2164,14 +2056,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var CharInfo = (function () {
@@ -2199,14 +2091,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var BorderStyle;
@@ -2250,14 +2142,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var ContentAlignment;
@@ -2280,14 +2172,35 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY, without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var ProgressBarStyle;
+(function (ProgressBarStyle) {
+    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
+    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
+    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
+})(ProgressBarStyle || (ProgressBarStyle = {}));
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var CrtControl = (function () {
@@ -2502,14 +2415,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var CrtLabel = (function (_super) {
@@ -2589,14 +2502,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var CrtPanel = (function (_super) {
@@ -2764,14 +2677,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var CrtProgressBar = (function (_super) {
@@ -3025,35 +2938,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var ProgressBarStyle;
-(function (ProgressBarStyle) {
-    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
-    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
-    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
-})(ProgressBarStyle || (ProgressBarStyle = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path='CharInfo.ts' />
@@ -5123,14 +5015,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var BlinkState;
@@ -5143,14 +5035,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var Cursor = (function () {
@@ -5315,14 +5207,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var CrtFonts = [];
@@ -5541,14 +5433,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 // TODO
@@ -5573,14 +5465,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 // TODO
@@ -5596,14 +5488,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 CrtFonts['ATASCII-Arabic-HalfWidthx8x16'] = 'data:image/png;base64,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';
@@ -5617,14 +5509,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 CrtFonts['PETSCII-Lowerx16x16'] = 'data:image/png;base64,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';
@@ -5634,14 +5526,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 // TODO
@@ -5678,14 +5570,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var KeyPressEvent = (function () {
@@ -5704,98 +5596,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var StringUtils = (function () {
-    function StringUtils() {
-    }
-    StringUtils.AddCommas = function (value) {
-        var Result = '';
-
-        var Position = 1;
-        for (var i = value.toString().length - 1; i >= 0; i--) {
-            if ((Position > 3) && (Position % 3 === 1)) {
-                Result = ',' + Result;
-            }
-            Result = value.toString().charAt(i) + Result;
-            Position++;
-        }
-
-        return Result;
-    };
-
-    StringUtils.FormatPercent = function (value, fractionDigits) {
-        return (value * 100).toFixed(fractionDigits) + '%';
-    };
-
-    StringUtils.NewString = function (ch, length) {
-        if (ch.length === 0) {
-            return '';
-        }
-
-        var Result = '';
-        for (var i = 0; i < length; i++) {
-            Result += ch.charAt(0);
-        }
-        return Result;
-    };
-
-    StringUtils.PadLeft = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text = ch.charAt(0) + text;
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.PadRight = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text += ch.charAt(0);
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.Trim = function (text) {
-        return this.TrimLeft(this.TrimRight(text));
-    };
-
-    StringUtils.TrimLeft = function (text) {
-        return text.replace(/^\s+/g, '');
-    };
-
-    StringUtils.TrimRight = function (text) {
-        return text.replace(/\s+$/g, '');
-    };
-    return StringUtils;
-})();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var TelnetCommand;
@@ -5887,14 +5695,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var TelnetNegotiationState;
@@ -5934,14 +5742,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var TelnetOption;
@@ -6072,14 +5880,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var WebSocketProtocol = ('https:' === document.location.protocol ? 'wss' : 'ws');
@@ -6321,14 +6129,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path="../WebSocketConnection.ts" />
@@ -6723,14 +6531,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var CRC = (function () {
@@ -6799,14 +6607,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var FileRecord = (function () {
@@ -6847,14 +6655,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var YModemReceive = (function () {
@@ -7155,14 +6963,14 @@ fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var YModemSend = (function () {
@@ -7560,19 +7368,127 @@ var YModemSend = (function () {
     };
     return YModemSend;
 })();
+/* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this
+* file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// From: http://hg.mozilla.org/mozilla-central/raw-file/ec10630b1a54/js/src/devtools/jint/sunspider/string-base64.js
+/*jslint white: false, bitwise: false, plusplus: false */
+/*global console */
+var Base64 = {
+    /* Convert data (an array of integers) to a Base64 string. */
+    toBase64Table: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split(''),
+    base64Pad: '=',
+    encode: function (data) {
+        'use strict';
+        var result = '';
+        var toBase64Table = Base64.toBase64Table;
+        var base64Pad = Base64.base64Pad;
+        var length = data.length;
+        var i;
+
+        for (i = 0; i < (length - 2); i += 3) {
+            result += toBase64Table[data[i] >> 2];
+            result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
+            result += toBase64Table[((data[i + 1] & 0x0f) << 2) + (data[i + 2] >> 6)];
+            result += toBase64Table[data[i + 2] & 0x3f];
+        }
+
+        /* END LOOP */
+        // Convert the remaining 1 or 2 bytes, pad out to 4 characters.
+        if (length % 3) {
+            i = length - (length % 3);
+            result += toBase64Table[data[i] >> 2];
+            if ((length % 3) === 2) {
+                result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
+                result += toBase64Table[(data[i + 1] & 0x0f) << 2];
+                result += base64Pad;
+            } else {
+                result += toBase64Table[(data[i] & 0x03) << 4];
+                result += base64Pad + base64Pad;
+            }
+        }
+
+        return result;
+    },
+    /* Convert Base64 data to a string */
+    toBinaryTable: [
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 0, -1, -1,
+        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
+    ],
+    decode: function (data, offset) {
+        'use strict';
+        offset = typeof (offset) !== 'undefined' ? offset : 0;
+        var toBinaryTable = Base64.toBinaryTable;
+        var base64Pad = Base64.base64Pad;
+        var result, result_length, idx, i, c, padding;
+        var leftbits = 0;
+        var leftdata = 0;
+        var data_length = data.indexOf('=') - offset;
+
+        if (data_length < 0) {
+            data_length = data.length - offset;
+        }
+
+        /* Every four characters is 3 resulting numbers */
+        result_length = (data_length >> 2) * 3 + Math.floor((data_length % 4) / 1.5);
+        result = new Array(result_length);
+
+        for (idx = 0, i = offset; i < data.length; i++) {
+            c = toBinaryTable[data.charCodeAt(i) & 0x7f];
+            padding = (data.charAt(i) === base64Pad);
+
+            // Skip illegal characters and whitespace
+            if (c === -1) {
+                console.error('Illegal character code ' + data.charCodeAt(i) + ' at position ' + i);
+            } else {
+                // Collect data into leftdata, update bitcount
+                leftdata = (leftdata << 6) | c;
+                leftbits += 6;
+
+                // If we have 8 or more bits, append 8 bits to the result
+                if (leftbits >= 8) {
+                    leftbits -= 8;
+
+                    // Append if not padding.
+                    if (!padding) {
+                        result[idx++] = (leftdata >> leftbits) & 0xff;
+                    }
+                    leftdata &= (1 << leftbits) - 1;
+                }
+            }
+        }
+
+        /* END LOOP */
+        // If there are any bits left, the base64 string was corrupted
+        if (leftbits) {
+            throw {
+                name: 'Base64-Error',
+                message: 'Corrupted base64 string'
+            };
+        }
+
+        return result;
+    }
+};
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
 fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var YModemSendState;
@@ -7583,4 +7499,88 @@ var YModemSendState;
     YModemSendState[YModemSendState["SendingData"] = 3] = "SendingData";
     YModemSendState[YModemSendState["WaitingForFileAck"] = 4] = "WaitingForFileAck";
 })(YModemSendState || (YModemSendState = {}));
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var StringUtils = (function () {
+    function StringUtils() {
+    }
+    StringUtils.AddCommas = function (value) {
+        var Result = '';
+
+        var Position = 1;
+        for (var i = value.toString().length - 1; i >= 0; i--) {
+            if ((Position > 3) && (Position % 3 === 1)) {
+                Result = ',' + Result;
+            }
+            Result = value.toString().charAt(i) + Result;
+            Position++;
+        }
+
+        return Result;
+    };
+
+    StringUtils.FormatPercent = function (value, fractionDigits) {
+        return (value * 100).toFixed(fractionDigits) + '%';
+    };
+
+    StringUtils.NewString = function (ch, length) {
+        if (ch.length === 0) {
+            return '';
+        }
+
+        var Result = '';
+        for (var i = 0; i < length; i++) {
+            Result += ch.charAt(0);
+        }
+        return Result;
+    };
+
+    StringUtils.PadLeft = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text = ch.charAt(0) + text;
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.PadRight = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text += ch.charAt(0);
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.Trim = function (text) {
+        return this.TrimLeft(this.TrimRight(text));
+    };
+
+    StringUtils.TrimLeft = function (text) {
+        return text.replace(/^\s+/g, '');
+    };
+
+    StringUtils.TrimRight = function (text) {
+        return text.replace(/\s+$/g, '');
+    };
+    return StringUtils;
+})();
 //# sourceMappingURL=ftelnet.js.map
