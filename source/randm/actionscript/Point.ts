@@ -17,7 +17,12 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var Point = function (AX, AY) {
-    this.x = AX;
-    this.y = AY;
-};
+class Point {
+    public x: number;
+    public y: number;
+
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+}

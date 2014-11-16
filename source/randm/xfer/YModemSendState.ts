@@ -1,4 +1,4 @@
-/*
+﻿/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -17,16 +17,10 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var TCharInfo = function (ACh, AAttr, ABlink, AUnderline, AReverse) {
-    // Handle optional parameters
-    if (typeof ABlink === "undefined") { ABlink = false; }
-    if (typeof AUnderline === "undefined") { AUnderline = false; }
-    if (typeof AReverse === "undefined") { AReverse = false; }
-
-    // Constructor
-    this.Ch = ACh;
-    this.Attr = AAttr;
-    this.Blink = ABlink;
-    this.Underline = AUnderline;
-    this.Reverse = AReverse;
-};
+enum YModemSendState {
+    WaitingForHeaderRequest,
+    WaitingForHeaderAck,
+    WaitingForFileRequest,
+    SendingData,
+    WaitingForFileAck
+}

@@ -17,10 +17,22 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var ProgressBarStyle = 0;
-var TProgressBarStyle = function () {
-    this.Blocks = 254;
-    this.Continuous = 219;
-    this.Marquee = 0;
-};
-ProgressBarStyle = new TProgressBarStyle();
+class CharInfo {
+    public Attr: number;
+    public Blink: boolean;
+    public Ch: string;
+    public Reverse: boolean;
+    public Underline: boolean;
+
+    constructor(ch: string, attr: number, blink?: boolean, underline?: boolean, reverse?: boolean) {
+        if (typeof blink === 'undefined') { blink = false; }
+        if (typeof underline === 'undefined') { underline = false; }
+        if (typeof reverse === 'undefined') { reverse = false; }
+
+        this.Ch = ch;
+        this.Attr = attr;
+        this.Blink = blink;
+        this.Underline = underline;
+        this.Reverse = reverse;
+    }
+}

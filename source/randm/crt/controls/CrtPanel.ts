@@ -17,35 +17,45 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeColour, ABackColour, AText, ATextAlign) {
-    var that = this;
-    var FBorder;
-    var FText = "";
-    var FTextAlign;
+class CrtPanel extends CrtControl {
+    private _Border: BorderStyle;
+    private _Text: string;
+    private _TextAlign: ContentAlignment;
 
-    this.__defineGetter__("Border", function () {
-        return FBorder;
-    });
+    constructor(parent: CrtControl, left: number, top: number, width: number, height: number, border: BorderStyle, foreColour: number, backColour: number, text: string, textAlign: ContentAlignment) {
+        super(parent, left, top, width, height);
 
-    this.__defineSetter__("Border", function (ABorder) {
-        if (ABorder !== FBorder) {
-            FBorder = ABorder;
-            that.Paint(true);
+        this._Border = border;
+        this.ForeColour = foreColour;
+        this.BackColour = backColour;
+        this._Text = text;
+        this._TextAlign = textAlign;
+
+        this.Paint(true);
+    }
+
+    public get Border(): BorderStyle {
+        return this._Border;
+    }
+
+    public set Border(value: BorderStyle) {
+        if (value !== this._Border) {
+            this._Border = value;
+            this.Paint(true);
         }
-    });
+    }
 
-    this.PaintCrtPanel = function (AForce) {
+    public Paint(force: boolean): void {
         // Characters for the box
-        var Line;
-        var TopLeft;
-        var TopRight;
-        var BottomLeft;
-        var BottomRight;
-        var TopBottom;
-        var LeftRight;
+        var TopLeft: string;
+        var TopRight: string;
+        var BottomLeft: string;
+        var BottomRight: string;
+        var TopBottom: string;
+        var LeftRight: string;
 
         // Determine which character set to use
-        switch (FBorder) {
+        switch (this._Border) {
             case BorderStyle.Single:
                 TopLeft = String.fromCharCode(218);
                 TopRight = String.fromCharCode(191);
@@ -83,47 +93,47 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
         }
 
         // Draw top row
-        Crt.FastWrite(TopLeft + StringUtils.NewString(TopBottom, that.Width - 2) + TopRight, that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", that.ForeColour + (that.BackColour << 4)));
+        Crt.FastWrite(TopLeft + StringUtils.NewString(TopBottom, this.Width - 2) + TopRight, this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
 
         // Draw middle rows
-        for (Line = that.ScreenTop + 1; Line < that.ScreenTop + that.Height - 1; Line++) {
-            Crt.FastWrite(LeftRight + StringUtils.NewString(' ', that.Width - 2) + LeftRight, that.ScreenLeft, Line, new TCharInfo(" ", that.ForeColour + (that.BackColour << 4)));
+        for (var Line: number = this.ScreenTop + 1; Line < this.ScreenTop + this.Height - 1; Line++) {
+            Crt.FastWrite(LeftRight + StringUtils.NewString(' ', this.Width - 2) + LeftRight, this.ScreenLeft, Line, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
         }
 
         // Draw bottom row
-        Crt.FastWrite(BottomLeft + StringUtils.NewString(TopBottom, that.Width - 2) + BottomRight, that.ScreenLeft, that.ScreenTop + that.Height - 1, new TCharInfo(" ", that.ForeColour + (that.BackColour << 4)));
+        Crt.FastWrite(BottomLeft + StringUtils.NewString(TopBottom, this.Width - 2) + BottomRight, this.ScreenLeft, this.ScreenTop + this.Height - 1, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
 
         // Draw window title
-        if (StringUtils.Trim(FText).length > 0) {
-            var TitleX = 0;
-            var TitleY = 0;
-            var WindowTitle = " " + StringUtils.Trim(FText) + " ";
+        if (StringUtils.Trim(this._Text).length > 0) {
+            var TitleX: number = 0;
+            var TitleY: number = 0;
+            var WindowTitle: string = ' ' + StringUtils.Trim(this._Text) + ' ';
 
             // Get X component
-            switch (FTextAlign) {
+            switch (this._TextAlign) {
                 case ContentAlignment.BottomLeft:
                 case ContentAlignment.MiddleLeft:
                 case ContentAlignment.TopLeft:
-                    TitleX = that.ScreenLeft + 2;
+                    TitleX = this.ScreenLeft + 2;
                     break;
                 case ContentAlignment.BottomCenter:
                 case ContentAlignment.MiddleCenter:
                 case ContentAlignment.TopCenter:
-                    TitleX = that.ScreenLeft + Math.round((that.Width - WindowTitle.length) / 2);
+                    TitleX = this.ScreenLeft + Math.round((this.Width - WindowTitle.length) / 2);
                     break;
                 case ContentAlignment.BottomRight:
                 case ContentAlignment.MiddleRight:
                 case ContentAlignment.TopRight:
-                    TitleX = that.ScreenLeft + that.Width - WindowTitle.length - 2;
+                    TitleX = this.ScreenLeft + this.Width - WindowTitle.length - 2;
                     break;
             }
 
             // Get the Y component
-            switch (FTextAlign) {
+            switch (this._TextAlign) {
                 case ContentAlignment.BottomCenter:
                 case ContentAlignment.BottomLeft:
                 case ContentAlignment.BottomRight:
-                    TitleY = that.ScreenTop + that.Height - 1;
+                    TitleY = this.ScreenTop + this.Height - 1;
                     break;
                 case ContentAlignment.MiddleCenter:
                 case ContentAlignment.MiddleLeft:
@@ -131,50 +141,32 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
                 case ContentAlignment.TopCenter:
                 case ContentAlignment.TopLeft:
                 case ContentAlignment.TopRight:
-                    TitleY = that.ScreenTop;
+                    TitleY = this.ScreenTop;
                     break;
             }
 
             // Draw title
-            Crt.FastWrite(WindowTitle, TitleX, TitleY, new TCharInfo(" ", that.ForeColour + (that.BackColour << 4)));
+            Crt.FastWrite(WindowTitle, TitleX, TitleY, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
         }
-    };
+    }
 
-    this.__defineGetter__("Text", function () {
-        return FText;
-    });
+    public get Text(): string {
+        return this._Text;
+    }
 
-    this.__defineSetter__("Text", function (AText) {
-        FText = AText;
-        that.Paint(true);
-    });
+    public set Text(value: string) {
+        this._Text = value;
+        this.Paint(true);
+    }
 
-    this.__defineGetter__("TextAlign", function () {
-        return FTextAlign;
-    });
+    public get TextAlign(): ContentAlignment {
+        return this._TextAlign;
+    }
 
-    this.__defineSetter__("TextAlign", function (ATextAlign) {
-        if (ATextAlign !== FTextAlign) {
-            FTextAlign = ATextAlign;
-            that.Paint(true);
+    public set TextAlign(value: ContentAlignment) {
+        if (value !== this._TextAlign) {
+            this._TextAlign = value;
+            this.Paint(true);
         }
-    });
-
-    // Constructor
-    TCrtControl.call(this, AParent, ALeft, ATop, AWidth, AHeight);
-
-    FBorder = ABorder;
-    that.ForeColour = AForeColour;
-    that.BackColour = ABackColour;
-    FText = AText;
-    FTextAlign = ATextAlign;
-
-    that.Paint(true);
-};
-
-TCrtPanel.prototype = new TCrtControlSurrogate();
-TCrtPanel.prototype.constructor = TCrtPanel;
-
-TCrtPanel.prototype.Paint = function (AForce) {
-    this.PaintCrtPanel();
-};
+    }
+}

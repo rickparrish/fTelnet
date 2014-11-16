@@ -17,34 +17,33 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var AnsiParserState = 0;
 /// <summary>
 /// The possible states the ANSI parser may find itself in
 /// </summary>
-var TAnsiParserState = function () {
+enum AnsiParserState {
 	/// <summary>
 	/// The default data state
 	/// </summary>
-	this.None = 0;
-		
+	None = 0,
+
 	/// <summary>
 	/// The last received character was an ESC
 	/// </summary>
-	this.Escape = 1;
-		
+	Escape = 1,
+
 	/// <summary>
 	/// The last received character was a [
 	/// </summary>
-	this.Bracket = 2;
+	Bracket = 2,
 
     /// <summary>
     /// The last received character was a parameter byte (0 to ?)
     /// </summary>
-	this.ParameterByte = 3;
+	ParameterByte = 3,
 
     /// <summary>
     /// The last received character was a intermediate byte (space to /)
     /// </summary>
-	this.IntermediateByte = 4;
-};
-AnsiParserState = new TAnsiParserState();
+	IntermediateByte = 4
+}
+

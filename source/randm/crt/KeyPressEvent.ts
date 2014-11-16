@@ -17,12 +17,20 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var KeyPressEvent = function (AKeyEvent, AKeyString) {
-    // Constructor		
-    this.altKey = AKeyEvent.altKey;
-    this.charCode = AKeyEvent.charCode;
-    this.ctrlKey = AKeyEvent.ctrlKey;
-    this.keyCode = AKeyEvent.keyCode;
-    this.keyString = AKeyString;
-    this.shiftKey = AKeyEvent.shiftKey;
-};
+class KeyPressEvent {
+    public altKey: boolean;
+    public charCode: number;
+    public ctrlKey: boolean;
+    public keyCode: number;
+    public keyString: string;
+    public shiftKey: boolean;
+
+    constructor(keyEvent: KeyboardEvent, keyString: string) {
+        this.altKey = keyEvent.altKey;
+        this.charCode = keyEvent.charCode;
+        this.ctrlKey = keyEvent.ctrlKey;
+        this.keyCode = keyEvent.keyCode;
+        this.keyString = keyString;
+        this.shiftKey = keyEvent.shiftKey;
+    }
+}

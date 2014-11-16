@@ -20,8 +20,10 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="index.html" />
+    <Content Include="release\index.html" />
     <Content Include="source\client\savefilesbutton\Down.png" />
     <Content Include="source\client\savefilesbutton\filesave-48.png" />
+    <Content Include="source\client\savefilesbutton\Icon Source.url" />
     <Content Include="source\client\savefilesbutton\Over.png" />
     <Content Include="source\client\savefilesbutton\Up.png" />
     <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
@@ -75,57 +77,58 @@
     <Content Include="source\randm\crt\font\RIP\RIP-7x8.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-8x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
+    <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
+    <Content Include="source\randm\tcp\rlogin\RLoginCommand.as" />
+    <Content Include="source\randm\tcp\rlogin\RLoginNegotiationState.as" />
+    <Content Include="source\randm\tcp\rlogin\TRLoginConnection.as" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="source\client\savefilesbutton\TSaveFilesButton.ts" />
-    <TypeScriptCompile Include="source\Helper.ts" />
+    <TypeScriptCompile Include="source\3rdparty\FileSaver.d.ts" />
+    <TypeScriptCompile Include="source\3rdparty\Offset.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="source\client\savefilesbutton\SaveFilesButton.ts" />
     <TypeScriptCompile Include="source\HtmlTerm.ts" />
-    <TypeScriptCompile Include="source\ImpliedGlobals.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\ByteArray.ts" />
-    <TypeScriptCompile Include="source\randm\actionscript\FileReference.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Keyboard.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Point.ts" />
     <TypeScriptCompile Include="source\randm\ansi\Ansi.ts" />
     <TypeScriptCompile Include="source\randm\ansi\AnsiParserState.ts" />
     <TypeScriptCompile Include="source\randm\ansi\ESCQEvent.ts" />
-    <TypeScriptCompile Include="source\randm\crt\BorderStyle.ts" />
-    <TypeScriptCompile Include="source\randm\crt\ContentAlignment.ts" />
+    <TypeScriptCompile Include="source\randm\crt\CharInfo.ts" />
+    <TypeScriptCompile Include="source\randm\crt\controls\BorderStyle.ts" />
+    <TypeScriptCompile Include="source\randm\crt\controls\ContentAlignment.ts" />
+    <TypeScriptCompile Include="source\randm\crt\controls\ProgressBarStyle.ts" />
+    <TypeScriptCompile Include="source\randm\crt\controls\CrtControl.ts" />
+    <TypeScriptCompile Include="source\randm\crt\controls\CrtLabel.ts" />
+    <TypeScriptCompile Include="source\randm\crt\controls\CrtPanel.ts" />
+    <TypeScriptCompile Include="source\randm\crt\controls\CrtProgressBar.ts" />
     <TypeScriptCompile Include="source\randm\crt\Crt.ts" />
     <TypeScriptCompile Include="source\randm\crt\cursor\BlinkState.ts" />
-    <TypeScriptCompile Include="source\randm\crt\cursor\TCursor.ts" />
-    <TypeScriptCompile Include="source\randm\crt\font\TFont.ts" />
+    <TypeScriptCompile Include="source\randm\crt\cursor\Cursor.ts" />
+    <TypeScriptCompile Include="source\randm\crt\font\CrtFont.ts" />
     <TypeScriptCompile Include="source\randm\crt\font\TFont437.ts" />
     <TypeScriptCompile Include="source\randm\crt\font\TFontAmiga.ts" />
     <TypeScriptCompile Include="source\randm\crt\font\TFontAtari.ts" />
     <TypeScriptCompile Include="source\randm\crt\font\TFontC64.ts" />
     <TypeScriptCompile Include="source\randm\crt\font\TFontIntl.ts" />
     <TypeScriptCompile Include="source\randm\crt\KeyPressEvent.ts" />
-    <TypeScriptCompile Include="source\randm\crt\ProgressBarStyle.ts" />
-    <TypeScriptCompile Include="source\randm\crt\TCharInfo.ts" />
-    <TypeScriptCompile Include="source\randm\crt\TCrtControl.ts" />
-    <TypeScriptCompile Include="source\randm\crt\TCrtLabel.ts" />
-    <TypeScriptCompile Include="source\randm\crt\TCrtPanel.ts" />
-    <TypeScriptCompile Include="source\randm\crt\TCrtProgressBar.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetNegotiationState.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetOption.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TTelnetConnection.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\TTcpConnection.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\WebSocketConnection.ts" />
     <TypeScriptCompile Include="source\randm\xfer\CRC.ts" />
-    <TypeScriptCompile Include="source\randm\xfer\TFileRecord.ts" />
-    <TypeScriptCompile Include="source\randm\xfer\TYModemReceive.ts" />
-    <TypeScriptCompile Include="source\randm\xfer\TYModemSend.ts" />
-    <TypeScriptCompile Include="source\string-base64.ts" />
-    <TypeScriptCompile Include="source\StringUtils.ts" />
+    <TypeScriptCompile Include="source\randm\xfer\FileRecord.ts" />
+    <TypeScriptCompile Include="source\randm\xfer\YModemReceive.ts" />
+    <TypeScriptCompile Include="source\randm\xfer\YModemSend.ts" />
+    <TypeScriptCompile Include="source\3rdparty\string-base64.ts" />
+    <TypeScriptCompile Include="source\randm\xfer\YModemSendState.ts" />
+    <TypeScriptCompile Include="source\randm\StringUtils.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="source\client\savefilesbutton\Icon Source.url" />
-    <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
-    <Content Include="source\randm\tcp\rlogin\RLoginCommand.as" />
-    <Content Include="source\randm\tcp\rlogin\RLoginNegotiationState.as" />
-    <Content Include="source\randm\tcp\rlogin\TRLoginConnection.as" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -133,9 +136,7 @@
       <DependentUpon>web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="release\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
   </PropertyGroup>
@@ -166,6 +167,7 @@
     <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
     <TypeScriptOutFile>release\ftelnet.js</TypeScriptOutFile>
+    <TypeScriptTarget>ES5</TypeScriptTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TypeScriptRemoveComments>true</TypeScriptRemoveComments>

@@ -17,205 +17,187 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var Crt = function () { }; // Do nothing
-var TCrt = function () {
+/// <reference path='CharInfo.ts' />
+class Crt {
     /// <summary>
     /// A class for manipulating a console window
     /// Compatibility with the Borland Pascal CRT unit was attempted, along with a few new additions
     /// </summary>
+
+    // Public events
+    public static SCREEN_SIZE_CHANGED: string = 'SCREEN_SIZE_CHANGED';
 
     /*  Color Constants
     ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
     Use these color constants with SetPalette, SetAllPalette, TextColor, and
     TextBackground:
     */
-    this.BLACK = 0;
-    this.BLUE = 1;
-    this.GREEN = 2;
-    this.CYAN = 3;
-    this.RED = 4;
-    this.MAGENTA = 5;
-    this.BROWN = 6;
-    this.LIGHTGRAY = 7;
-    this.DARKGRAY = 8;
-    this.LIGHTBLUE = 9;
-    this.LIGHTGREEN = 10;
-    this.LIGHTCYAN = 11;
-    this.LIGHTRED = 12;
-    this.LIGHTMAGENTA = 13;
-    this.YELLOW = 14;
-    this.WHITE = 15;
-    this.BLINK = 128;
+    public static BLACK: number = 0;
+    public static BLUE: number = 1;
+    public static GREEN: number = 2;
+    public static CYAN: number = 3;
+    public static RED: number = 4;
+    public static MAGENTA: number = 5;
+    public static BROWN: number = 6;
+    public static LIGHTGRAY: number = 7;
+    public static DARKGRAY: number = 8;
+    public static LIGHTBLUE: number = 9;
+    public static LIGHTGREEN: number = 10;
+    public static LIGHTCYAN: number = 11;
+    public static LIGHTRED: number = 12;
+    public static LIGHTMAGENTA: number = 13;
+    public static YELLOW: number = 14;
+    public static WHITE: number = 15;
+    public static BLINK: number = 128;
 
-    this.PETSCII_BLACK = 0;
-    this.PETSCII_WHITE = 1;
-    this.PETSCII_RED = 2;
-    this.PETSCII_CYAN = 3;
-    this.PETSCII_PURPLE = 4;
-    this.PETSCII_GREEN = 5;
-    this.PETSCII_BLUE = 6;
-    this.PETSCII_YELLOW = 7;
-    this.PETSCII_ORANGE = 8;
-    this.PETSCII_BROWN = 9;
-    this.PETSCII_LIGHTRED = 10;
-    this.PETSCII_DARKGRAY = 11;
-    this.PETSCII_GRAY = 12;
-    this.PETSCII_LIGHTGREEN = 13;
-    this.PETSCII_LIGHTBLUE = 14;
-    this.PETSCII_LIGHTGRAY = 15;
+    public static PETSCII_BLACK: number = 0;
+    public static PETSCII_WHITE: number = 1;
+    public static PETSCII_RED: number = 2;
+    public static PETSCII_CYAN: number = 3;
+    public static PETSCII_PURPLE: number = 4;
+    public static PETSCII_GREEN: number = 5;
+    public static PETSCII_BLUE: number = 6;
+    public static PETSCII_YELLOW: number = 7;
+    public static PETSCII_ORANGE: number = 8;
+    public static PETSCII_BROWN: number = 9;
+    public static PETSCII_LIGHTRED: number = 10;
+    public static PETSCII_DARKGRAY: number = 11;
+    public static PETSCII_GRAY: number = 12;
+    public static PETSCII_LIGHTGREEN: number = 13;
+    public static PETSCII_LIGHTBLUE: number = 14;
+    public static PETSCII_LIGHTGRAY: number = 15;
 
     /* Private variables */
-    var that = this;
-    var FAtari;
-    var FATASCIIEscaped;
-    var FBitmap;
-    var FBlink;
-    var FBlinkHidden;
-    var FBuffer;
-    var FC64;
-    var FCanvas;
-    var FCharInfo;
-    var FContext;
-    var FCursor;
-    var FFlushBeforeWritePETSCII;
-    var FFont;
-    var FInScrollBack;
-    var FKeyBuf;
-    var FLastChar;
-    var FLocalEcho;
-    var FScreenSize;
-    var FScrollBack;
-    var FScrollBackPosition;
-    var FScrollBackSize;
-    var FScrollBackTemp;
-    var FWindMin;
-    var FWindMax;
+    private static _Atari: boolean;
+    private static _ATASCIIEscaped: boolean;
+    private static _Blink: boolean;
+    private static _BlinkHidden: boolean;
+    private static _Buffer: CharInfo[][];
+    private static _C64: boolean;
+    private static _Canvas: HTMLCanvasElement;
+    private static _CanvasContext: CanvasRenderingContext2D;
+    private static _CharInfo: CharInfo;
+    private static _Cursor: Cursor;
+    private static _FlushBeforeWritePETSCII: number[];
+    private static _Font: CrtFont;
+    private static _InScrollBack: boolean;
+    private static _KeyBuf: KeyPressEvent[];
+    private static _LastChar: number;
+    private static _LocalEcho: boolean;
+    private static _ScreenSize: Point;
+    private static _ScrollBack: CharInfo[][];
+    private static _ScrollBackPosition: number;
+    private static _ScrollBackSize: number;
+    private static _ScrollBackTemp: CharInfo[][];
+    private static _WindMin: number;
+    private static _WindMax: number;
 
-    // Sigh: Chrome 7.0.517 stable has a canvas problem.
-    // http://code.google.com/p/chromium/issues/detail?id=60336
-    var brokenCanvasUpdate = (navigator.userAgent.toLowerCase().indexOf("chrome/7.0.517") !== -1);
-
-    // Private methods
-    var InitBuffers = function (AInitScrollBack) { }; // Do nothing
-    var OnBlinkHide = function (e) { }; // Do nothing
-    var OnBlinkShow = function (e) { }; // Do nothing
-    var OnFontChanged = function (e) { }; // Do nothing
-    var OnKeyDown = function (ke) { }; // Do nothing
-    var OnKeyPress = function (ke) { }; // Do nothing
-
-    Array.prototype.InitTwoDimensions = function (y, x) {
-        var i;
-        for (i = 0; i <= y; i++) {
-            this[i] = [x + 1];
-        }
-    };
-
-    this.Init = function (AParent) {
+    public static Init(parent: HTMLElement): boolean {
         // Init variables
-        FAtari = false;
-        FATASCIIEscaped = false;
-        // FBitmap
-        FBlink = true;
-        FBlinkHidden = false;
-        // FBuffer
-        FC64 = false;
-        // FCanvas
-        FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
-        // FCursor
-        FFlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
-        FFont = new TFont();
-        FFont.onchange = OnFontChanged;
-        FInScrollBack = false;
-        FKeyBuf = [];
-        FLastChar = 0;
-        FLocalEcho = false;
-        FScreenSize = new Point(80, 25);
-        // FScrollBack
-        FScrollBackPosition = -1;
-        FScrollBackSize = 1000;
-        // FScrollBackTemp
-        // FWindMin
-        // FWindMax
+        this._Atari = false;
+        this._ATASCIIEscaped = false;
+        this._Blink = true;
+        this._BlinkHidden = false;
+        // this._Buffer
+        this._C64 = false;
+        // this._Canvas
+        // this._CanvasContext
+        this._CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
+        // this._Cursor
+        this._FlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
+        this._Font = new CrtFont();
+        this._Font.onchange = (): void => { this.OnFontChanged(); };
+        this._InScrollBack = false;
+        this._KeyBuf = [];
+        this._LastChar = 0;
+        this._LocalEcho = false;
+        this._ScreenSize = new Point(80, 25);
+        // this._ScrollBack
+        this._ScrollBackPosition = -1;
+        this._ScrollBackSize = 1000;
+        // this._ScrollBackTemp
+        // this._WindMin
+        // this._WindMax
 
         // Create the canvas
-        FCanvas = document.createElement('canvas');
-        FCanvas.id = "HtmlTermCanvas";
-        FCanvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
-        FCanvas.width = FFont.Width * FScreenSize.x;
-        FCanvas.height = FFont.Height * FScreenSize.y;
-        AParent.appendChild(FCanvas);
+        this._Canvas = document.createElement('canvas');
+        this._Canvas.id = 'HtmlTermCanvas';
+        this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
+        this._Canvas.width = this._Font.Width * this._ScreenSize.x;
+        this._Canvas.height = this._Font.Height * this._ScreenSize.y;
 
-        if (!FCanvas.getContext) {
-            trace("HtmlTerm Error: Canvas not supported");
+        // Check for Canvas support
+        if (!this._Canvas.getContext) {
+            console.log('HtmlTerm Error: Canvas not supported');
             return false;
         }
 
+        // Replace the contents of the parent with the canvas
+        parent.innerHTML = '';
+        parent.appendChild(this._Canvas);
+
         // Register keydown and keypress handlers
-        window.addEventListener("keydown", OnKeyDown, false); // For special keys
-        window.addEventListener("keypress", OnKeyPress, false); // For regular keys
+        window.addEventListener('keydown', (ke: KeyboardEvent): void => { this.OnKeyDown(ke); }, false); // For special keys
+        window.addEventListener('keypress', (ke: KeyboardEvent): void => { this.OnKeyPress(ke); }, false); // For regular keys
 
         // Reset the screen buffer
-        InitBuffers(true);
+        this.InitBuffers(true);
 
         // Create the cursor
-        FCursor = new TCursor(AParent, FFont.ANSI_COLOURS[that.LIGHTGRAY], FFont.Size);
-        FCursor.onhide = OnBlinkHide;
-        FCursor.onshow = OnBlinkShow;
+        this._Cursor = new Cursor(parent, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
+        this._Cursor.onhide = (): void => { this.OnBlinkHide(); };
+        this._Cursor.onshow = (): void => { this.OnBlinkShow(); };
 
         // Update the WindMin/WindMax records
-        FWindMin = 0;
-        FWindMax = (FScreenSize.x - 1) | ((FScreenSize.y - 1) << 8);
+        this._WindMin = 0;
+        this._WindMax = (this._ScreenSize.x - 1) | ((this._ScreenSize.y - 1) << 8);
 
         // Create the context
-        FContext = FCanvas.getContext('2d');
-        FContext.font = '12pt monospace';
-        FContext.textBaseline = 'top';
-        that.ClrScr();
+        this._CanvasContext = this._Canvas.getContext('2d');
+        this._CanvasContext.font = '12pt monospace';
+        this._CanvasContext.textBaseline = 'top';
+        this.ClrScr();
 
         return true;
-    };
+    }
 
-    this.__defineGetter__("Atari", function () {
-        return FAtari;
-    });
+    public static get Atari(): boolean {
+        return this._Atari;
+    }
 
-    this.__defineSetter__("Atari", function (AAtari) {
-        FAtari = AAtari;
-    });
+    public static set Atari(value: boolean) {
+        this._Atari = value;
+    }
 
-    this.Beep = function () {
+    public static Beep(): void {
         /*TODO
         var Duration = 44100 * 0.3; // 0.3 = 300ms
         var Frequency = 440; // 440hz
 
         */
-    };
+    }
 
-    this.__defineGetter__("bitmapData", function () {
-        return FBitmap.bitmapData;
-    });
+    public static get Blink(): boolean {
+        return this._Blink;
+    }
 
-    this.__defineGetter__("Blink", function () {
-        return FBlink;
-    });
+    public static set Blink(value: boolean) {
+        this._Blink = value;
+    }
 
-    this.__defineSetter__("Blink", function (ABlink) {
-        FBlink = ABlink;
-    });
+    public static get C64(): boolean {
+        return this._C64;
+    }
 
-    this.__defineGetter__("C64", function () {
-        return FC64;
-    });
+    public static set C64(value: boolean) {
+        this._C64 = value;
+    }
 
-    this.__defineSetter__("C64", function (AC64) {
-        FC64 = AC64;
-    });
+    public static get Canvas(): HTMLCanvasElement {
+        return this._Canvas;
+    }
 
-    this.__defineGetter__("Canvas", function () {
-        return FCanvas;
-    });
-
-    this.ClrBol = function () {
+    public static ClrBol(): void {
         /// <summary>
         /// Clears all characters from the cursor position to the start of the line
         /// without moving the cursor.
@@ -227,10 +209,10 @@ var TCrt = function () {
         ///
         /// ClrBol is window-relative.
         /// </remarks>
-        that.FastWrite(StringUtils.NewString(' ', that.WhereX()), that.WindMinX + 1, that.WhereYA(), FCharInfo);
-    };
+        this.FastWrite(StringUtils.NewString(' ', this.WhereX()), this.WindMinX + 1, this.WhereYA(), this._CharInfo);
+    }
 
-    this.ClrBos = function () {
+    public static ClrBos(): void {
         /// <summary>
         /// Clears the active window from the cursor's current line to the start of the window
         /// </summary>
@@ -243,13 +225,13 @@ var TCrt = function () {
         /// ClrBos is window-relative.
         /// </remarks>
         // Clear rows before current row
-        that.ScrollUpWindow(that.WhereY() - 1);
-        that.ScrollDownWindow(that.WhereY() - 1);
+        this.ScrollUpWindow(this.WhereY() - 1);
+        this.ScrollDownWindow(this.WhereY() - 1);
         // Clear start of current row
-        that.ClrBol();
-    };
+        this.ClrBol();
+    }
 
-    this.ClrEol = function () {
+    public static ClrEol(): void {
         /// <summary>
         /// Clears all characters from the cursor position to the end of the line
         /// without moving the cursor.
@@ -261,10 +243,10 @@ var TCrt = function () {
         ///
         /// ClrEol is window-relative.
         /// </remarks>
-        that.FastWrite(StringUtils.NewString(' ', (that.WindMaxX + 1) - that.WhereX() + 1), that.WhereXA(), that.WhereYA(), FCharInfo);
-    };
+        this.FastWrite(StringUtils.NewString(' ', (this.WindMaxX + 1) - this.WhereX() + 1), this.WhereXA(), this.WhereYA(), this._CharInfo);
+    }
 
-    this.ClrEos = function () {
+    public static ClrEos(): void {
         /// <summary>
         /// Clears the active window from the cursor's current line to the end of the window
         /// </summary>
@@ -277,13 +259,13 @@ var TCrt = function () {
         /// ClrEos is window-relative.
         /// </remarks>
         // Clear rows after current row
-        that.ScrollDownWindow(that.WindRows - that.WhereY());
-        that.ScrollUpWindow(that.WindRows - that.WhereY());
+        this.ScrollDownWindow(this.WindRows - this.WhereY());
+        this.ScrollUpWindow(this.WindRows - this.WhereY());
         // Clear rest of current row
-        that.ClrEol();
-    };
+        this.ClrEol();
+    }
 
-    this.ClrLine = function () {
+    public static ClrLine(): void {
         /// <summary>
         /// Clears all characters from the cursor position's current line
         /// without moving the cursor.
@@ -295,10 +277,10 @@ var TCrt = function () {
         ///
         /// ClrLine is window-relative.
         /// </remarks>
-        that.FastWrite(StringUtils.NewString(' ', that.WindCols), that.WindMinX + 1, that.WhereYA(), FCharInfo);
-    };
+        this.FastWrite(StringUtils.NewString(' ', this.WindCols), this.WindMinX + 1, this.WhereYA(), this._CharInfo);
+    }
 
-    this.ClrScr = function () {
+    public static ClrScr(): void {
         /// <summary>
         /// Clears the active windows and returns the cursor to the upper-left corner.
         /// </summary>
@@ -310,32 +292,32 @@ var TCrt = function () {
         ///
         /// ClrScr is window-relative.
         /// </remarks>
-        that.ScrollUpWindow(that.WindRows);
-        that.GotoXY(1, 1);
-    };
+        this.ScrollUpWindow(this.WindRows);
+        this.GotoXY(1, 1);
+    }
 
-    this.Conceal = function () {
+    public static Conceal(): void {
         // Set the foreground to the background
-        that.TextColor((that.TextAttr & 0xF0) >> 4);
-    };
+        this.TextColor((this.TextAttr & 0xF0) >> 4);
+    }
 
-    this.__defineGetter__("Cursor", function () {
-        return FCursor;
-    });
+    public static get Cursor(): Cursor {
+        return this._Cursor;
+    }
 
-    this.DelChar = function (AChars) {
-        if (AChars === undefined) { AChars = 1; }
+    public static DelChar(count?: number): void {
+        if (count === undefined) { count = 1; }
 
-        var i;
-        for (i = that.WhereXA() ; i <= that.WindMinX + that.WindCols - AChars; i++) {
-            that.FastWrite(FBuffer[that.WhereYA()][i + AChars].Ch, i, that.WhereYA(), FBuffer[that.WhereYA()][i + AChars]);
+        var i: number;
+        for (i = this.WhereXA(); i <= this.WindMinX + this.WindCols - count; i++) {
+            this.FastWrite(this._Buffer[this.WhereYA()][i + count].Ch, i, this.WhereYA(), this._Buffer[this.WhereYA()][i + count]);
         }
-        for (i = that.WindMinX + that.WindCols + 1 - AChars; i <= that.WindMinX + that.WindCols; i++) {
-            that.FastWrite(" ", i, that.WhereYA(), FCharInfo);
+        for (i = this.WindMinX + this.WindCols + 1 - count; i <= this.WindMinX + this.WindCols; i++) {
+            this.FastWrite(' ', i, this.WhereYA(), this._CharInfo);
         }
-    };
+    }
 
-    this.DelLine = function (ALines) {
+    public static DelLine(count?: number): void {
         /// <summary>
         /// Deletes the line containing the cursor.
         /// </summary>
@@ -347,101 +329,100 @@ var TCrt = function () {
         /// attributes. Thus, if TextBackground is not black, the new line becomes the
         /// background color.
         /// </remarks>
-        if (ALines === undefined) { ALines = 1; }
-        that.ScrollUpCustom(that.WindMinX + 1, that.WhereYA(), that.WindMaxX + 1, that.WindMaxY + 1, ALines, FCharInfo);
-    };
+        if (count === undefined) { count = 1; }
+        this.ScrollUpCustom(this.WindMinX + 1, this.WhereYA(), this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
+    }
 
-    this.EnterScrollBack = function () {
-        if (!FInScrollBack) {
-            FInScrollBack = true;
+    public static EnterScrollBack(): void {
+        if (!this._InScrollBack) {
+            this._InScrollBack = true;
 
-            var NewRow;
-            var X;
-            var Y;
+            var NewRow: CharInfo[];
+            var X: number;
+            var Y: number;
 
             // Make copy of current scrollback buffer in temp scrollback buffer
-            FScrollBackTemp = [];
-            for (Y = 0; Y < FScrollBack.length; Y++) {
+            this._ScrollBackTemp = [];
+            for (Y = 0; Y < this._ScrollBack.length; Y++) {
                 NewRow = [];
-                for (X = 0; X < FScrollBack[Y].length; X++) {
-                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline, FScrollBack[Y][X].Reverse));
+                for (X = 0; X < this._ScrollBack[Y].length; X++) {
+                    NewRow.push(new CharInfo(this._ScrollBack[Y][X].Ch, this._ScrollBack[Y][X].Attr, this._ScrollBack[Y][X].Blink, this._ScrollBack[Y][X].Underline, this._ScrollBack[Y][X].Reverse));
                 }
-                FScrollBackTemp.push(NewRow);
+                this._ScrollBackTemp.push(NewRow);
             }
 
             // Add current screen to temp scrollback buffer
-            var YOffset = FScrollBackTemp.length - 1;
-            for (Y = 1; Y <= FScreenSize.y; Y++) {
+            // TODO Unused var YOffset: number = this._ScrollBackTemp.length - 1;
+            for (Y = 1; Y <= this._ScreenSize.y; Y++) {
                 NewRow = [];
-                for (X = 1; X <= FScreenSize.x; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reverse));
+                for (X = 1; X <= this._ScreenSize.x; X++) {
+                    NewRow.push(new CharInfo(this._Buffer[Y][X].Ch, this._Buffer[Y][X].Attr, this._Buffer[Y][X].Blink, this._Buffer[Y][X].Underline, this._Buffer[Y][X].Reverse));
                 }
-                FScrollBackTemp.push(NewRow);
+                this._ScrollBackTemp.push(NewRow);
             }
 
             // Set our position in the scrollback
-            FScrollBackPosition = FScrollBackTemp.length;
+            this._ScrollBackPosition = this._ScrollBackTemp.length;
 
             // Display footer showing we're in scrollback mode 
-            that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y, 1, new TCharInfo(" ", 31, false, false, false), false);
-            that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done", 1, FScreenSize.y, new TCharInfo(" ", 31, false, false, false), false);
+            this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 31, false, false, false), false);
+            this.FastWrite('SCROLLBACK (' + (this._ScrollBackPosition - (this._ScreenSize.y - 1) + 1) + '/' + (this._ScrollBackTemp.length - (this._ScreenSize.y - 1) + 1) + '): Use Up/Down or PgUp/PgDn to navigate and Esc when done', 1, this._ScreenSize.y, new CharInfo(' ', 31, false, false, false), false);
         }
-    };
+    }
 
-    this.FastWrite = function (AText, AX, AY, ACharInfo, AUpdateBuffer) {
+    public static FastWrite(text: string, x: number, y: number, charInfo: CharInfo, updateBuffer?: boolean): void {
         /// <summary>
         /// Writes a string of text at the desired X/Y coordinate with the given text attribute.
         /// 
         /// FastWrite is not window-relative, and it does not wrap text that goes beyond the right edge of the screen.
         /// </summary>
-        /// <param name="AText" type="String">The text to write</param>
-        /// <param name="AX" type="Number" integer="true">The 1-based column to start the text</param>
-        /// <param name="AY" type="Number" integer="true">The 1-based row to start the text</param>
-        /// <param name="ACharInfo" type="TCharInfo">The text attribute to colour the text</param>
-        /// <param name="AUpdateBuffer" type="Boolean" optional="true">Whether to update the internal buffer or not (default is true)</param>
-        if (AUpdateBuffer === undefined) { AUpdateBuffer = true; }
+        /// <param name='AText' type='String'>The text to write</param>
+        /// <param name='AX' type='Number' integer='true'>The 1-based column to start the text</param>
+        /// <param name='AY' type='Number' integer='true'>The 1-based row to start the text</param>
+        /// <param name='ACharInfo' type='CharInfo'>The text attribute to colour the text</param>
+        /// <param name='AUpdateBuffer' type='Boolean' optional='true'>Whether to update the internal buffer or not 
+        ///   (default is true)< / param>
+        if (updateBuffer === undefined) { updateBuffer = true; }
 
-        if ((AX <= FScreenSize.x) && (AY <= FScreenSize.y)) {
-            var i;
-            for (i = 0; i < AText.length; i++) {
-                var Char = FFont.GetChar(AText.charCodeAt(i), ACharInfo);
+        if ((x <= this._ScreenSize.x) && (y <= this._ScreenSize.y)) {
+            for (var i: number = 0; i < text.length; i++) {
+                var Char: ImageData = this._Font.GetChar(text.charCodeAt(i), charInfo);
                 if (Char) {
-                    if ((!FInScrollBack) || (FInScrollBack && !AUpdateBuffer)) {
-                        FContext.putImageData(Char, (AX - 1 + i) * FFont.Width, (AY - 1) * FFont.Height);
+                    if ((!this._InScrollBack) || (this._InScrollBack && !updateBuffer)) {
+                        this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height);
                     }
                 }
 
-                if (AUpdateBuffer) {
-                    FBuffer[AY][AX + i].Ch = AText.charAt(i);
-                    FBuffer[AY][AX + i].Attr = ACharInfo.Attr;
-                    FBuffer[AY][AX + i].Blink = ACharInfo.Blink;
-                    FBuffer[AY][AX + i].Underline = ACharInfo.Underline;
-                    FBuffer[AY][AX + i].Reverse = ACharInfo.Reverse;
+                if (updateBuffer) {
+                    this._Buffer[y][x + i].Ch = text.charAt(i);
+                    this._Buffer[y][x + i].Attr = charInfo.Attr;
+                    this._Buffer[y][x + i].Blink = charInfo.Blink;
+                    this._Buffer[y][x + i].Underline = charInfo.Underline;
+                    this._Buffer[y][x + i].Reverse = charInfo.Reverse;
                 }
 
-                if (AX + i >= FScreenSize.x) { break; }
+                if (x + i >= this._ScreenSize.x) { break; }
             }
         }
-    };
+    }
 
-    this.FillScreen = function (AChar) {
-        var Line = StringUtils.NewString(AChar.charAt(0), that.ScreenCols);
+    public static FillScreen(ch: string): void {
+        var Line: string = StringUtils.NewString(ch.charAt(0), this.ScreenCols);
 
-        var Y;
-        for (Y = 1; Y <= that.ScreenRows; Y++) {
-            that.FastWrite(Line, 1, Y, FCharInfo);
+        for (var Y: number = 1; Y <= this.ScreenRows; Y++) {
+            this.FastWrite(Line, 1, Y, this._CharInfo);
         }
-    };
+    }
 
-    this.__defineGetter__("Font", function () {
-        return FFont;
-    });
+    public static get Font(): CrtFont {
+        return this._Font;
+    }
 
-    this.GetCharInfo = function () {
-        return FCharInfo;
-    };
+    public static GeCharInfo(): CharInfo {
+        return this._CharInfo;
+    }
 
-    this.GotoXY = function (AX, AY) {
+    public static GotoXY(x: number, y: number): void {
         /// <summary>
         /// Moves the cursor to the given coordinates within the virtual screen.
         /// </summary>
@@ -450,18 +431,18 @@ var TCrt = function () {
         /// 
         /// GotoXY is window-relative.
         /// </remarks>
-        /// <param name="AX">The 1-based column to move to</param>
-        /// <param name="AY">The 1-based row to move to</param>
-        if ((AX >= 1) && (AY >= 1) && ((AX - 1 + that.WindMinX) <= that.WindMaxX) && ((AY - 1 + that.WindMinY) <= that.WindMaxY)) {
-            FCursor.Position = new Point(AX, AY);
+        /// <param name='AX'>The 1-based column to move to</param>
+        /// <param name='AY'>The 1-based row to move to</param>
+        if ((x >= 1) && (y >= 1) && ((x - 1 + this.WindMinX) <= this.WindMaxX) && ((y - 1 + this.WindMinY) <= this.WindMaxY)) {
+            this._Cursor.Position = new Point(x, y);
         }
-    };
+    }
 
-    this.HideCursor = function () {
-        FCursor.Visible = false;
-    };
+    public static HideCursor(): void {
+        this._Cursor.Visible = false;
+    }
 
-    this.HighVideo = function () {
+    public static HighVideo(): void {
         /// <summary>
         /// Selects high-intensity characters.
         /// </summary>
@@ -470,40 +451,37 @@ var TCrt = function () {
         /// video attribute. HighVideo sets the high intensity bit of TextAttr's
         /// fore-ground color, thus mapping colors 0-7 onto colors 8-15.
         /// </remarks>
-        that.TextAttr |= 0x08;
-    };
+        this.TextAttr |= 0x08;
+    }
 
-    // Have to do this here because the static constructor doesn't seem to like the X and Y variables
-    InitBuffers = function (AInitScrollBack) {
-        FBuffer = [];
-        FBuffer.InitTwoDimensions(FScreenSize.y, FScreenSize.x);
-
-        var X;
-        var Y;
-        for (Y = 1; Y <= FScreenSize.y; Y++) {
-            for (X = 1; X <= FScreenSize.x; X++) {
-                FBuffer[Y][X] = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
+    // TODO Have to do this here because the static constructor doesn't seem to like the X and Y variables
+    private static InitBuffers(initScrollBack: boolean): void {
+        this._Buffer = [];
+        for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
+            this._Buffer[Y] = [];
+            for (var X: number = 1; X <= this._ScreenSize.x; X++) {
+                this._Buffer[Y][X] = new CharInfo(' ', this.LIGHTGRAY, false, false, false);
             }
         }
 
-        if (AInitScrollBack) {
-            FScrollBack = [];
+        if (initScrollBack) {
+            this._ScrollBack = [];
         }
-    };
+    }
 
-    this.InsChar = function (AChars) {
-        if (AChars === undefined) { AChars = 1; }
+    public static InsChar(count?: number): void {
+        if (count === undefined) { count = 1; }
 
-        var i;
-        for (i = that.WindMinX + that.WindCols; i >= that.WhereXA() + AChars; i--) {
-            that.FastWrite(FBuffer[that.WhereYA()][i - AChars].Ch, i, that.WhereYA(), FBuffer[that.WhereYA()][i - AChars]);
+        var i: number;
+        for (i = this.WindMinX + this.WindCols; i >= this.WhereXA() + count; i--) {
+            this.FastWrite(this._Buffer[this.WhereYA()][i - count].Ch, i, this.WhereYA(), this._Buffer[this.WhereYA()][i - count]);
         }
-        for (i = that.WhereXA() ; i < that.WhereXA() + AChars; i++) {
-            that.FastWrite(" ", i, that.WhereYA(), FCharInfo);
+        for (i = this.WhereXA(); i < this.WhereXA() + count; i++) {
+            this.FastWrite(' ', i, this.WhereYA(), this._CharInfo);
         }
-    };
+    }
 
-    this.InsLine = function (ALines) {
+    public static InsLine(count?: number): void {
         /// <summary>
         /// Inserts an empty line at the cursor position.
         /// </summary>
@@ -517,20 +495,20 @@ var TCrt = function () {
         /// 
         /// InsLine is window-relative.
         /// </remarks>
-        if (ALines === undefined) { ALines = 1; }
-        that.ScrollDownCustom(that.WindMinX + 1, that.WhereYA(), that.WindMaxX + 1, that.WindMaxY + 1, ALines, FCharInfo);
+        if (count === undefined) { count = 1; }
+        this.ScrollDownCustom(this.WindMinX + 1, this.WhereYA(), this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
 
-    };
+    }
 
-    this.KeyPressed = function () {
-        return (FKeyBuf.length > 0);
-    };
+    public static KeyPressed(): boolean {
+        return (this._KeyBuf.length > 0);
+    }
 
-    this.__defineSetter__("LocalEcho", function (ALocalEcho) {
-        FLocalEcho = ALocalEcho;
-    });
+    public static set LocalEcho(value: boolean) {
+        this._LocalEcho = value;
+    }
 
-    this.LowVideo = function () {
+    public static LowVideo(): void {
         /// <summary>
         /// Selects low intensity characters.
         /// </summary>
@@ -539,10 +517,10 @@ var TCrt = function () {
         /// attribute. LowVideo clears the high-intensity bit of TextAttr's foreground
         /// color, thus mapping colors 8 to 15 onto colors 0 to 7.
         /// </remarks>
-        that.TextAttr &= 0xF7;
-    };
+        this.TextAttr &= 0xF7;
+    }
 
-    this.NormVideo = function () {
+    public static NormVideo(): void {
         /// <summary>
         /// Selects the original text attribute read from the cursor location at startup.
         /// </summary>
@@ -551,50 +529,43 @@ var TCrt = function () {
         /// attribute. NormVideo restores TextAttr to the value it had when the program
         /// was started.
         /// </remarks>
-        if (FC64) {
-            FCharInfo.Attr = that.PETSCII_WHITE;
+        if (this._C64) {
+            this._CharInfo.Attr = this.PETSCII_WHITE;
         } else {
-            FCharInfo.Attr = that.LIGHTGRAY;
+            this._CharInfo.Attr = this.LIGHTGRAY;
         }
-        FCharInfo.Blink = false;
-        FCharInfo.Underline = false;
-        FCharInfo.Reverse = false;
-    };
+        this._CharInfo.Blink = false;
+        this._CharInfo.Underline = false;
+        this._CharInfo.Reverse = false;
+    }
 
-    OnBlinkHide = function (e) {
+    private static OnBlinkHide(): void {
         // Only hide the text if blink is enabled
-        if (FBlink) {
-            FBlinkHidden = true;
+        if (this._Blink) {
+            this._BlinkHidden = true;
 
-            var X;
-            var Y;
-            for (Y = 1; Y <= FScreenSize.y; Y++) {
-                for (X = 1; X <= FScreenSize.x; X++) {
-                    if (FBuffer[Y][X].Blink) {
-                        if (FBuffer[Y][X].Ch !== " ") {
-                            that.FastWrite(" ", X, Y, FBuffer[Y][X], false);
+            for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
+                for (var X: number = 1; X <= this._ScreenSize.x; X++) {
+                    if (this._Buffer[Y][X].Blink) {
+                        if (this._Buffer[Y][X].Ch !== ' ') {
+                            this.FastWrite(' ', X, Y, this._Buffer[Y][X], false);
                         }
                     }
                 }
             }
         }
+    }
 
-        // Fix for broken Chrome
-        if (brokenCanvasUpdate) { Crt.Canvas.style.opacity = 0.999; }
-    };
-
-    OnBlinkShow = function (e) {
+    private static OnBlinkShow(): void {
         // Show the text if blink is enabled, or we need a reset (which happens when blink is diabled while in the hidden state)
-        if (FBlink || FBlinkHidden) {
-            FBlinkHidden = false;
+        if (this._Blink || this._BlinkHidden) {
+            this._BlinkHidden = false;
 
-            var X;
-            var Y;
-            for (Y = 1; Y <= FScreenSize.y; Y++) {
-                for (X = 1; X <= FScreenSize.x; X++) {
-                    if (FBuffer[Y][X].Blink) {
-                        if (FBuffer[Y][X].Ch !== " ") {
-                            that.FastWrite(FBuffer[Y][X].Ch, X, Y, FBuffer[Y][X], false);
+            for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
+                for (var X: number = 1; X <= this._ScreenSize.x; X++) {
+                    if (this._Buffer[Y][X].Blink) {
+                        if (this._Buffer[Y][X].Ch !== ' ') {
+                            this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
                         }
                     }
                 }
@@ -602,89 +573,84 @@ var TCrt = function () {
         }
 
         // Reposition the cursor
-        FCursor.WindowOffset = getElementPosition(FCanvas);
+        this._Cursor.WindowOffset = Offset.getOffset(this._Canvas);
+    }
 
-        // Fix for broken Chrome
-        if (brokenCanvasUpdate) { Crt.Canvas.style.opacity = 1; }
-    };
-
-    OnFontChanged = function (e) {
+    private static OnFontChanged(): void {
         // Resize the cursor
-        FCursor.Size = FFont.Size;
+        this._Cursor.Size = this._Font.Size;
 
-        // Update the bitmap
-        FCanvas.height = FFont.Height * FScreenSize.y;
-        FCanvas.width = FFont.Width * FScreenSize.x;
+        // Update the canvas
+        this._Canvas.height = this._Font.Height * this._ScreenSize.y;
+        this._Canvas.width = this._Font.Width * this._ScreenSize.x;
 
         // Restore the screen contents
-        var X;
-        var Y;
-        if (FBuffer !== null) {
-            for (Y = 1; Y <= FScreenSize.y; Y++) {
-                for (X = 1; X <= FScreenSize.x; X++) {
-                    that.FastWrite(FBuffer[Y][X].Ch, X, Y, FBuffer[Y][X], false);
+        if (this._Buffer !== null) {
+            for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
+                for (var X: number = 1; X <= this._ScreenSize.x; X++) {
+                    this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
                 }
             }
         }
-    };
+    }
 
-    OnKeyDown = function (ke) {
+    private static OnKeyDown(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
 
-        if (FInScrollBack) {
-            var i;
-            var X;
-            var XEnd;
-            var Y;
-            var YDest;
-            var YSource;
+        if (this._InScrollBack) {
+            var i: number;
+            var X: number;
+            var XEnd: number;
+            var Y: number;
+            var YDest: number;
+            var YSource: number;
 
             if (ke.keyCode === Keyboard.DOWN) {
-                if (FScrollBackPosition < FScrollBackTemp.length) {
-                    FScrollBackPosition += 1;
-                    that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y - 1, 1, new TCharInfo(' ', 7, false, false, false), false);
-                    that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done ", 1, FScreenSize.y, new TCharInfo(' ', 31), false);
+                if (this._ScrollBackPosition < this._ScrollBackTemp.length) {
+                    this._ScrollBackPosition += 1;
+                    this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y - 1, 1, new CharInfo(' ', 7, false, false, false), false);
+                    this.FastWrite('SCROLLBACK (' + (this._ScrollBackPosition - (this._ScreenSize.y - 1) + 1) + '/' + (this._ScrollBackTemp.length - (this._ScreenSize.y - 1) + 1) + '): Use Up/Down or PgUp/PgDn to navigate and Esc when done ', 1, this._ScreenSize.y, new CharInfo(' ', 31), false);
 
-                    YDest = FScreenSize.y - 1;
-                    YSource = FScrollBackPosition - 1;
-                    XEnd = Math.min(FScreenSize.x, FScrollBackTemp[YSource].length);
+                    YDest = this._ScreenSize.y - 1;
+                    YSource = this._ScrollBackPosition - 1;
+                    XEnd = Math.min(this._ScreenSize.x, this._ScrollBackTemp[YSource].length);
                     for (X = 0; X < XEnd; X++) {
-                        that.FastWrite(FScrollBackTemp[YSource][X].Ch, X + 1, YDest, FScrollBackTemp[YSource][X], false);
+                        this.FastWrite(this._ScrollBackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollBackTemp[YSource][X], false);
                     }
                 }
             } else if (ke.keyCode === Keyboard.ESCAPE) {
                 // Restore the screen contents
-                if (FBuffer !== null) {
-                    for (Y = 1; Y <= FScreenSize.y; Y++) {
-                        for (X = 1; X <= FScreenSize.x; X++) {
-                            that.FastWrite(FBuffer[Y][X].Ch, X, Y, FBuffer[Y][X], false);
+                if (this._Buffer !== null) {
+                    for (Y = 1; Y <= this._ScreenSize.y; Y++) {
+                        for (X = 1; X <= this._ScreenSize.x; X++) {
+                            this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
                         }
                     }
                 }
 
-                FInScrollBack = false;
+                this._InScrollBack = false;
             } else if (ke.keyCode === Keyboard.PAGE_DOWN) {
-                for (i = 0; i < (FScreenSize.y - 1) ; i++) {
+                for (i = 0; i < (this._ScreenSize.y - 1); i++) {
                     // TODO Not working
-                    OnKeyDown(new KeyboardEvent("keydown", true, false, 0, Keyboard.DOWN));
+                    // TODO OnKeyDown(new KeyboardEvent('keydown', true, false, 0, Keyboard.DOWN));
                 }
             } else if (ke.keyCode === Keyboard.PAGE_UP) {
-                for (i = 0; i < (FScreenSize.y - 1) ; i++) {
+                for (i = 0; i < (this._ScreenSize.y - 1); i++) {
                     // TODO Not working
-                    OnKeyDown(new KeyboardEvent("keydown", true, false, 0, Keyboard.UP));
+                    // TODO OnKeyDown(new KeyboardEvent('keydown', true, false, 0, Keyboard.UP));
                 }
             } else if (ke.keyCode === Keyboard.UP) {
-                if (FScrollBackPosition > (FScreenSize.y - 1)) {
-                    FScrollBackPosition -= 1;
-                    that.ScrollDownCustom(1, 1, FScreenSize.x, FScreenSize.y - 1, 1, new TCharInfo(" ", 7, false, false), false);
-                    that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done ", 1, FScreenSize.y, new TCharInfo(' ', 31), false);
+                if (this._ScrollBackPosition > (this._ScreenSize.y - 1)) {
+                    this._ScrollBackPosition -= 1;
+                    this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y - 1, 1, new CharInfo(' ', 7, false, false), false);
+                    this.FastWrite('SCROLLBACK (' + (this._ScrollBackPosition - (this._ScreenSize.y - 1) + 1) + '/' + (this._ScrollBackTemp.length - (this._ScreenSize.y - 1) + 1) + '): Use Up/Down or PgUp/PgDn to navigate and Esc when done ', 1, this._ScreenSize.y, new CharInfo(' ', 31), false);
 
                     YDest = 1;
-                    YSource = FScrollBackPosition - (FScreenSize.y - 1);
-                    XEnd = Math.min(FScreenSize.x, FScrollBackTemp[YSource].length);
+                    YSource = this._ScrollBackPosition - (this._ScreenSize.y - 1);
+                    XEnd = Math.min(this._ScreenSize.x, this._ScrollBackTemp[YSource].length);
                     for (X = 0; X < XEnd; X++) {
-                        that.FastWrite(FScrollBackTemp[YSource][X].Ch, X + 1, YDest, FScrollBackTemp[YSource][X], false);
+                        this.FastWrite(this._ScrollBackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollBackTemp[YSource][X], false);
                     }
                 }
             }
@@ -694,9 +660,9 @@ var TCrt = function () {
             return;
         }
 
-        var keyString = "";
+        var keyString: string = '';
 
-        if (FAtari) {
+        if (this._Atari) {
             if (ke.ctrlKey) {
                 if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
                     switch (ke.keyCode) {
@@ -705,8 +671,7 @@ var TCrt = function () {
                         case 77: keyString = String.fromCharCode(155); break; // CTRL-M
                         default: keyString = String.fromCharCode(ke.keyCode - 64); break;
                     }
-                }
-                else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
+                } else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
                     switch (ke.keyCode) {
                         case 104: keyString = String.fromCharCode(126); break; // CTRL-H
                         case 106: keyString = String.fromCharCode(13); break; // CTRL-J
@@ -716,107 +681,106 @@ var TCrt = function () {
                 }
             } else {
                 switch (ke.keyCode) {
-                    // Handle special keys                                                                                                  
-                    case Keyboard.BACKSPACE: keyString = "\x7E"; break;
-                    case Keyboard.DELETE: keyString = "\x7E"; break;
-                    case Keyboard.DOWN: keyString = "\x1D"; break;
-                    case Keyboard.ENTER: keyString = "\x9B"; break;
-                    case Keyboard.LEFT: keyString = "\x1E"; break;
-                    case Keyboard.RIGHT: keyString = "\x1F"; break;
-                    case Keyboard.SPACE: keyString = " "; break;
-                    case Keyboard.TAB: keyString = "\x7F"; break;
-                    case Keyboard.UP: keyString = "\x1C"; break;
+                    // Handle special keys
+                    case Keyboard.BACKSPACE: keyString = '\x7E'; break;
+                    case Keyboard.DELETE: keyString = '\x7E'; break;
+                    case Keyboard.DOWN: keyString = '\x1D'; break;
+                    case Keyboard.ENTER: keyString = '\x9B'; break;
+                    case Keyboard.LEFT: keyString = '\x1E'; break;
+                    case Keyboard.RIGHT: keyString = '\x1F'; break;
+                    case Keyboard.SPACE: keyString = ' '; break;
+                    case Keyboard.TAB: keyString = '\x7F'; break;
+                    case Keyboard.UP: keyString = '\x1C'; break;
                 }
             }
-        } else if (FC64) {
+        } else if (this._C64) {
             switch (ke.keyCode) {
-                // Handle special keys                                                                                                  
-                case Keyboard.BACKSPACE: keyString = "\x14"; break;
-                case Keyboard.DELETE: keyString = "\x14"; break;
-                case Keyboard.DOWN: keyString = "\x11"; break;
-                case Keyboard.ENTER: keyString = "\r"; break;
-                case Keyboard.F1: keyString = "\x85"; break;
-                case Keyboard.F2: keyString = "\x89"; break;
-                case Keyboard.F3: keyString = "\x86"; break;
-                case Keyboard.F4: keyString = "\x8A"; break;
-                case Keyboard.F5: keyString = "\x87"; break;
-                case Keyboard.F6: keyString = "\x8B"; break;
-                case Keyboard.F7: keyString = "\x88"; break;
-                case Keyboard.F8: keyString = "\x8C"; break;
-                case Keyboard.HOME: keyString = "\x13"; break;
-                case Keyboard.INSERT: keyString = "\x94"; break;
-                case Keyboard.LEFT: keyString = "\x9D"; break;
-                case Keyboard.RIGHT: keyString = "\x1D"; break;
-                case Keyboard.SPACE: keyString = " "; break;
-                case Keyboard.UP: keyString = "\x91"; break;
+                // Handle special keys
+                case Keyboard.BACKSPACE: keyString = '\x14'; break;
+                case Keyboard.DELETE: keyString = '\x14'; break;
+                case Keyboard.DOWN: keyString = '\x11'; break;
+                case Keyboard.ENTER: keyString = '\r'; break;
+                case Keyboard.F1: keyString = '\x85'; break;
+                case Keyboard.F2: keyString = '\x89'; break;
+                case Keyboard.F3: keyString = '\x86'; break;
+                case Keyboard.F4: keyString = '\x8A'; break;
+                case Keyboard.F5: keyString = '\x87'; break;
+                case Keyboard.F6: keyString = '\x8B'; break;
+                case Keyboard.F7: keyString = '\x88'; break;
+                case Keyboard.F8: keyString = '\x8C'; break;
+                case Keyboard.HOME: keyString = '\x13'; break;
+                case Keyboard.INSERT: keyString = '\x94'; break;
+                case Keyboard.LEFT: keyString = '\x9D'; break;
+                case Keyboard.RIGHT: keyString = '\x1D'; break;
+                case Keyboard.SPACE: keyString = ' '; break;
+                case Keyboard.UP: keyString = '\x91'; break;
             }
         } else {
             if (ke.ctrlKey) {
                 // Handle control + letter keys
                 if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
                     keyString = String.fromCharCode(ke.keyCode - 64);
-                }
-                else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
+                } else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
                     keyString = String.fromCharCode(ke.keyCode - 96);
                 }
             } else {
                 switch (ke.keyCode) {
-                    // Handle special keys                                                                                                  
-                    case Keyboard.BACKSPACE: keyString = "\b"; break;
-                    case Keyboard.DELETE: keyString = "\x7F"; break;
-                    case Keyboard.DOWN: keyString = "\x1B[B"; break;
-                    case Keyboard.END: keyString = "\x1B[K"; break;
-                    case Keyboard.ENTER: keyString = "\r\n"; break;
-                    case Keyboard.ESCAPE: keyString = "\x1B"; break;
-                    case Keyboard.F1: keyString = "\x1BOP"; break;
-                    case Keyboard.F2: keyString = "\x1BOQ"; break;
-                    case Keyboard.F3: keyString = "\x1BOR"; break;
-                    case Keyboard.F4: keyString = "\x1BOS"; break;
-                    case Keyboard.F5: keyString = "\x1BOt"; break;
-                    case Keyboard.F6: keyString = "\x1B[17~"; break;
-                    case Keyboard.F7: keyString = "\x1B[18~"; break;
-                    case Keyboard.F8: keyString = "\x1B[19~"; break;
-                    case Keyboard.F9: keyString = "\x1B[20~"; break;
-                    case Keyboard.F10: keyString = "\x1B[21~"; break;
-                    case Keyboard.F11: keyString = "\x1B[23~"; break;
-                    case Keyboard.F12: keyString = "\x1B[24~"; break;
-                    case Keyboard.HOME: keyString = "\x1B[H"; break;
-                    case Keyboard.INSERT: keyString = "\x1B@"; break;
-                    case Keyboard.LEFT: keyString = "\x1B[D"; break;
-                    case Keyboard.PAGE_DOWN: keyString = "\x1B[U"; break;
-                    case Keyboard.PAGE_UP: keyString = "\x1B[V"; break;
-                    case Keyboard.RIGHT: keyString = "\x1B[C"; break;
-                    case Keyboard.SPACE: keyString = " "; break;
-                    case Keyboard.TAB: keyString = "\t"; break;
-                    case Keyboard.UP: keyString = "\x1B[A"; break;
+                    // Handle special keys
+                    case Keyboard.BACKSPACE: keyString = '\b'; break;
+                    case Keyboard.DELETE: keyString = '\x7F'; break;
+                    case Keyboard.DOWN: keyString = '\x1B[B'; break;
+                    case Keyboard.END: keyString = '\x1B[K'; break;
+                    case Keyboard.ENTER: keyString = '\r\n'; break;
+                    case Keyboard.ESCAPE: keyString = '\x1B'; break;
+                    case Keyboard.F1: keyString = '\x1BOP'; break;
+                    case Keyboard.F2: keyString = '\x1BOQ'; break;
+                    case Keyboard.F3: keyString = '\x1BOR'; break;
+                    case Keyboard.F4: keyString = '\x1BOS'; break;
+                    case Keyboard.F5: keyString = '\x1BOt'; break;
+                    case Keyboard.F6: keyString = '\x1B[17~'; break;
+                    case Keyboard.F7: keyString = '\x1B[18~'; break;
+                    case Keyboard.F8: keyString = '\x1B[19~'; break;
+                    case Keyboard.F9: keyString = '\x1B[20~'; break;
+                    case Keyboard.F10: keyString = '\x1B[21~'; break;
+                    case Keyboard.F11: keyString = '\x1B[23~'; break;
+                    case Keyboard.F12: keyString = '\x1B[24~'; break;
+                    case Keyboard.HOME: keyString = '\x1B[H'; break;
+                    case Keyboard.INSERT: keyString = '\x1B@'; break;
+                    case Keyboard.LEFT: keyString = '\x1B[D'; break;
+                    case Keyboard.PAGE_DOWN: keyString = '\x1B[U'; break;
+                    case Keyboard.PAGE_UP: keyString = '\x1B[V'; break;
+                    case Keyboard.RIGHT: keyString = '\x1B[C'; break;
+                    case Keyboard.SPACE: keyString = ' '; break;
+                    case Keyboard.TAB: keyString = '\t'; break;
+                    case Keyboard.UP: keyString = '\x1B[A'; break;
                 }
             }
         }
 
-        FKeyBuf.push(new KeyPressEvent(ke, keyString));
+        this._KeyBuf.push(new KeyPressEvent(ke, keyString));
 
         if ((keyString) || (ke.ctrlKey)) {
             ke.preventDefault();
         }
-    };
+    }
 
-    OnKeyPress = function (ke) {
+    private static OnKeyPress(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
 
-        if (FInScrollBack) { return; }
+        if (this._InScrollBack) { return; }
 
-        var keyString = "";
+        var keyString: string = '';
 
         if (ke.ctrlKey) { return; } // This is only meant for regular keypresses
 
         // Opera doesn't give us the charCode, so try which in that case
-        var which = (ke.charCode !== null) ? ke.charCode : ke.which;
-        if (FAtari) {
+        var which: number = (ke.charCode !== null) ? ke.charCode : ke.which;
+        if (this._Atari) {
             if ((which >= 33) && (which <= 122)) {
                 keyString = String.fromCharCode(which);
             }
-        } else if (FC64) {
+        } else if (this._C64) {
             if ((which >= 33) && (which <= 64)) {
                 keyString = String.fromCharCode(which);
             } else if ((which >= 65) && (which <= 90)) {
@@ -832,374 +796,384 @@ var TCrt = function () {
             }
         }
 
-        FKeyBuf.push(new KeyPressEvent(ke, keyString));
-    };
+        this._KeyBuf.push(new KeyPressEvent(ke, keyString));
 
-    this.PushKeyDown = function (pushedCharCode, pushedKeyCode, ctrl, alt, shift) {
-        OnKeyDown({
-            altKey: alt,
-            charCode: pushedCharCode,
-            ctrlKey: ctrl,
-            keyCode: pushedKeyCode,
-            shiftKey: shift,
-            preventDefault: function () { /* do nothing */ }
-        });
-    };
+        if (keyString) {
+            ke.preventDefault();
+        }
+    }
 
-    this.PushKeyPress = function (pushedCharCode, pushedKeyCode, ctrl, alt, shift) {
-        OnKeyPress({
-            altKey: alt,
-            charCode: pushedCharCode,
-            ctrlKey: ctrl,
-            keyCode: pushedKeyCode,
-            shiftKey: shift,
-            preventDefault: function () { /* do nothing */ }
-        });
-    };
+    public static PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
+        // TODO Will the browser allow me to create a fake keyboard event?
+        var KE: KeyboardEvent = new KeyboardEvent();
+        KE.altKey = alt;
+        KE.charCode = pushedCharCode;
+        KE.ctrlKey = ctrl;
+        KE.keyCode = pushedKeyCode;
+        KE.shiftKey = shift;
+        // TODO Necessary? KE.preventDefault = function (): void { };
+        this.OnKeyDown(KE);
 
-    this.ReadKey = function () {
-        if (FKeyBuf.length === 0) { return null; }
+        // this.OnKeyDown({
+        //     altKey: alt,
+        //     charCode: pushedCharCode,
+        //     ctrlKey: ctrl,
+        //     keyCode: pushedKeyCode,
+        //     shiftKey: shift,
+        //     preventDefault: function (): void { /* do nothing */ }
+        // });
+    }
 
-        var KPE = FKeyBuf.shift();
-        if (FLocalEcho) {
-            that.Write(KPE.keyString);
+    public static PushKeyPress(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
+        // TODO Will the browser allow me to create a fake keyboard event?
+        var KE: KeyboardEvent = new KeyboardEvent();
+        KE.altKey = alt;
+        KE.charCode = pushedCharCode;
+        KE.ctrlKey = ctrl;
+        KE.keyCode = pushedKeyCode;
+        KE.shiftKey = shift;
+        // TODO Necessary? KE.preventDefault = function (): void { };
+        this.OnKeyPress(KE);
+
+        // this.OnKeyPress({
+        //     altKey: alt,
+        //     charCode: pushedCharCode,
+        //     ctrlKey: ctrl,
+        //     keyCode: pushedKeyCode,
+        //     shiftKey: shift,
+        //     preventDefault: function (): void { /* do nothing */ }
+        // });
+    }
+
+    public static ReadKey(): KeyPressEvent {
+        if (this._KeyBuf.length === 0) { return null; }
+
+        var KPE: KeyPressEvent = this._KeyBuf.shift();
+        if (this._LocalEcho) {
+            this.Write(KPE.keyString);
         }
         return KPE;
-    };
+    }
 
-    this.ReDraw = function () {
-        var X;
-        var Y;
-        for (Y = 1; Y <= FScreenSize.y; Y++) {
-            for (X = 1; X <= FScreenSize.x; X++) {
-                that.FastWrite(FBuffer[Y][X].Ch, X, Y, FBuffer[Y][X], false);
+    public static ReDraw(): void {
+        for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
+            for (var X: number = 1; X <= this._ScreenSize.x; X++) {
+                this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
             }
         }
-    };
+    }
 
-    this.RestoreScreen = function (ABuffer, ALeft, ATop, ARight, ABottom) {
-        var Height = ABottom - ATop + 1;
-        var Width = ARight - ALeft + 1;
+    public static RestoreScreen(buffer: CharInfo[][], left: number, top: number, right: number, bottom: number): void {
+        var Height: number = bottom - top + 1;
+        var Width: number = right - left + 1;
 
-        var Y;
-        var X;
-        for (Y = 0; Y < Height; Y++) {
-            for (X = 0; X < Width; X++) {
-                trace("Restoring: " + ABuffer[Y][X].Ch + " to " + ALeft + ":" + ATop);
-                that.FastWrite(ABuffer[Y][X].Ch, X + ALeft, Y + ATop, ABuffer[Y][X]);
+        for (var Y: number = 0; Y < Height; Y++) {
+            for (var X: number = 0; X < Width; X++) {
+                console.log('Restoring: ' + buffer[Y][X].Ch + ' to ' + left + ':' + top);
+                this.FastWrite(buffer[Y][X].Ch, X + left, Y + top, buffer[Y][X]);
             }
         }
-    };
+    }
 
-    this.ReverseVideo = function () {
+    public static ReverseVideo(): void {
         /// <summary>
         /// Reverses the foreground and background text attributes
         /// </summary>
-        that.TextAttr = ((that.TextAttr & 0xF0) >> 4) | ((that.TextAttr & 0x0F) << 4);
-    };
+        this.TextAttr = ((this.TextAttr & 0xF0) >> 4) | ((this.TextAttr & 0x0F) << 4);
+    }
 
-    this.SaveScreen = function (ALeft, ATop, ARight, ABottom) {
-        var Height = ABottom - ATop + 1;
-        var Width = ARight - ALeft + 1;
-        var Result = [];
+    public static SaveScreen(left: number, top: number, right: number, bottom: number): CharInfo[][] {
+        var Height: number = bottom - top + 1;
+        var Width: number = right - left + 1;
+        var Result: CharInfo[][] = [];
 
-        var Y;
-        var X;
-        for (Y = 0; Y < Height; Y++) {
+        for (var Y: number = 0; Y < Height; Y++) {
             Result[Y] = [];
-            for (X = 0; X < Width; X++) {
-                Result[Y][X] = new TCharInfo(FBuffer[Y + ATop][X + ALeft].Ch, FBuffer[Y + ATop][X + ALeft].Attr, FBuffer[Y + ATop][X + ALeft].Blink, FBuffer[Y + ATop][X + ALeft].Underline, FBuffer[Y + ATop][X + ALeft].Reverse);
+            for (var X: number = 0; X < Width; X++) {
+                Result[Y][X] = new CharInfo(this._Buffer[Y + top][X + left].Ch, this._Buffer[Y + top][X + left].Attr, this._Buffer[Y + top][X + left].Blink, this._Buffer[Y + top][X + left].Underline, this._Buffer[Y + top][X + left].Reverse);
             }
         }
-			
+
         return Result;
-    };
+    }
 
-    this.__defineGetter__("ScreenCols", function () {
-        return FScreenSize.x;
-    });
+    public static get ScreenCols(): number {
+        return this._ScreenSize.x;
+    }
 
-    this.__defineGetter__("ScreenRows", function () {
-        return FScreenSize.y;
-    });
+    public static get ScreenRows(): number {
+        return this._ScreenSize.y;
+    }
 
-    this.ScrollDownCustom = function (AX1, AY1, AX2, AY2, ALines, ACharInfo, AUpdateBuffer) {
+    public static ScrollDownCustom(left: number, top: number, right: number, bottom: number, count: number, charInfo: CharInfo, updateBuffer?: boolean): void {
         /// <summary>
-        /// Scrolls the given window down the given number of lines (leaving blank lines at the top), filling the void with the given character with the given text attribute
+        /// Scrolls the given window down the given number of lines (leaving blank lines at the top), 
+        /// filling the void with the given character with the given text attribute
         /// </summary>
-        /// <param name="AX1">The 1-based left column of the window</param>
-        /// <param name="AY1">The 1-based top row of the window</param>
-        /// <param name="AX2">The 1-based right column of the window</param>
-        /// <param name="AY2">The 1-based bottom row of the window</param>
-        /// <param name="ALines">The number of lines to scroll</param>
-        /// <param name="ACh">The character to fill the void with</param>
-        /// <param name="ACharInfo">The text attribute to fill the void with</param>
+        /// <param name='AX1'>The 1-based left column of the window</param>
+        /// <param name='AY1'>The 1-based top row of the window</param>
+        /// <param name='AX2'>The 1-based right column of the window</param>
+        /// <param name='AY2'>The 1-based bottom row of the window</param>
+        /// <param name='ALines'>The number of lines to scroll</param>
+        /// <param name='ACh'>The character to fill the void with</param>
+        /// <param name='ACharInfo'>The text attribute to fill the void with</param>
 
         // Handle optional parameters
-        if (typeof AUpdateBuffer === "undefined") { AUpdateBuffer = true; }
+        if (typeof updateBuffer === 'undefined') { updateBuffer = true; }
 
         // Validate the ALines parameter
-        var MaxLines = AY2 - AY1 + 1;
-        if (ALines > MaxLines) { ALines = MaxLines; }
-
-        var Back = (ACharInfo.Attr & 0xF0) >> 4;
+        var MaxLines: number = bottom - top + 1;
+        if (count > MaxLines) { count = MaxLines; }
 
         // Scroll -- TODO Hasn't been tested yet
-        var Left = (AX1 - 1) * FFont.Width;
-        var Top = (AY1 - 1) * FFont.Height;
-        var Width = (AX2 - AX1 + 1) * FFont.Width;
-        var Height = ((AY2 - AY1 + 1 - ALines) * FFont.Height);
+        var Left: number = (left - 1) * this._Font.Width;
+        var Top: number = (top - 1) * this._Font.Height;
+        var Width: number = (right - left + 1) * this._Font.Width;
+        var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
         if (Height > 0) {
-            var Buf = FContext.getImageData(Left, Top, Width, Height);
-            Left = (AX1 - 1) * FFont.Width;
-            Top = (AY1 - 1 + ALines) * FFont.Height;
-            FContext.putImageData(Buf, Left, Top);
+            var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
+            Left = (left - 1) * this._Font.Width;
+            Top = (top - 1 + count) * this._Font.Height;
+            this._CanvasContext.putImageData(Buf, Left, Top);
         }
 
         // Blank -- TODO Hasn't been tested yet
-        FContext.fillStyle = FFont.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-        Left = (AX1 - 1) * FFont.Width;
-        Top = (AY1 - 1) * FFont.Height;
-        Width = (AX2 - AX1 + 1) * FFont.Width;
-        Height = (ALines * FFont.Height);
-        FContext.fillRect(Left, Top, Width, Height);
+        this._CanvasContext.fillStyle = CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4];
+        Left = (left - 1) * this._Font.Width;
+        Top = (top - 1) * this._Font.Height;
+        Width = (right - left + 1) * this._Font.Width;
+        Height = (count * this._Font.Height);
+        this._CanvasContext.fillRect(Left, Top, Width, Height);
 
-        if (AUpdateBuffer) {
+        if (updateBuffer) {
             // Now to adjust the buffer
-            var X = 0;
-            var Y = 0;
+            var X: number = 0;
+            var Y: number = 0;
 
             // First, shuffle the contents that are still visible
-            for (Y = AY2; Y > ALines; Y--) {
-                for (X = AX1; X <= AX2; X++) {
-                    FBuffer[Y][X].Ch = FBuffer[Y - ALines][X].Ch;
-                    FBuffer[Y][X].Attr = FBuffer[Y - ALines][X].Attr;
-                    FBuffer[Y][X].Blink = FBuffer[Y - ALines][X].Blink;
-                    FBuffer[Y][X].Underline = FBuffer[Y - ALines][X].Underline;
-                    FBuffer[Y][X].Reverse = FBuffer[Y - ALines][X].Reverse;
+            for (Y = bottom; Y > count; Y--) {
+                for (X = left; X <= right; X++) {
+                    this._Buffer[Y][X].Ch = this._Buffer[Y - count][X].Ch;
+                    this._Buffer[Y][X].Attr = this._Buffer[Y - count][X].Attr;
+                    this._Buffer[Y][X].Blink = this._Buffer[Y - count][X].Blink;
+                    this._Buffer[Y][X].Underline = this._Buffer[Y - count][X].Underline;
+                    this._Buffer[Y][X].Reverse = this._Buffer[Y - count][X].Reverse;
                 }
             }
 
             // Then, blank the contents that are not
-            for (Y = AY1; Y <= ALines; Y++) {
-                for (X = AX1; X <= AX2; X++) {
-                    FBuffer[Y][X].Ch = ACharInfo.Ch;
-                    FBuffer[Y][X].Attr = ACharInfo.Attr;
-                    FBuffer[Y][X].Blink = ACharInfo.Blink;
-                    FBuffer[Y][X].Underline = ACharInfo.Underline;
-                    FBuffer[Y][X].Reverse = ACharInfo.Reverse;
+            for (Y = top; Y <= count; Y++) {
+                for (X = left; X <= right; X++) {
+                    this._Buffer[Y][X].Ch = charInfo.Ch;
+                    this._Buffer[Y][X].Attr = charInfo.Attr;
+                    this._Buffer[Y][X].Blink = charInfo.Blink;
+                    this._Buffer[Y][X].Underline = charInfo.Underline;
+                    this._Buffer[Y][X].Reverse = charInfo.Reverse;
                 }
             }
         }
-    };
+    }
 
-    this.ScrollDownScreen = function (ALines) {
+    public static ScrollDownScreen(count: number): void {
         /// <summary>
         /// Scrolls the screen down the given number of lines (leaving blanks at the top)
         /// </summary>
-        /// <param name="ALines">The number of lines to scroll</param>
-        that.ScrollDownCustom(1, 1, FScreenSize.x, FScreenSize.y, ALines, FCharInfo);
-    };
+        /// <param name='ALines'>The number of lines to scroll</param>
+        this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, count, this._CharInfo);
+    }
 
-    this.ScrollDownWindow = function (ALines) {
+    public static ScrollDownWindow(count: number): void {
         /// <summary>
         /// Scrolls the current window down the given number of lines (leaving blanks at the top)
         /// </summary>
-        /// <param name="ALines">The number of lines to scroll</param>
-        that.ScrollDownCustom(that.WindMinX + 1, that.WindMinY + 1, that.WindMaxX + 1, that.WindMaxY + 1, ALines, FCharInfo);
-    };
+        /// <param name='ALines'>The number of lines to scroll</param>
+        this.ScrollDownCustom(this.WindMinX + 1, this.WindMinY + 1, this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
+    }
 
-    this.ScrollUpCustom = function (AX1, AY1, AX2, AY2, ALines, ACharInfo, AUpdateBuffer) {
+    public static ScrollUpCustom(left: number, top: number, right: number, bottom: number, count: number, charInfo: CharInfo, updateBuffer?: boolean): void {
         /// <summary>
-        /// Scrolls the given window up the given number of lines (leaving blank lines at the bottom), filling the void with the given character with the given text attribute
+        /// Scrolls the given window up the given number of lines (leaving blank lines at the bottom), 
+        /// filling the void with the given character with the given text attribute
         /// </summary>
-        /// <param name="AX1">The 1-based left column of the window</param>
-        /// <param name="AY1">The 1-based top row of the window</param>
-        /// <param name="AX2">The 1-based right column of the window</param>
-        /// <param name="AY2">The 1-based bottom row of the window</param>
-        /// <param name="ALines">The number of lines to scroll</param>
-        /// <param name="ACh">The character to fill the void with</param>
-        /// <param name="ACharInfo">The text attribute to fill the void with</param>
+        /// <param name='AX1'>The 1-based left column of the window</param>
+        /// <param name='AY1'>The 1-based top row of the window</param>
+        /// <param name='AX2'>The 1-based right column of the window</param>
+        /// <param name='AY2'>The 1-based bottom row of the window</param>
+        /// <param name='ALines'>The number of lines to scroll</param>
+        /// <param name='ACh'>The character to fill the void with</param>
+        /// <param name='ACharInfo'>The text attribute to fill the void with</param>
 
         // Handle optional parameters
-        if (typeof AUpdateBuffer === "undefined") { AUpdateBuffer = true; }
+        if (typeof updateBuffer === 'undefined') { updateBuffer = true; }
 
         // Validate the ALines parameter
-        var MaxLines = AY2 - AY1 + 1;
-        if (ALines > MaxLines) { ALines = MaxLines; }
+        var MaxLines: number = bottom - top + 1;
+        if (count > MaxLines) { count = MaxLines; }
 
-        var Back = (ACharInfo.Attr & 0xF0) >> 4;
-
-        if ((!FInScrollBack) || (FInScrollBack && !AUpdateBuffer)) {
+        if ((!this._InScrollBack) || (this._InScrollBack && !updateBuffer)) {
             // Scroll
-            var Left = (AX1 - 1) * FFont.Width;
-            var Top = (AY1 - 1 + ALines) * FFont.Height;
-            var Width = (AX2 - AX1 + 1) * FFont.Width;
-            var Height = ((AY2 - AY1 + 1 - ALines) * FFont.Height);
+            var Left: number = (left - 1) * this._Font.Width;
+            var Top: number = (top - 1 + count) * this._Font.Height;
+            var Width: number = (right - left + 1) * this._Font.Width;
+            var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
             if (Height > 0) {
-                var Buf = FContext.getImageData(Left, Top, Width, Height);
-                Left = (AX1 - 1) * FFont.Width;
-                Top = (AY1 - 1) * FFont.Height;
-                FContext.putImageData(Buf, Left, Top);
+                var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
+                Left = (left - 1) * this._Font.Width;
+                Top = (top - 1) * this._Font.Height;
+                this._CanvasContext.putImageData(Buf, Left, Top);
             }
 
             // Blank
-            FContext.fillStyle = FFont.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-            Left = (AX1 - 1) * FFont.Width;
-            Top = (AY2 - ALines) * FFont.Height;
-            Width = (AX2 - AX1 + 1) * FFont.Width;
-            Height = (ALines * FFont.Height);
-            FContext.fillRect(Left, Top, Width, Height);
+            this._CanvasContext.fillStyle = CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4];
+            Left = (left - 1) * this._Font.Width;
+            Top = (bottom - count) * this._Font.Height;
+            Width = (right - left + 1) * this._Font.Width;
+            Height = (count * this._Font.Height);
+            this._CanvasContext.fillRect(Left, Top, Width, Height);
         }
 
-        if (AUpdateBuffer) {
+        if (updateBuffer) {
             // Now to adjust the buffer
-            var NewRow;
-            var X;
-            var Y;
+            var NewRow: CharInfo[];
+            var X: number;
+            var Y: number;
 
             // First, store the contents of the scrolled lines in the scrollback buffer
-            for (Y = 0; Y < ALines; Y++) {
+            for (Y = 0; Y < count; Y++) {
                 NewRow = [];
-                for (X = AX1; X <= AX2; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline, FBuffer[Y + AY1][X].Reverse));
+                for (X = left; X <= right; X++) {
+                    NewRow.push(new CharInfo(this._Buffer[Y + top][X].Ch, this._Buffer[Y + top][X].Attr, this._Buffer[Y + top][X].Blink, this._Buffer[Y + top][X].Underline, this._Buffer[Y + top][X].Reverse));
                 }
-                FScrollBack.push(NewRow);
+                this._ScrollBack.push(NewRow);
             }
             // Trim the scrollback to 1000 lines, if necessary
-            var FScrollBackLength = FScrollBack.length;
-            while (FScrollBackLength > (FScrollBackSize - 2)) {
-                FScrollBack.shift();
-                FScrollBackLength -= 1;
+            var ScrollBackLength: number = this._ScrollBack.length;
+            while (ScrollBackLength > (this._ScrollBackSize - 2)) {
+                this._ScrollBack.shift();
+                ScrollBackLength -= 1;
             }
 
             // Then, shuffle the contents that are still visible
-            for (Y = AY1; Y <= (AY2 - ALines) ; Y++) {
-                for (X = AX1; X <= AX2; X++) {
-                    FBuffer[Y][X].Ch = FBuffer[Y + ALines][X].Ch;
-                    FBuffer[Y][X].Attr = FBuffer[Y + ALines][X].Attr;
-                    FBuffer[Y][X].Blink = FBuffer[Y + ALines][X].Blink;
-                    FBuffer[Y][X].Underline = FBuffer[Y + ALines][X].Underline;
-                    FBuffer[Y][X].Reverse = FBuffer[Y + ALines][X].Reverse;
+            for (Y = top; Y <= (bottom - count); Y++) {
+                for (X = left; X <= right; X++) {
+                    this._Buffer[Y][X].Ch = this._Buffer[Y + count][X].Ch;
+                    this._Buffer[Y][X].Attr = this._Buffer[Y + count][X].Attr;
+                    this._Buffer[Y][X].Blink = this._Buffer[Y + count][X].Blink;
+                    this._Buffer[Y][X].Underline = this._Buffer[Y + count][X].Underline;
+                    this._Buffer[Y][X].Reverse = this._Buffer[Y + count][X].Reverse;
                 }
             }
 
             // Then, blank the contents that are not
-            for (Y = AY2; Y > (AY2 - ALines) ; Y--) {
-                for (X = AX1; X <= AX2; X++) {
-                    FBuffer[Y][X].Ch = ACharInfo.Ch;
-                    FBuffer[Y][X].Attr = ACharInfo.Attr;
-                    FBuffer[Y][X].Blink = ACharInfo.Blink;
-                    FBuffer[Y][X].Underline = ACharInfo.Underline;
-                    FBuffer[Y][X].Reverse = ACharInfo.Reverse;
+            for (Y = bottom; Y > (bottom - count); Y--) {
+                for (X = left; X <= right; X++) {
+                    this._Buffer[Y][X].Ch = charInfo.Ch;
+                    this._Buffer[Y][X].Attr = charInfo.Attr;
+                    this._Buffer[Y][X].Blink = charInfo.Blink;
+                    this._Buffer[Y][X].Underline = charInfo.Underline;
+                    this._Buffer[Y][X].Reverse = charInfo.Reverse;
                 }
             }
         }
-    };
+    }
 
-    this.ScrollUpScreen = function (ALines) {
+    public static ScrollUpScreen(count: number): void {
         /// <summary>
         /// Scrolls the screen up the given number of lines (leaving blanks at the bottom)
         /// </summary>
-        /// <param name="ALines">The number of lines to scroll</param>
-        that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y, ALines, FCharInfo);
-    };
+        /// <param name='ALines'>The number of lines to scroll</param>
+        this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, count, this._CharInfo);
+    }
 
-    this.ScrollUpWindow = function (ALines) {
+    public static ScrollUpWindow(count: number): void {
         /// <summary>
         /// Scrolls the current window up the given number of lines (leaving blanks at the bottom)
         /// </summary>
-        /// <param name="ALines">The number of lines to scroll</param>
-        that.ScrollUpCustom(that.WindMinX + 1, that.WindMinY + 1, that.WindMaxX + 1, that.WindMaxY + 1, ALines, FCharInfo);
-    };
+        /// <param name='ALines'>The number of lines to scroll</param>
+        this.ScrollUpCustom(this.WindMinX + 1, this.WindMinY + 1, this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
+    }
 
-    this.SetBlink = function (ABlink) {
-        FCharInfo.Blink = ABlink;
-    };
+    public static SetBlink(value: boolean): void {
+        this._CharInfo.Blink = value;
+    }
 
-    this.SetBlinkRate = function (AMS) {
-        FCursor.BlinkRate = AMS;
-    };
+    public static SetBlinkRate(milliSeconds: number): void {
+        this._Cursor.BlinkRate = milliSeconds;
+    }
 
-    this.SetCharInfo = function (ACharInfo) {
-        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline, ACharInfo.Reverse);
-    };
+    public static SetCharInfo(charInfo: CharInfo): void {
+        this._CharInfo = new CharInfo(charInfo.Ch, charInfo.Attr, charInfo.Blink, charInfo.Underline, charInfo.Reverse);
+    }
 
-    this.SetFont = function (ACodePage, AWidth, AHeight) {
+    public static SetFont(codePage: string, width: number, height: number): void {
         /// <summary>
         /// Try to set the console font size to characters with the given X and Y size
         /// </summary>
-        /// <param name="AX">The horizontal size</param>
-        /// <param name="AY">The vertical size</param>
+        /// <param name='AX'>The horizontal size</param>
+        /// <param name='AY'>The vertical size</param>
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        FFont.Load(ACodePage, AWidth, AHeight);
-    };
+        this._Font.Load(codePage, width, height);
+    }
 
-    this.SetScreenSize = function (AColumns, ARows) {
+    public static SetScreenSize(columns: number, rows: number): void {
         // Check if we're in scrollback
-        if (FInScrollBack) { return; }
+        if (this._InScrollBack) { return; }
 
         // Check if the requested size is already in use
-        if ((AColumns === FScreenSize.x) && (ARows === FScreenSize.y)) { return; }
+        if ((columns === this._ScreenSize.x) && (rows === this._ScreenSize.y)) { return; }
 
-        var X = 0;
-        var Y = 0;
+        var X: number = 0;
+        var Y: number = 0;
 
         // Save the old details
-        var FOldBuffer;
-        if (FBuffer !== null) {
-            FOldBuffer = [];
-            FOldBuffer.InitTwoDimensions(FScreenSize.x, FScreenSize.y);
-            for (Y = 1; Y <= FScreenSize.y; Y++) {
-                for (X = 1; X <= FScreenSize.x; X++) {
-                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reverse);
+        var OldBuffer: CharInfo[][];
+        if (this._Buffer !== null) {
+            OldBuffer = [];
+            for (Y = 1; Y <= this._ScreenSize.y; Y++) {
+                OldBuffer[Y] = [];
+                for (X = 1; X <= this._ScreenSize.x; X++) {
+                    OldBuffer[Y][X] = new CharInfo(this._Buffer[Y][X].Ch, this._Buffer[Y][X].Attr, this._Buffer[Y][X].Blink, this._Buffer[Y][X].Underline, this._Buffer[Y][X].Reverse);
                 }
             }
         }
-        var FOldScreenSize = new Point(FScreenSize.x, FScreenSize.y);
+        var OldScreenSize: Point = new Point(this._ScreenSize.x, this._ScreenSize.y);
 
         // Set the new console screen size
-        FScreenSize.x = AColumns;
-        FScreenSize.y = ARows;
+        this._ScreenSize.x = columns;
+        this._ScreenSize.y = rows;
 
         // Update the WindMin/WindMax records
-        FWindMin = 0;
-        FWindMax = (FScreenSize.x - 1) | ((FScreenSize.y - 1) << 8);
+        this._WindMin = 0;
+        this._WindMax = (this._ScreenSize.x - 1) | ((this._ScreenSize.y - 1) << 8);
 
         // Reset the screen buffer 
-        InitBuffers(false);
-
-        // Update the bitmap
-        // TODO Why is this commented out?
-        /*FBitmap.bitmapData = new BitmapData(FFont.Width * FScreenSize.x, FFont.Height * FScreenSize.y, false, 0);
-        FCanvas.width = FBitmap.width;
-        FCanvas.height = FBitmap.height;*/
+        this.InitBuffers(false);
 
         // Restore the screen contents
         // TODO If new screen is smaller than old screen, restore bottom portion not top portion
-        if (FOldBuffer !== null) {
-            for (Y = 1; Y <= Math.min(FScreenSize.y, FOldScreenSize.y) ; Y++) {
-                for (X = 1; X <= Math.min(FScreenSize.x, FOldScreenSize.x) ; X++) {
-                    that.FastWrite(FOldBuffer[Y][X].Ch, X, Y, FOldBuffer[Y][X]);
+        if (OldBuffer !== null) {
+            for (Y = 1; Y <= Math.min(this._ScreenSize.y, OldScreenSize.y); Y++) {
+                for (X = 1; X <= Math.min(this._ScreenSize.x, OldScreenSize.x); X++) {
+                    this.FastWrite(OldBuffer[Y][X].Ch, X, Y, OldBuffer[Y][X]);
                 }
             }
         }
 
         // Let the program know about the update
         // TODO Is the commented or uncommented code correct?
-        //FCanvas.dispatchEvent(that.SCREEN_SIZE_CHANGED);
-        var evObj = document.createEvent('Events');
-        evObj.initEvent(that.SCREEN_SIZE_CHANGED, true, false);
-        FCanvas.dispatchEvent(evObj);
-    };
+        // this._Canvas.dispatchEvent(this.SCREEN_SIZE_CHANGED);
+        var evObj: Event = document.createEvent('Events');
+        evObj.initEvent(this.SCREEN_SIZE_CHANGED, true, false);
+        this._Canvas.dispatchEvent(evObj);
+    }
 
-    this.ShowCursor = function () {
-        FCursor.Visible = true;
-    };
+    public static ShowCursor(): void {
+        this._Cursor.Visible = true;
+    }
 
-    this.__defineGetter__("TextAttr", function () {
+    public static get TextAttr(): number {
         /// <summary>
         /// Stores currently selected text attributes
         /// </summary>
@@ -1209,14 +1183,14 @@ var TCrt = function () {
         ///
         /// However, you can also set them by directly storing a value in TextAttr.
         /// </remarks>
-        return FCharInfo.Attr;
-    });
+        return this._CharInfo.Attr;
+    }
 
-    this.__defineSetter__("TextAttr", function (AAttr) {
-        FCharInfo.Attr = AAttr;
-    });
+    public static set TextAttr(value: number) {
+        this._CharInfo.Attr = value;
+    }
 
-    this.TextBackground = function (AColor) {
+    public static TextBackground(colour: number): void {
         /// <summary>
         /// Selects the background color.
         /// </summary>
@@ -1229,11 +1203,11 @@ var TCrt = function () {
         /// The background of all characters subsequently written will be in the
         /// specified color.
         /// </remarks>
-        /// <param name="AColor">The colour to set the background to</param>
-        that.TextAttr = (that.TextAttr & 0x0F) | ((AColor & 0x0F) << 4);
-    };
+        /// <param name='AColor'>The colour to set the background to</param>
+        this.TextAttr = (this.TextAttr & 0x0F) | ((colour & 0x0F) << 4);
+    }
 
-    this.TextColor = function (AColor) {
+    public static TextColor(colour: number): void {
         /// <summary>
         /// Selects the foreground character color.
         /// </summary>
@@ -1252,11 +1226,11 @@ var TCrt = function () {
         /// foreground of all characters subsequently written will be in the specified
         /// color.
         /// </remarks>
-        /// <param name="AColor">The colour to set the foreground to</param>
-        that.TextAttr = (that.TextAttr & 0xF0) | (AColor & 0x0F);
-    };
+        /// <param name='AColor'>The colour to set the foreground to</param>
+        this.TextAttr = (this.TextAttr & 0xF0) | (colour & 0x0F);
+    }
 
-    this.WhereX = function () {
+    public static WhereX(): number {
         /// <summary>
         /// Returns the CP's X coordinate of the current cursor location.
         /// </summary>
@@ -1264,10 +1238,10 @@ var TCrt = function () {
         /// WhereX is window-specific.
         /// </remarks>
         /// <returns>The 1-based column of the window the cursor is currently in</returns>
-        return FCursor.Position.x;
-    };
+        return this._Cursor.Position.x;
+    }
 
-    this.WhereXA = function () {
+    public static WhereXA(): number {
         /// <summary>
         /// Returns the CP's X coordinate of the current cursor location.
         /// </summary>
@@ -1275,8 +1249,8 @@ var TCrt = function () {
         /// WhereXA is not window-specific.
         /// </remarks>
         /// <returns>The 1-based column of the screen the cursor is currently in</returns>
-        return that.WhereX() + that.WindMinX;
-    };
+        return this.WhereX() + this.WindMinX;
+    }
 
     /// <summary>
     /// Returns the CP's Y coordinate of the current cursor location.
@@ -1285,11 +1259,11 @@ var TCrt = function () {
     /// WhereY is window-specific.
     /// </remarks>
     /// <returns>The 1-based row of the window the cursor is currently in</returns>
-    this.WhereY = function () {
-        return FCursor.Position.y;
-    };
+    public static WhereY(): number {
+        return this._Cursor.Position.y;
+    }
 
-    this.WhereYA = function () {
+    public static WhereYA(): number {
         /// <summary>
         /// Returns the CP's Y coordinate of the current cursor location.
         /// </summary>
@@ -1297,59 +1271,59 @@ var TCrt = function () {
         /// WhereYA is now window-specific.
         /// </remarks>
         /// <returns>The 1-based row of the screen the cursor is currently in</returns>
-        return that.WhereY() + that.WindMinY;
-    };
+        return this.WhereY() + this.WindMinY;
+    }
 
-    this.__defineGetter__("WindCols", function () {
+    public static get WindCols(): number {
         /// <summary>
         /// The number of columns found in the currently defined window
         /// </summary>
-        return that.WindMaxX - that.WindMinX + 1;
-    });
+        return this.WindMaxX - this.WindMinX + 1;
+    }
 
-    this.__defineGetter__("WindMax", function () {
+    public static get WindMax(): number {
         /// <summary>
         /// The 0-based lower right coordinate of the current window
         /// </summary>
-        return FWindMax;
-    });
+        return this._WindMax;
+    }
 
-    this.__defineGetter__("WindMaxX", function () {
+    public static get WindMaxX(): number {
         /// <summary>
         /// The 0-based left column of the current window
         /// </summary>
-        return (that.WindMax & 0x00FF);
-    });
+        return (this.WindMax & 0x00FF);
+    }
 
-    this.__defineGetter__("WindMaxY", function () {
+    public static get WindMaxY(): number {
         /// <summary>
         /// The 0-based right column of the current window
         /// </summary>
-        return ((that.WindMax & 0xFF00) >> 8);
-    });
+        return ((this.WindMax & 0xFF00) >> 8);
+    }
 
-    this.__defineGetter__("WindMin", function () {
+    public static get WindMin(): number {
         /// <summary>
         /// The 0-based upper left coordinate of the current window
         /// </summary>
-        return FWindMin;
-    });
+        return this._WindMin;
+    }
 
-    this.__defineGetter__("WindMinX", function () {
+    public static get WindMinX(): number {
         /// <summary>
         /// The 0-based top row of the current window
         /// </summary>
-        return (that.WindMin & 0x00FF);
-    });
+        return (this.WindMin & 0x00FF);
+    }
 
-    this.__defineGetter__("WindMinY", function () {
+    public static get WindMinY(): number {
         /// <summary>
         /// The 0-based bottom row of the current window
         /// </summary>
-        return ((that.WindMin & 0xFF00) >> 8);
-    });
+        return ((this.WindMin & 0xFF00) >> 8);
+    }
 
-    this.Window = function (AX1, AY1, AX2, AY2) {
+    public static Window(left: number, top: number, right: number, bottom: number): void {
         /// <summary>
         /// Defines a text window on the screen.
         /// </summary>
@@ -1374,79 +1348,75 @@ var TCrt = function () {
         /// WindMin and WindMax store the current window definition. A call to the
         /// Window procedure always moves the cursor to (1, 1).
         /// </remarks>
-        /// <param name="AX1">The 1-based left column of the window</param>
-        /// <param name="AY1">The 1-based top row of the window</param>
-        /// <param name="AX2">The 1-based right column of the window</param>
-        /// <param name="AY2">The 1-based bottom row of the window</param>
-        if ((AX1 >= 1) && (AY1 >= 1) && (AX1 <= AX2) && (AY1 <= AY2)) {
-            if ((AX2 <= FScreenSize.x) && (AY2 <= FScreenSize.y)) {
-                FWindMin = (AX1 - 1) + ((AY1 - 1) << 8);
-                FWindMax = (AX2 - 1) + ((AY2 - 1) << 8);
-                FCursor.WindowOffset = new Point(AX1 - 1, AY1 - 1);
-                that.GotoXY(1, 1);
+        /// <param name='AX1'>The 1-based left column of the window</param>
+        /// <param name='AY1'>The 1-based top row of the window</param>
+        /// <param name='AX2'>The 1-based right column of the window</param>
+        /// <param name='AY2'>The 1-based bottom row of the window</param>
+        if ((left >= 1) && (top >= 1) && (left <= right) && (top <= bottom)) {
+            if ((right <= this._ScreenSize.x) && (bottom <= this._ScreenSize.y)) {
+                this._WindMin = (left - 1) + ((top - 1) << 8);
+                this._WindMax = (right - 1) + ((bottom - 1) << 8);
+                this._Cursor.WindowOffset = new Point(left - 1, top - 1);
+                this.GotoXY(1, 1);
             }
         }
-    };
+    }
 
-    this.__defineGetter__("WindRows", function () {
+    public static get WindRows(): number {
         /// <summary>
         /// The number of rows found in the currently defined window
         /// </summary>
-        return that.WindMaxY - that.WindMinY + 1;
-    });
+        return this.WindMaxY - this.WindMinY + 1;
+    }
 
-    this.Write = function (AText) {
+    public static Write(text: string): void {
         /// <summary>
         /// Writes a given line of text to the screen.
         /// </summary>
         /// <remarks>
         /// Text is wrapped if it exceeds the right edge of the window
         /// </remarks>
-        /// <param name="AText">The text to print to the screen</param>
-        if (FAtari) {
-            that.WriteATASCII(AText);
-        } else if (FC64) {
-            that.WritePETSCII(AText);
+        /// <param name='AText'>The text to print to the screen</param>
+        if (this._Atari) {
+            this.WriteATASCII(text);
+        } else if (this._C64) {
+            this.WritePETSCII(text);
         } else {
-            that.WriteASCII(AText);
+            this.WriteASCII(text);
         }
-    };
+    }
 
-    this.WriteASCII = function (AText) {
-        if (AText === undefined) { AText = ""; }
+    private static WriteASCII(text: string): void {
+        if (text === undefined) { text = ''; }
 
-        var X = that.WhereX();
-        var Y = that.WhereY();
-        var Buf = "";
+        var X: number = this.WhereX();
+        var Y: number = this.WhereY();
+        var Buf: string = '';
 
-        var i;
-        for (i = 0; i < AText.length; i++) {
-            var DoGoto = false;
+        for (var i: number = 0; i < text.length; i++) {
+            var DoGoto: boolean = false;
 
-            if (AText.charCodeAt(i) === 0x00) {
+            if (text.charCodeAt(i) === 0x00) {
                 // NULL, ignore
                 i += 0; // Make JSLint happy (doesn't like empty block)
-            }
-            else if (AText.charCodeAt(i) === 0x07) {
-                that.Beep();
-            }
-            else if (AText.charCodeAt(i) === 0x08) {
+            } else if (text.charCodeAt(i) === 0x07) {
+                this.Beep();
+            } else if (text.charCodeAt(i) === 0x08) {
                 // Backspace, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 if (X > 1) { X -= 1; }
                 DoGoto = true;
 
-                Buf = "";
-            }
-            else if (AText.charCodeAt(i) === 0x09) {
+                Buf = '';
+            } else if (text.charCodeAt(i) === 0x09) {
                 // Tab, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                Buf = "";
+                Buf = '';
 
                 // Figure out where the next tabstop is
-                if (X === that.WindCols) {
+                if (X === this.WindCols) {
                     // Cursor is in last position, tab goes to the first position of the next line
                     X = 1;
                     Y += 1;
@@ -1454,46 +1424,43 @@ var TCrt = function () {
                     // Cursor goes to the next multiple of 8
                     X += 8 - (X % 8);
 
-                    // Make sure we didn't tab beyond the width of the window (can happen if width of window is not divisible by 8)
-                    X = Math.min(X, that.WindCols);
+                    // Make sure we didn't tab beyond the width of the window (can happen if width of window is not 
+                    // divisible by 8)
+                    X = Math.min(X, this.WindCols);
                 }
                 DoGoto = true;
-            }
-            else if (AText.charCodeAt(i) === 0x0A) {
+            } else if (text.charCodeAt(i) === 0x0A) {
                 // Line feed, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 Y += 1;
                 DoGoto = true;
 
-                Buf = "";
-            }
-            else if (AText.charCodeAt(i) === 0x0C) {
+                Buf = '';
+            } else if (text.charCodeAt(i) === 0x0C) {
                 // Clear the screen
-                that.ClrScr();
+                this.ClrScr();
 
                 // Reset the variables
                 X = 1;
                 Y = 1;
-                Buf = "";
-            }
-            else if (AText.charCodeAt(i) === 0x0D) {
+                Buf = '';
+            } else if (text.charCodeAt(i) === 0x0D) {
                 // Carriage return, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X = 1;
                 DoGoto = true;
 
-                Buf = "";
-            }
-            else if (AText.charCodeAt(i) !== 0) {
+                Buf = '';
+            } else if (text.charCodeAt(i) !== 0) {
                 // Append character to buffer
-                Buf += String.fromCharCode(AText.charCodeAt(i) & 0xFF);
+                Buf += String.fromCharCode(text.charCodeAt(i) & 0xFF);
 
                 // Check if we've passed the right edge of the window
-                if ((X + Buf.length) > that.WindCols) {
+                if ((X + Buf.length) > this.WindCols) {
                     // We have, need to flush buffer before moving cursor
-                    that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                    Buf = "";
+                    this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
+                    Buf = '';
 
                     X = 1;
                     Y += 1;
@@ -1502,109 +1469,99 @@ var TCrt = function () {
             }
 
             // Check if we've passed the bottom edge of the window
-            if (Y > that.WindRows) {
+            if (Y > this.WindRows) {
                 // We have, need to scroll the window one line
-                Y = that.WindRows;
-                that.ScrollUpWindow(1);
+                Y = this.WindRows;
+                this.ScrollUpWindow(1);
                 DoGoto = true;
             }
 
-            if (DoGoto) { that.GotoXY(X, Y); }
+            if (DoGoto) { this.GotoXY(X, Y); }
         }
 
         // Flush remaining text in buffer if we have any
         if (Buf.length > 0) {
-            that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+            this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
             X += Buf.length;
-            that.GotoXY(X, Y);
+            this.GotoXY(X, Y);
         }
-    };
+    }
 
-    this.WriteATASCII = function (AText) {
-        if (AText === undefined) { AText = ""; }
+    private static WriteATASCII(text: string): void {
+        if (text === undefined) { text = ''; }
 
-        var X = that.WhereX();
-        var Y = that.WhereY();
-        var Buf = "";
+        var X: number = this.WhereX();
+        var Y: number = this.WhereY();
+        var Buf: string = '';
 
-        var i;
-        for (i = 0; i < AText.length; i++) {
-            // trace(AText.charCodeAt(i));
-            var DoGoto = false;
+        for (var i: number = 0; i < text.length; i++) {
+            var DoGoto: boolean = false;
 
-            if (AText.charCodeAt(i) === 0x00) {
+            if (text.charCodeAt(i) === 0x00) {
                 // NULL, ignore
                 i += 0; // Make JSLint happy (doesn't like empty block)
-            }
-            if ((AText.charCodeAt(i) === 0x1B) && (!FATASCIIEscaped)) {
+            } if ((text.charCodeAt(i) === 0x1B) && (!this._ATASCIIEscaped)) {
                 // Escape
-                FATASCIIEscaped = true;
-            }
-            else if ((AText.charCodeAt(i) === 0x1C) && (!FATASCIIEscaped)) {
+                this._ATASCIIEscaped = true;
+            } else if ((text.charCodeAt(i) === 0x1C) && (!this._ATASCIIEscaped)) {
                 // Cursor up, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                Y = (Y > 1) ? Y - 1 : that.WindRows;
+                Y = (Y > 1) ? Y - 1 : this.WindRows;
                 DoGoto = true;
 
-                Buf = "";
-            }
-            else if ((AText.charCodeAt(i) === 0x1D) && (!FATASCIIEscaped)) {
+                Buf = '';
+            } else if ((text.charCodeAt(i) === 0x1D) && (!this._ATASCIIEscaped)) {
                 // Cursor down, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                Y = (Y < that.WindRows) ? Y + 1 : 1;
+                Y = (Y < this.WindRows) ? Y + 1 : 1;
                 DoGoto = true;
 
-                Buf = "";
-            }
-            else if ((AText.charCodeAt(i) === 0x1E) && (!FATASCIIEscaped)) {
+                Buf = '';
+            } else if ((text.charCodeAt(i) === 0x1E) && (!this._ATASCIIEscaped)) {
                 // Cursor left, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                X = (X > 1) ? X - 1 : that.WindCols;
+                X = (X > 1) ? X - 1 : this.WindCols;
                 DoGoto = true;
 
-                Buf = "";
-            }
-            else if ((AText.charCodeAt(i) === 0x1F) && (!FATASCIIEscaped)) {
+                Buf = '';
+            } else if ((text.charCodeAt(i) === 0x1F) && (!this._ATASCIIEscaped)) {
                 // Cursor right, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                X = (X < that.WindCols) ? X + 1 : 1;
+                X = (X < this.WindCols) ? X + 1 : 1;
                 DoGoto = true;
 
-                Buf = "";
-            }
-            else if ((AText.charCodeAt(i) === 0x7D) && (!FATASCIIEscaped)) {
+                Buf = '';
+            } else if ((text.charCodeAt(i) === 0x7D) && (!this._ATASCIIEscaped)) {
                 // Clear the screen
-                that.ClrScr();
+                this.ClrScr();
 
                 // Reset the variables
                 X = 1;
                 Y = 1;
-                Buf = "";
-            }
-            else if ((AText.charCodeAt(i) === 0x7E) && (!FATASCIIEscaped)) {
+                Buf = '';
+            } else if ((text.charCodeAt(i) === 0x7E) && (!this._ATASCIIEscaped)) {
                 // Backspace, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                Buf = "";
+                Buf = '';
                 DoGoto = true;
 
                 if (X > 1) {
                     X -= 1;
-                    that.FastWrite(" ", X, that.WhereYA(), FCharInfo);
+                    this.FastWrite(' ', X, this.WhereYA(), this._CharInfo);
                 }
-            }
-            else if ((AText.charCodeAt(i) === 0x7F) && (!FATASCIIEscaped)) {
+            } else if ((text.charCodeAt(i) === 0x7F) && (!this._ATASCIIEscaped)) {
                 // Tab, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                Buf = "";
+                Buf = '';
 
                 // Figure out where the next tabstop is
-                if (X === that.WindCols) {
+                if (X === this.WindCols) {
                     // Cursor is in last position, tab goes to the first position of the next line
                     X = 1;
                     Y += 1;
@@ -1613,72 +1570,65 @@ var TCrt = function () {
                     X += 8 - (X % 8);
                 }
                 DoGoto = true;
-            }
-            else if ((AText.charCodeAt(i) === 0x9B) && (!FATASCIIEscaped)) {
+            } else if ((text.charCodeAt(i) === 0x9B) && (!this._ATASCIIEscaped)) {
                 // Line feed, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X = 1;
                 Y += 1;
                 DoGoto = true;
 
-                Buf = "";
-            }
-            else if ((AText.charCodeAt(i) === 0x9C) && (!FATASCIIEscaped)) {
+                Buf = '';
+            } else if ((text.charCodeAt(i) === 0x9C) && (!this._ATASCIIEscaped)) {
                 // Delete line, need to flush buffer before doing so
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X = 1;
-                Buf = "";
+                Buf = '';
 
-                that.GotoXY(X, Y);
-                that.DelLine();
-            }
-            else if ((AText.charCodeAt(i) === 0x9D) && (!FATASCIIEscaped)) {
+                this.GotoXY(X, Y);
+                this.DelLine();
+            } else if ((text.charCodeAt(i) === 0x9D) && (!this._ATASCIIEscaped)) {
                 // Insert line, need to flush buffer before doing so
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X = 1;
-                Buf = "";
+                Buf = '';
 
-                that.GotoXY(X, Y);
-                that.InsLine();
-            }
-            else if ((AText.charCodeAt(i) === 0xFD) && (!FATASCIIEscaped)) {
-                that.Beep();
-            }
-            else if ((AText.charCodeAt(i) === 0xFE) && (!FATASCIIEscaped)) {
+                this.GotoXY(X, Y);
+                this.InsLine();
+            } else if ((text.charCodeAt(i) === 0xFD) && (!this._ATASCIIEscaped)) {
+                this.Beep();
+            } else if ((text.charCodeAt(i) === 0xFE) && (!this._ATASCIIEscaped)) {
                 // Delete character, need to flush buffer before doing so
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                Buf = "";
+                Buf = '';
 
-                that.GotoXY(X, Y);
-                that.DelChar();
-            }
-            else if ((AText.charCodeAt(i) === 0xFF) && (!FATASCIIEscaped)) {
+                this.GotoXY(X, Y);
+                this.DelChar();
+            } else if ((text.charCodeAt(i) === 0xFF) && (!this._ATASCIIEscaped)) {
                 // Insert character, need to flush buffer before doing so
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
-                Buf = "";
+                Buf = '';
 
-                that.GotoXY(X, Y);
-                that.InsChar();
-            }
-            else {
+                this.GotoXY(X, Y);
+                this.InsChar();
+            } else {
                 // Append character to buffer (but handle lantronix filter)
-                if ((AText.charCodeAt(i) === 0x00) && (FLastChar === 0x0D)) {
+                if ((text.charCodeAt(i) === 0x00) && (this._LastChar === 0x0D)) {
                     // LANtronix always sends 0 after 13, so we'll ignore it
-                    Buf += ""; // Make JSLint happy
+                    Buf += ''; // Make JSLint happy
                 } else {
                     // Add key to buffer
-                    Buf += String.fromCharCode(AText.charCodeAt(i) & 0xFF);
+                    Buf += String.fromCharCode(text.charCodeAt(i) & 0xFF);
                 }
-                FATASCIIEscaped = false;
-                FLastChar = AText.charCodeAt(i);
+                this._ATASCIIEscaped = false;
+                this._LastChar = text.charCodeAt(i);
 
                 // Check if we've passed the right edge of the window
-                if ((X + Buf.length) > that.WindCols) {
+                if ((X + Buf.length) > this.WindCols) {
                     // We have, need to flush buffer before moving cursor
-                    that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                    Buf = "";
+                    this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
+                    Buf = '';
 
                     X = 1;
                     Y += 1;
@@ -1687,225 +1637,193 @@ var TCrt = function () {
             }
 
             // Check if we've passed the bottom edge of the window
-            if (Y > that.WindRows) {
+            if (Y > this.WindRows) {
                 // We have, need to scroll the window one line
-                Y = that.WindRows;
-                that.ScrollUpWindow(1);
+                Y = this.WindRows;
+                this.ScrollUpWindow(1);
                 DoGoto = true;
             }
 
-            if (DoGoto) { that.GotoXY(X, Y); }
+            if (DoGoto) { this.GotoXY(X, Y); }
         }
 
         // Flush remaining text in buffer if we have any
         if (Buf.length > 0) {
-            that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+            this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
             X += Buf.length;
-            that.GotoXY(X, Y);
+            this.GotoXY(X, Y);
         }
-    };
+    }
 
-    this.WritePETSCII = function (AText) {
-        if (AText === undefined) { AText = ""; }
+    private static WritePETSCII(text: string): void {
+        if (text === undefined) { text = ''; }
 
-        var X = that.WhereX();
-        var Y = that.WhereY();
-        var Buf = "";
+        var X: number = this.WhereX();
+        var Y: number = this.WhereY();
+        var Buf: string = '';
 
-        var i;
-        for (i = 0; i < AText.length; i++) {
-            var DoGoto = false;
+        for (var i: number = 0; i < text.length; i++) {
+            var DoGoto: boolean = false;
 
             // Check if this is a control code (so we need to flush buffered text first)
-            if ((Buf !== "") && (FFlushBeforeWritePETSCII.indexOf(AText.charCodeAt(i)) !== -1)) {
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+            if ((Buf !== '') && (this._FlushBeforeWritePETSCII.indexOf(text.charCodeAt(i)) !== -1)) {
+                this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 DoGoto = true;
-                Buf = "";
+                Buf = '';
             }
 
-            if (AText.charCodeAt(i) === 0x00) {
+            if (text.charCodeAt(i) === 0x00) {
                 // NULL, ignore
                 i += 0; // Make JSLint happy (doesn't like empty block)
-            }
-            else if (AText.charCodeAt(i) === 0x05) {
+            } else if (text.charCodeAt(i) === 0x05) {
                 // Changes the text color to white. 
-                that.TextColor(that.PETSCII_WHITE);
-            }
-            else if (AText.charCodeAt(i) === 0x07) {
+                this.TextColor(this.PETSCII_WHITE);
+            } else if (text.charCodeAt(i) === 0x07) {
                 // Beep (extra, not documented)
-                that.Beep();
-            }
-            else if (AText.charCodeAt(i) === 0x08) {
+                this.Beep();
+            } else if (text.charCodeAt(i) === 0x08) {
                 // TODO Disables changing the character set using the SHIFT + Commodore key combination. 
-                trace("PETSCII 0x08");
-            }
-            else if (AText.charCodeAt(i) === 0x09) {
+                console.log('PETSCII 0x08');
+            } else if (text.charCodeAt(i) === 0x09) {
                 // TODO Enables changing the character set using the SHIFT + Commodore key combination. 
-                trace("PETSCII 0x09");
-            }
-            else if (AText.charCodeAt(i) === 0x0A) {
+                console.log('PETSCII 0x09');
+            } else if (text.charCodeAt(i) === 0x0A) {
                 // Ignore, 0x0D will handle linefeeding
                 i += 0; // Make JSLint happy (doesn't like empty block)
-            }
-            else if ((AText.charCodeAt(i) === 0x0D) || (AText.charCodeAt(i) === 0x8D)) {
+            } else if ((text.charCodeAt(i) === 0x0D) || (text.charCodeAt(i) === 0x8D)) {
                 // Carriage return; next character will go in the first column of the following text line. 
-                // As opposed to traditional ASCII-based system, no LINE FEED character needs to be sent in conjunction with this Carriage return character in the PETSCII system. 
+                // As opposed to traditional ASCII-based system, no LINE FEED character needs to be sent in conjunction 
+                // with this Carriage return character in the PETSCII system. 
                 X = 1;
                 Y += 1;
-                FCharInfo.Reverse = false;
+                this._CharInfo.Reverse = false;
                 DoGoto = true;
-            }
-            else if (AText.charCodeAt(i) === 0x0E) {
+            } else if (text.charCodeAt(i) === 0x0E) {
                 // Select the lowercase/uppercase character set. 
-                that.SetFont("PETSCII-Lower", 16, 16);
-            }
-            else if (AText.charCodeAt(i) === 0x11) {
+                this.SetFont('PETSCII-Lower', 16, 16);
+            } else if (text.charCodeAt(i) === 0x11) {
                 // Cursor down: Next character will be printed in subsequent column one text line further down the screen. 
                 Y += 1;
                 DoGoto = true;
-            }
-            else if (AText.charCodeAt(i) === 0x12) {
+            } else if (text.charCodeAt(i) === 0x12) {
                 // Reverse on: Selects reverse video text. 
-                FCharInfo.Reverse = true;
-            }
-            else if (AText.charCodeAt(i) === 0x13) {
+                this._CharInfo.Reverse = true;
+            } else if (text.charCodeAt(i) === 0x13) {
                 // Home: Next character will be printed in the upper left-hand corner of the screen. 
                 X = 1;
                 Y = 1;
                 DoGoto = true;
-            }
-            else if (AText.charCodeAt(i) === 0x14) {
-                // Delete, or "backspace"; erases the previous character and moves the cursor one character position to the left. 
+            } else if (text.charCodeAt(i) === 0x14) {
+                // Delete, or 'backspace'; erases the previous character and moves the cursor one character position to the left. 
                 if ((X > 1) || (Y > 1)) {
                     if (X === 1) {
-                        X = that.WindCols;
+                        X = this.WindCols;
                         Y -= 1;
                     } else {
                         X -= 1;
                     }
 
-                    that.GotoXY(X, Y);
-                    that.DelChar(1);
+                    this.GotoXY(X, Y);
+                    this.DelChar(1);
                 }
-            }
-            else if (AText.charCodeAt(i) === 0x1C) {
+            } else if (text.charCodeAt(i) === 0x1C) {
                 // Changes the text color to red. 
-                that.TextColor(that.PETSCII_RED);
-            }
-            else if (AText.charCodeAt(i) === 0x1D) {
+                this.TextColor(this.PETSCII_RED);
+            } else if (text.charCodeAt(i) === 0x1D) {
                 // Advances the cursor one character position without printing anything. 
-                if (X === that.WindCols) {
+                if (X === this.WindCols) {
                     X = 1;
                     Y += 1;
                 } else {
                     X += 1;
                 }
                 DoGoto = true;
-            }
-            else if (AText.charCodeAt(i) === 0x1E) {
+            } else if (text.charCodeAt(i) === 0x1E) {
                 // Changes the text color to green. 
-                that.TextColor(that.PETSCII_GREEN);
-            }
-            else if (AText.charCodeAt(i) === 0x1F) {
+                this.TextColor(this.PETSCII_GREEN);
+            } else if (text.charCodeAt(i) === 0x1F) {
                 // Changes the text color to blue. 
-                that.TextColor(that.PETSCII_BLUE);
-            }
-            else if (AText.charCodeAt(i) === 0x81) {
+                this.TextColor(this.PETSCII_BLUE);
+            } else if (text.charCodeAt(i) === 0x81) {
                 // Changes the text color to orange. 
-                that.TextColor(that.PETSCII_ORANGE);
-            }
-            else if (AText.charCodeAt(i) === 0x8E) {
+                this.TextColor(this.PETSCII_ORANGE);
+            } else if (text.charCodeAt(i) === 0x8E) {
                 // Select the uppercase/semigraphics character set. 
-                that.SetFont("PETSCII-Upper", 16, 16);
-            }
-            else if (AText.charCodeAt(i) === 0x90) {
+                this.SetFont('PETSCII-Upper', 16, 16);
+            } else if (text.charCodeAt(i) === 0x90) {
                 // Changes the text color to black. 
-                that.TextColor(that.PETSCII_BLACK);
-            }
-            else if (AText.charCodeAt(i) === 0x91) {
+                this.TextColor(this.PETSCII_BLACK);
+            } else if (text.charCodeAt(i) === 0x91) {
                 // Cursor up: Next character will be printed in subsequent column one text line further up the screen. 
                 if (Y > 1) {
                     Y -= 1;
                     DoGoto = true;
                 }
-            }
-            else if (AText.charCodeAt(i) === 0x92) {
+            } else if (text.charCodeAt(i) === 0x92) {
                 // Reverse off: De-selects reverse video text. 
-                FCharInfo.Reverse = false;
-            }
-            else if (AText.charCodeAt(i) === 0x93) {
-                // Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
-                that.ClrScr();
+                this._CharInfo.Reverse = false;
+            } else if (text.charCodeAt(i) === 0x93) {
+                // Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of 
+                // the text screen. 
+                this.ClrScr();
                 X = 1;
                 Y = 1;
-            }
-            else if (AText.charCodeAt(i) === 0x94) {
-                // Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
-                that.GotoXY(X, Y);
-                that.InsChar(1);
-            }
-            else if (AText.charCodeAt(i) === 0x95) {
+            } else if (text.charCodeAt(i) === 0x94) {
+                // Insert: Makes room for extra characters at the current cursor position, by 'pushing' existing characters 
+                // at that position further to the right. 
+                this.GotoXY(X, Y);
+                this.InsChar(1);
+            } else if (text.charCodeAt(i) === 0x95) {
                 // Changes the text color to brown. 
-                that.TextColor(that.PETSCII_BROWN);
-            }
-            else if (AText.charCodeAt(i) === 0x96) {
+                this.TextColor(this.PETSCII_BROWN);
+            } else if (text.charCodeAt(i) === 0x96) {
                 // Changes the text color to light red.
-                that.TextColor(that.PETSCII_LIGHTRED);
-            }
-            else if (AText.charCodeAt(i) === 0x97) {
+                this.TextColor(this.PETSCII_LIGHTRED);
+            } else if (text.charCodeAt(i) === 0x97) {
                 // Changes the text color to dark gray. 
-                that.TextColor(that.PETSCII_DARKGRAY);
-            }
-            else if (AText.charCodeAt(i) === 0x98) {
+                this.TextColor(this.PETSCII_DARKGRAY);
+            } else if (text.charCodeAt(i) === 0x98) {
                 // Changes the text color to gray. 
-                that.TextColor(that.PETSCII_GRAY);
-            }
-            else if (AText.charCodeAt(i) === 0x99) {
+                this.TextColor(this.PETSCII_GRAY);
+            } else if (text.charCodeAt(i) === 0x99) {
                 // Changes the text color to light green. 
-                that.TextColor(that.PETSCII_LIGHTGREEN);
-            }
-            else if (AText.charCodeAt(i) === 0x9A) {
+                this.TextColor(this.PETSCII_LIGHTGREEN);
+            } else if (text.charCodeAt(i) === 0x9A) {
                 // Changes the text color to light blue. 
-                that.TextColor(that.PETSCII_LIGHTBLUE);
-            }
-            else if (AText.charCodeAt(i) === 0x9B) {
+                this.TextColor(this.PETSCII_LIGHTBLUE);
+            } else if (text.charCodeAt(i) === 0x9B) {
                 // Changes the text color to light gray. 
-                that.TextColor(that.PETSCII_LIGHTGRAY);
-            }
-            else if (AText.charCodeAt(i) === 0x9C) {
+                this.TextColor(this.PETSCII_LIGHTGRAY);
+            } else if (text.charCodeAt(i) === 0x9C) {
                 // Changes the text color to purple. 
-                that.TextColor(that.PETSCII_PURPLE);
-            }
-            else if (AText.charCodeAt(i) === 0x9D) {
+                this.TextColor(this.PETSCII_PURPLE);
+            } else if (text.charCodeAt(i) === 0x9D) {
                 // Moves the cursor one character position backwards, without printing or deleting anything. 
                 if ((X > 1) || (Y > 1)) {
                     if (X === 1) {
-                        X = that.WindCols;
+                        X = this.WindCols;
                         Y -= 1;
                     } else {
                         X -= 1;
                     }
                     DoGoto = true;
                 }
-            }
-            else if (AText.charCodeAt(i) === 0x9E) {
+            } else if (text.charCodeAt(i) === 0x9E) {
                 // Changes the text color to yellow. 
-                that.TextColor(that.PETSCII_YELLOW);
-            }
-            else if (AText.charCodeAt(i) === 0x9F) {
+                this.TextColor(this.PETSCII_YELLOW);
+            } else if (text.charCodeAt(i) === 0x9F) {
                 // Changes the text color to cyan. 
-                that.TextColor(that.PETSCII_CYAN);
-            }
-            else if (AText.charCodeAt(i) !== 0) {
+                this.TextColor(this.PETSCII_CYAN);
+            } else if (text.charCodeAt(i) !== 0) {
                 // Append character to buffer
-                Buf += String.fromCharCode(AText.charCodeAt(i) & 0xFF);
+                Buf += String.fromCharCode(text.charCodeAt(i) & 0xFF);
 
                 // Check if we've passed the right edge of the window
-                if ((X + Buf.length) > that.WindCols) {
+                if ((X + Buf.length) > this.WindCols) {
                     // We have, need to flush buffer before moving cursor
-                    that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                    Buf = "";
+                    this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
+                    Buf = '';
 
                     X = 1;
                     Y += 1;
@@ -1914,34 +1832,33 @@ var TCrt = function () {
             }
 
             // Check if we've passed the bottom edge of the window
-            if (Y > that.WindRows) {
+            if (Y > this.WindRows) {
                 // We have, need to scroll the window one line
-                Y = that.WindRows;
-                that.ScrollUpWindow(1);
+                Y = this.WindRows;
+                this.ScrollUpWindow(1);
                 DoGoto = true;
             }
 
-            if (DoGoto) { that.GotoXY(X, Y); }
+            if (DoGoto) { this.GotoXY(X, Y); }
         }
 
         // Flush remaining text in buffer if we have any
         if (Buf.length > 0) {
-            that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+            this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
             X += Buf.length;
-            that.GotoXY(X, Y);
+            this.GotoXY(X, Y);
         }
-    };
+    }
 
-    this.WriteLn = function (AText) {
+    public static WriteLn(text?: string): void {
         /// <summary>
         /// Writes a given line of text to the screen, followed by a carriage return and line feed.
         /// </summary>
         /// <remarks>
         /// Text is wrapped if it exceeds the right edge of the window
         /// </remarks>
-        /// <param name="AText">The text to print to the screen</param>
-        if (AText === undefined) { AText = ""; }
-        that.Write(AText + "\r\n");
-    };
-};
-Crt = new TCrt();
+        /// <param name='AText'>The text to print to the screen</param>
+        if (text === undefined) { text = ''; }
+        this.Write(text + '\r\n');
+    }
+}

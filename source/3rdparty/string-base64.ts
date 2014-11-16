@@ -14,7 +14,7 @@ var Base64 = {
     base64Pad: '=',
 
     encode: function (data) {
-        "use strict";
+        'use strict';
         var result = '';
         var toBase64Table = Base64.toBase64Table;
         var base64Pad = Base64.base64Pad;
@@ -60,7 +60,7 @@ var Base64 = {
     ],
 
     decode: function (data, offset) {
-        "use strict";
+        'use strict';
         offset = typeof (offset) !== 'undefined' ? offset : 0;
         var toBinaryTable = Base64.toBinaryTable;
         var base64Pad = Base64.base64Pad;
@@ -82,7 +82,7 @@ var Base64 = {
             padding = (data.charAt(i) === base64Pad);
             // Skip illegal characters and whitespace
             if (c === -1) {
-                console.error("Illegal character code " + data.charCodeAt(i) + " at position " + i);
+                console.error('Illegal character code ' + data.charCodeAt(i) + ' at position ' + i);
             } else {
                 // Collect data into leftdata, update bitcount
                 leftdata = (leftdata << 6) | c;

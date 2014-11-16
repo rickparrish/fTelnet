@@ -1,0 +1,19 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+    <h1 style="text-align: center">HtmlTerm Test</h1>
+    <div style="text-align: center;">
+        <div id="HtmlTerm">Initializing HtmlTerm...</div>
+    </div>
+
+    <script src="ftelnet.js"></script>
+    <script>
+        if (HtmlTerm.Init('HtmlTerm')) {
+            HtmlTerm.Connect("bbs.ftelnet.ca", 23);
+        }
+    </script>
+</body>
+</html>

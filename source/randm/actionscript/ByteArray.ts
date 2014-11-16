@@ -17,146 +17,162 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var ByteArray = function () {
+class ByteArray {
     // Private variables
-    var that = this;
-    var FBytes = [];
-    var FLength = 0;
-    var FPosition = 0;
+    private _Bytes: number[] = [];
+    private _Length: number = 0;
+    private _Position: number = 0;
 
-    this.__defineGetter__("bytesAvailable", function () {
-        return FLength - FPosition;
-    });
+    public get bytesAvailable(): number {
+        return this._Length - this._Position;
+    }
 
-    this.clear = function () {
-        FBytes = [];
-        FLength = 0;
-        FPosition = 0;
-    };
+    public clear(): void {
+        this._Bytes = [];
+        this._Length = 0;
+        this._Position = 0;
+    }
 
-    this.__defineGetter__("length", function () {
-        return FLength;
-    });
-    this.__defineSetter__("length", function (value) {
+    public get length(): number {
+        return this._Length;
+    }
+
+    public set length(value: number) {
         if (value <= 0) {
-            that.clear();
-            return;
-        }
-
-        if (value < FLength) {
-            FBytes.splice(value, FLength - value);
-        } else if (value > FLength) {
-            var i;
-            for (i = FLength + 1; i <= value; i++) {
-                FBytes.push(0);
+            this.clear();
+        } else {
+            if (value < this._Length) {
+                this._Bytes.splice(value, this._Length - value);
+            } else if (value > this._Length) {
+                for (var i: number = this._Length + 1; i <= value; i++) {
+                    this._Bytes.push(0);
+                }
             }
+
+            this._Length = value;
         }
+    }
 
-        FLength = value;
-    });
+    public get position(): number {
+        return this._Position;
+    }
 
-    this.__defineGetter__("position", function () {
-        return FPosition;
-    });
-    this.__defineSetter__("position", function (value) {
+    public set position(value: number) {
         if (value <= 0) {
             value = 0;
-        } else if (value >= FLength) {
-            value = FLength;
+        } else if (value >= this._Length) {
+            value = this._Length;
         }
 
-        FPosition = value;
-    });
+        this._Position = value;
+    }
 
-    this.readBytes = function (ADest, AOffset, ACount) {
-        if (FPosition + ACount > FLength) {
-            throw "There is not sufficient data available to read.";
+    public readBytes(bytes: ByteArray, offset?: number, length?: number): void {
+        if (typeof offset === 'undefined') { offset = 0; }
+        if (typeof length === 'undefined') { length = 0; }
+
+        if (this._Position + length > this._Length) {
+            throw 'There is not sufficient data available to read.';
         }
 
-        var DestPosition = ADest.position;
-        ADest.position = AOffset;
+        var BytesPosition: number = bytes.position;
+        bytes.position = offset;
 
-        var i;
-        for (i = 0; i < ACount; i++) {
-            ADest.writeByte(FBytes[FPosition++] & 0xFF);
+        for (var i: number = 0; i < length; i++) {
+            bytes.writeByte(this._Bytes[this._Position++] & 0xFF);
         }
 
-        ADest.position = DestPosition;
-    };
+        bytes.position = BytesPosition;
+    }
 
-    this.readString = function () {
-        var Result = [];
-        var i;
-        for (i = FPosition; i < FLength; i++) {
-            Result.push(String.fromCharCode(FBytes[i]));
-        }
-        that.clear();
-        return Result.join("");
-    };
-
-    this.readUnsignedByte = function () {
-        if (FPosition >= FLength) {
-            throw "There is not sufficient data available to read.";
+    public readString(length?: number): string {
+        if (typeof length === 'undefined') {
+            length = this._Length;
         }
 
-        return (FBytes[FPosition++] & 0xFF);
-    };
-
-    this.readUnsignedShort = function () {
-        if (FPosition >= (FLength - 1)) {
-            throw "There is not sufficient data available to read.";
+        var Result: string = '';
+        while ((length-- > 0) && (this._Position < this._Length)) {
+            Result += String.fromCharCode(this._Bytes[this._Position++]);
         }
 
-        return ((FBytes[FPosition++] & 0xFF) << 8) + (FBytes[FPosition++] & 0xFF);
-    };
-
-    this.toString = function () {
-        var Result = [];
-        var i;
-        for (i = 0; i < FLength; i++) {
-            Result.push(String.fromCharCode(FBytes[i]));
+        // Reset if we've read all the data there is to read
+        if (this.bytesAvailable === 0) {
+            this.clear();
         }
-        return Result.join("");
-    };
 
-    this.writeByte = function (value) {
-        FBytes[FPosition++] = (value & 0xFF);
-        if (FPosition > FLength) { FLength++; }
-    };
+        return Result;
+    }
 
-    this.writeBytes = function (bytes, offset, length) {
-        // Handle optional parameters
-        if (typeof offset === "undefined") { offset = 0; }
-        if (typeof length === "undefined") { length = 0; }
+    public readUnsignedByte(): number {
+        if (this._Position >= this._Length) {
+            throw 'There is not sufficient data available to read.';
+        }
 
-        if (offset < 0) { offset = 0; }
-        if (length < 0) { return; } else if (length === 0) { length = bytes.length; }
+        return (this._Bytes[this._Position++] & 0xFF);
+    }
+
+    public readUnsignedShort(): number {
+        if (this._Position >= (this._Length - 1)) {
+            throw 'There is not sufficient data available to read.';
+        }
+
+        return ((this._Bytes[this._Position++] & 0xFF) << 8) + (this._Bytes[this._Position++] & 0xFF);
+    }
+
+    public toString(): string {
+        var Result: string = '';
+        for (var i: number = 0; i < this._Length; i++) {
+            Result += String.fromCharCode(this._Bytes[i]);
+        }
+
+        return Result;
+    }
+
+    public writeByte(value: number): void {
+        this._Bytes[this._Position++] = (value & 0xFF);
+        if (this._Position > this._Length) { this._Length++; }
+    }
+
+    public writeBytes(bytes: ByteArray, offset?: number, length?: number): void {
+        if (!offset) {
+            offset = 0;
+        }
+        if (!length) {
+            length = 0;
+        }
+
+        if (offset < 0) {
+            offset = 0;
+        }
+        if (length < 0) {
+            return;
+        } else if (length === 0) {
+            length = bytes.length;
+        }
 
         if (offset >= bytes.length) { offset = 0; }
         if (length > bytes.length) { length = bytes.length; }
         if (offset + length > bytes.length) { length = bytes.length - offset; }
 
-        var BytesPosition = bytes.position;
+        var BytesPosition: number = bytes.position;
         bytes.position = offset;
 
-        var i;
-        for (i = 0; i < length; i++) {
-            that.writeByte(bytes.readUnsignedByte());
+        for (var i: number = 0; i < length; i++) {
+            this.writeByte(bytes.readUnsignedByte());
         }
 
         bytes.position = BytesPosition;
-    };
+    }
 
-    this.writeShort = function (value) {
-        that.writeByte((value & 0xFF00) >> 8);
-        that.writeByte(value & 0x00FF);
-    };
+    public writeShort(value: number): void {
+        this.writeByte((value & 0xFF00) >> 8);
+        this.writeByte(value & 0x00FF);
+    }
 
-    this.writeString = function (AText) {
-        var i;
-        var ATextlength = AText.length;
-        for (i = 0; i < ATextlength; i++) {
-            that.writeByte(AText.charCodeAt(i));
+    public writeString(text: string): void {
+        var Textlength: number = text.length;
+        for (var i: number = 0; i < Textlength; i++) {
+            this.writeByte(text.charCodeAt(i));
         }
-    };
-};
+    }
+}

@@ -10,47 +10,45 @@
   any later version.
 
   HtmlTerm is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  but WITHOUT ANY WARRANTY, without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var BorderStyle = 0;
-var TBorderStyle = function () {
+enum BorderStyle {
     /// <summary>
     /// Single lines all around
     /// </summary>
-    this.Single = 0;
+    Single = 0,
 
     /// <summary>
     /// Double lines all around
     /// </summary>
-    this.Double = 1;
+    Double = 1,
 
     /// <summary>
     /// Single lines horizontally, double lines vertically
     /// </summary>
     /// <see>DoubleV</see>
-    this.SingleH = 2;
+    SingleH = 2,
 
     /// <summary>
     /// Single lines vertically, double lines horizontally
     /// </summary>
     /// <see>DoubleH</see>
-    this.SingleV = 3;
+    SingleV = 3,
 
     /// <summary>
     /// Double lines horizontally, single lines vertically
     /// </summary>
     /// <see>SingleV</see>
-    this.DoubleH = 4;
+    DoubleH = 4,
 
     /// <summary>
     /// Double lines vertically, single lines horizontally
     /// </summary>
     /// <see>SingleH</see>
-    this.DoubleV = 5;
-};
-BorderStyle = new TBorderStyle();
+    DoubleV = 5
+}

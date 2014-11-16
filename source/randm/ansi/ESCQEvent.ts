@@ -17,9 +17,14 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var ESCQEvent = function (ACodePage, AWidth, AHeight) {
-	// Constructor
-	this.CodePage = ACodePage;
-	this.Width = AWidth;
-	this.Height = AHeight;
-};
+class ESCQEvent {
+    public CodePage: string;
+    public Height: number;
+    public Width: number;
+
+    constructor(codePage: string, width: number, height: number) {
+        this.CodePage = codePage;
+        this.Width = width;
+        this.Height = height;
+    }
+}

@@ -10,43 +10,41 @@
   any later version.
 
   HtmlTerm is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  but WITHOUT ANY WARRANTY, without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var TelnetNegotiationState = 0;
-var TTelnetNegotiationState = function () {
+enum TelnetNegotiationState {
     /// <summary>
     /// The default data state
     /// </summary>
-    this.Data = 0;
-		
+    Data = 0,
+
     /// <summary>
     /// The last received character was an IAC
     /// </summary>
-    this.IAC = 1;
-		
+    IAC = 1,
+
     /// <summary>
     /// The last received character was a DO command
     /// </summary>
-    this.Do = 2;
-		
+    Do = 2,
+
     /// <summary>
     /// The last received character was a DONT command
     /// </summary>
-    this.Dont = 3;
-		
+    Dont = 3,
+
     /// <summary>
     /// The last received character was a WILL command
     /// </summary>
-    this.Will = 4;
-		
+    Will = 4,
+
     /// <summary>
     /// The last received character was a WONT command
     /// </summary>
-    this.Wont = 5;
-};
-TelnetNegotiationState = new TTelnetNegotiationState();
+    Wont = 5
+}

@@ -17,24 +17,25 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var TFileRecord = function (AName, ASize) {
-    var FData = new ByteArray();
-    var FName = "";
-    var FSize = 0;
+class FileRecord {
+    private _Data: ByteArray = new ByteArray();
+    private _Name: string = '';
+    private _Size: number = 0;
 
-    this.__defineGetter__("data", function () {
-        return FData;
-    });
+    constructor(name: string, size: number) {
+        this._Name = name;
+        this._Size = size;
+    }
 
-    this.__defineGetter__("name", function () {
-        return FName;
-    });
+    public get data(): ByteArray {
+        return this._Data;
+    }
 
-    this.__defineGetter__("size", function () {
-        return FSize;
-    });
+    public get name(): string {
+        return this._Name;
+    }
 
-    // Constructor
-    FName = AName;
-    FSize = ASize;
-};
+    public get size(): number {
+        return this._Size;
+    }
+}

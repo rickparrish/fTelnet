@@ -10,11 +10,24 @@
   any later version.
 
   HtmlTerm is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  but WITHOUT ANY WARRANTY, without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-/*global document: false, navigator: false, console: false, setTimeout: false, setInterval: false, Image: false, window: false, WebSocket: false, MozWebSocket: false, XMLHttpRequest: false, confirm: false, clearInterval: false, ArrayBuffer: false, DataView: false, Blob: false, FileReader: false, KeyboardEvent: false, Uint8Array: false, HTMLInputElement: false, HTMLTextAreaElement: false, atob: false*/
+enum ContentAlignment {
+    BottomLeft = 0,
+    BottomCenter = 1,
+    BottomRight = 2,
+    MiddleLeft = 3,
+    MiddleCenter = 4,
+    MiddleRight = 5,
+    TopLeft = 6,
+    TopCenter = 7,
+    TopRight = 8,
+    Left = 9,
+    Center = 10,
+    Right = 11
+}

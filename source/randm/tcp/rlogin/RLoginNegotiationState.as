@@ -5,26 +5,26 @@ package randm.tcp.rlogin
 		/// <summary>
 		/// The default data state
 		/// </summary>
-		static public var Data: int = 0;
+		public static var Data: int = 0;
 		
 		/// <summary>
 		/// The last received character was a first cookie
 		/// </summary>
-		static public var Cookie1: int = 1;
+		public static var Cookie1: int = 1;
 		
 		/// <summary>
 		/// The last received character was a second cookie
 		/// </summary>
-		static public var Cookie2: int = 2;
+		public static var Cookie2: int = 2;
 		
 		/// <summary>
 		/// The last received character was a first s
 		/// </summary>
-		static public var S1: int = 3;
+		public static var S1: int = 3;
 		
 		/// <summary>
 		/// The last received character was a second s
 		/// </summary>
-		static public var SS: int = 4;
+		public static var SS: int = 4;
 	}
 }

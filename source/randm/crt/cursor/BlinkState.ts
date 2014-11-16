@@ -17,9 +17,7 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var BlinkState = 0;
-var TBlinkState = function () {
-    this.Show = 0;
-    this.Hide = 1;
-};
-BlinkState = new TBlinkState();
+enum BlinkState {
+    Show = 0,
+    Hide = 1
+}
