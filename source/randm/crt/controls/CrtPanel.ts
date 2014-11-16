@@ -26,10 +26,12 @@ class CrtPanel extends CrtControl {
         super(parent, left, top, width, height);
 
         this._Border = border;
-        this.ForeColour = foreColour;
-        this.BackColour = backColour;
         this._Text = text;
         this._TextAlign = textAlign;
+
+        // Do these second because they force a paint and will cause an exception if they happen before the text is assigned
+        this.ForeColour = foreColour;
+        this.BackColour = backColour;
 
         this.Paint(true);
     }

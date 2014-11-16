@@ -26,6 +26,8 @@ class CrtLabel extends CrtControl {
 
         this._Text = text;
         this._TextAlign = textAlign;
+
+        // Do these second because they force a paint and will cause an exception if they happen before the text is assigned
         this.ForeColour = foreColour;
         this.BackColour = backColour;
 

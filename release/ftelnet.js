@@ -796,6 +796,114 @@ var Offset;
     }
     Offset.getOffset = getOffset;
 })(Offset || (Offset = {}));
+/* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this
+* file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// From: http://hg.mozilla.org/mozilla-central/raw-file/ec10630b1a54/js/src/devtools/jint/sunspider/string-base64.js
+/*jslint white: false, bitwise: false, plusplus: false */
+/*global console */
+var Base64 = {
+    /* Convert data (an array of integers) to a Base64 string. */
+    toBase64Table: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split(''),
+    base64Pad: '=',
+    encode: function (data) {
+        'use strict';
+        var result = '';
+        var toBase64Table = Base64.toBase64Table;
+        var base64Pad = Base64.base64Pad;
+        var length = data.length;
+        var i;
+
+        for (i = 0; i < (length - 2); i += 3) {
+            result += toBase64Table[data[i] >> 2];
+            result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
+            result += toBase64Table[((data[i + 1] & 0x0f) << 2) + (data[i + 2] >> 6)];
+            result += toBase64Table[data[i + 2] & 0x3f];
+        }
+
+        /* END LOOP */
+        // Convert the remaining 1 or 2 bytes, pad out to 4 characters.
+        if (length % 3) {
+            i = length - (length % 3);
+            result += toBase64Table[data[i] >> 2];
+            if ((length % 3) === 2) {
+                result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
+                result += toBase64Table[(data[i + 1] & 0x0f) << 2];
+                result += base64Pad;
+            } else {
+                result += toBase64Table[(data[i] & 0x03) << 4];
+                result += base64Pad + base64Pad;
+            }
+        }
+
+        return result;
+    },
+    /* Convert Base64 data to a string */
+    toBinaryTable: [
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 0, -1, -1,
+        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
+    ],
+    decode: function (data, offset) {
+        'use strict';
+        offset = typeof (offset) !== 'undefined' ? offset : 0;
+        var toBinaryTable = Base64.toBinaryTable;
+        var base64Pad = Base64.base64Pad;
+        var result, result_length, idx, i, c, padding;
+        var leftbits = 0;
+        var leftdata = 0;
+        var data_length = data.indexOf('=') - offset;
+
+        if (data_length < 0) {
+            data_length = data.length - offset;
+        }
+
+        /* Every four characters is 3 resulting numbers */
+        result_length = (data_length >> 2) * 3 + Math.floor((data_length % 4) / 1.5);
+        result = new Array(result_length);
+
+        for (idx = 0, i = offset; i < data.length; i++) {
+            c = toBinaryTable[data.charCodeAt(i) & 0x7f];
+            padding = (data.charAt(i) === base64Pad);
+
+            // Skip illegal characters and whitespace
+            if (c === -1) {
+                console.error('Illegal character code ' + data.charCodeAt(i) + ' at position ' + i);
+            } else {
+                // Collect data into leftdata, update bitcount
+                leftdata = (leftdata << 6) | c;
+                leftbits += 6;
+
+                // If we have 8 or more bits, append 8 bits to the result
+                if (leftbits >= 8) {
+                    leftbits -= 8;
+
+                    // Append if not padding.
+                    if (!padding) {
+                        result[idx++] = (leftdata >> leftbits) & 0xff;
+                    }
+                    leftdata &= (1 << leftbits) - 1;
+                }
+            }
+        }
+
+        /* END LOOP */
+        // If there are any bits left, the base64 string was corrupted
+        if (leftbits) {
+            throw {
+                name: 'Base64-Error',
+                message: 'Corrupted base64 string'
+            };
+        }
+
+        return result;
+    }
+};
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -2176,27 +2284,6 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 any later version.
 fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var ProgressBarStyle;
-(function (ProgressBarStyle) {
-    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
-    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
-    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
-})(ProgressBarStyle || (ProgressBarStyle = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
-fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
@@ -2432,6 +2519,8 @@ var CrtLabel = (function (_super) {
 
         this._Text = text;
         this._TextAlign = textAlign;
+
+        // Do these second because they force a paint and will cause an exception if they happen before the text is assigned
         this.ForeColour = foreColour;
         this.BackColour = backColour;
 
@@ -2516,10 +2605,12 @@ var CrtPanel = (function (_super) {
         _super.call(this, parent, left, top, width, height);
 
         this._Border = border;
-        this.ForeColour = foreColour;
-        this.BackColour = backColour;
         this._Text = text;
         this._TextAlign = textAlign;
+
+        // Do these second because they force a paint and will cause an exception if they happen before the text is assigned
+        this.ForeColour = foreColour;
+        this.BackColour = backColour;
 
         this.Paint(true);
     }
@@ -2929,6 +3020,27 @@ var CrtProgressBar = (function (_super) {
 
     return CrtProgressBar;
 })(CrtControl);
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+any later version.
+fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY, without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var ProgressBarStyle;
+(function (ProgressBarStyle) {
+    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
+    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
+    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
+})(ProgressBarStyle || (ProgressBarStyle = {}));
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -5596,6 +5708,90 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 any later version.
 fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var StringUtils = (function () {
+    function StringUtils() {
+    }
+    StringUtils.AddCommas = function (value) {
+        var Result = '';
+
+        var Position = 1;
+        for (var i = value.toString().length - 1; i >= 0; i--) {
+            if ((Position > 3) && (Position % 3 === 1)) {
+                Result = ',' + Result;
+            }
+            Result = value.toString().charAt(i) + Result;
+            Position++;
+        }
+
+        return Result;
+    };
+
+    StringUtils.FormatPercent = function (value, fractionDigits) {
+        return (value * 100).toFixed(fractionDigits) + '%';
+    };
+
+    StringUtils.NewString = function (ch, length) {
+        if (ch.length === 0) {
+            return '';
+        }
+
+        var Result = '';
+        for (var i = 0; i < length; i++) {
+            Result += ch.charAt(0);
+        }
+        return Result;
+    };
+
+    StringUtils.PadLeft = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text = ch.charAt(0) + text;
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.PadRight = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text += ch.charAt(0);
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.Trim = function (text) {
+        return this.TrimLeft(this.TrimRight(text));
+    };
+
+    StringUtils.TrimLeft = function (text) {
+        return text.replace(/^\s+/g, '');
+    };
+
+    StringUtils.TrimRight = function (text) {
+        return text.replace(/\s+$/g, '');
+    };
+    return StringUtils;
+})();
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+any later version.
+fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
@@ -6709,6 +6905,7 @@ var YModemReceive = (function () {
     };
 
     YModemReceive.prototype.CleanUp = function (message) {
+        var _this = this;
         // Remove the listeners
         clearInterval(this._Timer);
 
@@ -6716,7 +6913,9 @@ var YModemReceive = (function () {
         this.lblStatus.Text = 'Status: ' + message;
 
         // Dispatch the event after 3 seconds
-        setTimeout(this.Dispatch, 3000);
+        setTimeout(function () {
+            _this.Dispatch();
+        }, 3000);
     };
 
     YModemReceive.prototype.Dispatch = function () {
@@ -7016,6 +7215,7 @@ var YModemSend = (function () {
     };
 
     YModemSend.prototype.CleanUp = function (message) {
+        var _this = this;
         // Remove the listeners
         clearInterval(this._Timer);
 
@@ -7023,7 +7223,9 @@ var YModemSend = (function () {
         this.lblStatus.Text = 'Status: ' + message;
 
         // Dispatch the event after 3 seconds
-        setTimeout(this.Dispatch, 3000);
+        setTimeout(function () {
+            _this.Dispatch();
+        }, 3000);
     };
 
     YModemSend.prototype.Dispatch = function () {
@@ -7358,114 +7560,6 @@ var YModemSend = (function () {
     };
     return YModemSend;
 })();
-/* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-// From: http://hg.mozilla.org/mozilla-central/raw-file/ec10630b1a54/js/src/devtools/jint/sunspider/string-base64.js
-/*jslint white: false, bitwise: false, plusplus: false */
-/*global console */
-var Base64 = {
-    /* Convert data (an array of integers) to a Base64 string. */
-    toBase64Table: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split(''),
-    base64Pad: '=',
-    encode: function (data) {
-        'use strict';
-        var result = '';
-        var toBase64Table = Base64.toBase64Table;
-        var base64Pad = Base64.base64Pad;
-        var length = data.length;
-        var i;
-
-        for (i = 0; i < (length - 2); i += 3) {
-            result += toBase64Table[data[i] >> 2];
-            result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
-            result += toBase64Table[((data[i + 1] & 0x0f) << 2) + (data[i + 2] >> 6)];
-            result += toBase64Table[data[i + 2] & 0x3f];
-        }
-
-        /* END LOOP */
-        // Convert the remaining 1 or 2 bytes, pad out to 4 characters.
-        if (length % 3) {
-            i = length - (length % 3);
-            result += toBase64Table[data[i] >> 2];
-            if ((length % 3) === 2) {
-                result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
-                result += toBase64Table[(data[i + 1] & 0x0f) << 2];
-                result += base64Pad;
-            } else {
-                result += toBase64Table[(data[i] & 0x03) << 4];
-                result += base64Pad + base64Pad;
-            }
-        }
-
-        return result;
-    },
-    /* Convert Base64 data to a string */
-    toBinaryTable: [
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
-        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 0, -1, -1,
-        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
-    ],
-    decode: function (data, offset) {
-        'use strict';
-        offset = typeof (offset) !== 'undefined' ? offset : 0;
-        var toBinaryTable = Base64.toBinaryTable;
-        var base64Pad = Base64.base64Pad;
-        var result, result_length, idx, i, c, padding;
-        var leftbits = 0;
-        var leftdata = 0;
-        var data_length = data.indexOf('=') - offset;
-
-        if (data_length < 0) {
-            data_length = data.length - offset;
-        }
-
-        /* Every four characters is 3 resulting numbers */
-        result_length = (data_length >> 2) * 3 + Math.floor((data_length % 4) / 1.5);
-        result = new Array(result_length);
-
-        for (idx = 0, i = offset; i < data.length; i++) {
-            c = toBinaryTable[data.charCodeAt(i) & 0x7f];
-            padding = (data.charAt(i) === base64Pad);
-
-            // Skip illegal characters and whitespace
-            if (c === -1) {
-                console.error('Illegal character code ' + data.charCodeAt(i) + ' at position ' + i);
-            } else {
-                // Collect data into leftdata, update bitcount
-                leftdata = (leftdata << 6) | c;
-                leftbits += 6;
-
-                // If we have 8 or more bits, append 8 bits to the result
-                if (leftbits >= 8) {
-                    leftbits -= 8;
-
-                    // Append if not padding.
-                    if (!padding) {
-                        result[idx++] = (leftdata >> leftbits) & 0xff;
-                    }
-                    leftdata &= (1 << leftbits) - 1;
-                }
-            }
-        }
-
-        /* END LOOP */
-        // If there are any bits left, the base64 string was corrupted
-        if (leftbits) {
-            throw {
-                name: 'Base64-Error',
-                message: 'Corrupted base64 string'
-            };
-        }
-
-        return result;
-    }
-};
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -7489,88 +7583,4 @@ var YModemSendState;
     YModemSendState[YModemSendState["SendingData"] = 3] = "SendingData";
     YModemSendState[YModemSendState["WaitingForFileAck"] = 4] = "WaitingForFileAck";
 })(YModemSendState || (YModemSendState = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var StringUtils = (function () {
-    function StringUtils() {
-    }
-    StringUtils.AddCommas = function (value) {
-        var Result = '';
-
-        var Position = 1;
-        for (var i = value.toString().length - 1; i >= 0; i--) {
-            if ((Position > 3) && (Position % 3 === 1)) {
-                Result = ',' + Result;
-            }
-            Result = value.toString().charAt(i) + Result;
-            Position++;
-        }
-
-        return Result;
-    };
-
-    StringUtils.FormatPercent = function (value, fractionDigits) {
-        return (value * 100).toFixed(fractionDigits) + '%';
-    };
-
-    StringUtils.NewString = function (ch, length) {
-        if (ch.length === 0) {
-            return '';
-        }
-
-        var Result = '';
-        for (var i = 0; i < length; i++) {
-            Result += ch.charAt(0);
-        }
-        return Result;
-    };
-
-    StringUtils.PadLeft = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text = ch.charAt(0) + text;
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.PadRight = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text += ch.charAt(0);
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.Trim = function (text) {
-        return this.TrimLeft(this.TrimRight(text));
-    };
-
-    StringUtils.TrimLeft = function (text) {
-        return text.replace(/^\s+/g, '');
-    };
-
-    StringUtils.TrimRight = function (text) {
-        return text.replace(/\s+$/g, '');
-    };
-    return StringUtils;
-})();
 //# sourceMappingURL=ftelnet.js.map

@@ -90,7 +90,7 @@ class YModemReceive {
         this.lblStatus.Text = 'Status: ' + message;
 
         // Dispatch the event after 3 seconds
-        setTimeout(this.Dispatch, 3000);
+        setTimeout((): void => { this.Dispatch(); }, 3000);
     }
 
     private Dispatch(): void {

@@ -9,10 +9,30 @@
         <div id="fTelnet-div">Initializing fTelnet...</div>
     </div>
 
+    <script src="Blob.js"></script>
+    <script src="FileSaver.js"></script>
     <script src="ftelnet.js"></script>
     <script>
         if (fTelnet.Init('fTelnet-div')) {
-            fTelnet.Connect("bbs.ftelnet.ca", 23);
+            fTelnet.Hostname = "sbbs.ftelnet.ca";
+            fTelnet.Port = 23;
+            fTelnet.ProxyHostname = "proxy-us-ga.ftelnet.ca";
+            fTelnet.Connect();
+        }
+    </script>
+
+    <a href="javascript:fTelnet.Download();">Download</a>
+    <a href="javascript:Upload();">Upload</a>
+    <input type="file" id="fuUpload" style="display: none;" />
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript">
+        function Upload() {
+            $('#fuUpload').change(function () {
+                fTelnet.Upload(this.files);
+            });
+
+            $('#fuUpload').trigger('click');
         }
     </script>
 </body>
