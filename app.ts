@@ -1,4 +1,4 @@
-﻿/// <reference path='source/HtmlTerm.ts' />
+﻿/// <reference path='source/fTelnet.ts' />
 
 // TODO List:
 // Usage of === undefined

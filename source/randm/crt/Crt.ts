@@ -1,21 +1,21 @@
 /*
-  HtmlTerm: An HTML5 WebSocket client
+  fTelnet: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
-  This file is part of HtmlTerm.
+  This file is part of fTelnet.
 
-  HtmlTerm is free software: you can redistribute it and/or modify
+  fTelnet is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   any later version.
 
-  HtmlTerm is distributed in the hope that it will be useful,
+  fTelnet is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
+  along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path='CharInfo.ts' />
 class Crt {
@@ -121,14 +121,14 @@ class Crt {
 
         // Create the canvas
         this._Canvas = document.createElement('canvas');
-        this._Canvas.id = 'HtmlTermCanvas';
+        this._Canvas.id = 'fTelnetCanvas';
         this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
         this._Canvas.height = this._Font.Height * this._ScreenSize.y;
 
         // Check for Canvas support
         if (!this._Canvas.getContext) {
-            console.log('HtmlTerm Error: Canvas not supported');
+            console.log('fTelnet Error: Canvas not supported');
             return false;
         }
 

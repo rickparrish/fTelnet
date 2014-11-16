@@ -4,15 +4,15 @@
     <title></title>
 </head>
 <body>
-    <h1 style="text-align: center">HtmlTerm Test</h1>
+    <h1 style="text-align: center">fTelnet Test</h1>
     <div style="text-align: center;">
-        <div id="HtmlTerm">Initializing HtmlTerm...</div>
+        <div id="fTelnet-div">Initializing fTelnet...</div>
     </div>
 
     <script src="ftelnet.js"></script>
     <script>
-        if (HtmlTerm.Init('HtmlTerm')) {
-            HtmlTerm.Connect("bbs.ftelnet.ca", 23);
+        if (fTelnet.Init('fTelnet-div')) {
+            fTelnet.Connect("bbs.ftelnet.ca", 23);
         }
     </script>
 </body>

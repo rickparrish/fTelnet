@@ -1,23 +1,23 @@
 /*
-  HtmlTerm: An HTML5 WebSocket client
+  fTelnet: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
-  This file is part of HtmlTerm.
+  This file is part of fTelnet.
 
-  HtmlTerm is free software: you can redistribute it and/or modify
+  fTelnet is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   any later version.
 
-  HtmlTerm is distributed in the hope that it will be useful,
+  fTelnet is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
+  along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-class HtmlTerm {
+class fTelnet {
     // Private variables
     private static _Connection: WebSocketConnection;
     private static _LastTimer: number;
@@ -42,7 +42,7 @@ class HtmlTerm {
     private static _ProxyPortSecure: number = 11235;
     private static _ScreenColumns: number = 80;
     private static _ScreenRows: number = 25;
-    private static _ServerName: string = 'fTelnet / HtmlTerm / GameSrv Support Server';
+    private static _ServerName: string = 'fTelnet / GameSrv Support Server';
     private static _SplashScreen: string = 'G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==';
     private static _StatusBar: boolean = true;
 
@@ -57,7 +57,7 @@ class HtmlTerm {
 
         // Ensure we have our parent
         if (document.getElementById(parentId) === null) {
-            alert('HtmlTerm Error: Element with id="' + parentId + '" was not found');
+            alert('fTelnet Error: Element with id="' + parentId + '" was not found');
             return false;
         }
         this._Parent = document.getElementById(parentId);
@@ -68,7 +68,7 @@ class HtmlTerm {
             var RE: RegExp = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})');
             if (RE.exec(navigator.userAgent) !== null) { Version = parseFloat(RegExp.$1); }
             if (Version < 9.0) {
-                alert('HtmlTerm Error: Internet Explorer >= 10 is required.  Better still would be to use Firefox or Chrome instead of Internet Explorer.');
+                alert('fTelnet Error: Internet Explorer >= 10 is required.  Better still would be to use Firefox or Chrome instead of Internet Explorer.');
                 return false;
             }
         }
@@ -89,7 +89,7 @@ class HtmlTerm {
                 Crt.WriteLn();
                 Crt.WriteLn('Sorry, but your browser doesn\'t support the WebSocket protocol!');
                 Crt.WriteLn();
-                Crt.WriteLn('WebSockets are how HtmlTerm connects to the remote server, so without them that');
+                Crt.WriteLn('WebSockets are how fTelnet connects to the remote server, so without them that');
                 Crt.WriteLn('means you won\'t be able to connect anywhere.');
                 Crt.WriteLn();
                 Crt.WriteLn('If you can, try upgrading your web browser.  If that\'s not an option (ie you\'re');
@@ -99,7 +99,7 @@ class HtmlTerm {
                 Crt.WriteLn('Feel free to contact me (http://www.ftelnet.ca/contact/) if you think you\'re');
                 Crt.WriteLn('seeing this message in error, and I\'ll look into it.  Be sure to let me know');
                 Crt.WriteLn('what browser you use, as well as which version it is.');
-                console.log('HtmlTerm Error: WebSocket not supported');
+                console.log('fTelnet Error: WebSocket not supported');
                 return false;
             }
 
@@ -114,7 +114,7 @@ class HtmlTerm {
 
             Ansi.Write(atob(this._SplashScreen));
         } else {
-            console.log('HtmlTerm Error: Unable to init Crt');
+            console.log('fTelnet Error: Unable to init Crt');
             return false;
         }
 
@@ -286,7 +286,7 @@ class HtmlTerm {
     }
 
     private static OnConnectionIOError(): void {
-        console.log('HtmlTerm.OnConnectionIOError');
+        console.log('fTelnet.OnConnectionIOError');
     }
 
     private static OnConnectionSecurityError(): void {
@@ -417,7 +417,7 @@ class HtmlTerm {
             }
 
             myBlob = new Blob([buffer], { type: 'application/octet-binary' });
-            saveAs(myBlob, 'HtmlTerm-BatchDownload.tar');
+            saveAs(myBlob, 'fTelnet-BatchDownload.tar');
         }
 
         // Remove button
@@ -441,7 +441,7 @@ class HtmlTerm {
             // Read the number of bytes we want
             var Data: string = this._Connection.readString(BytesToRead);
             if (Data.length > 0) {
-                // if (DEBUG) console.log('HtmlTerm.OnTimer Data = ' + Data);
+                // if (DEBUG) console.log('fTelnet.OnTimer Data = ' + Data);
                 Ansi.Write(Data);
             }
 

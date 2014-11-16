@@ -90,7 +90,7 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="source\client\savefilesbutton\SaveFilesButton.ts" />
-    <TypeScriptCompile Include="source\HtmlTerm.ts" />
+    <TypeScriptCompile Include="source\fTelnet.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\ByteArray.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Keyboard.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Point.ts" />
