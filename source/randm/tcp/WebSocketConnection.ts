@@ -84,10 +84,10 @@ class WebSocketConnection {
         }
 
         // Set event handlers
-        this._WebSocket.onclose = () => { this.OnSocketClose(); }
-        this._WebSocket.onerror = (e: ErrorEvent) => { this.OnSocketError(e); }
-        this._WebSocket.onmessage = (e: any) => { this.OnSocketMessage(e); }
-        this._WebSocket.onopen = () => { this.OnSocketOpen(); }
+        this._WebSocket.onclose = (): void => { this.OnSocketClose(); };
+        this._WebSocket.onerror = (e: ErrorEvent): void => { this.OnSocketError(e); };
+        this._WebSocket.onmessage = (e: any): void => { this.OnSocketMessage(e); };
+        this._WebSocket.onopen = (): void => { this.OnSocketOpen(); };
     }
 
     public get connected(): boolean {

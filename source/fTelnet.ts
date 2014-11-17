@@ -116,6 +116,14 @@ class fTelnet {
         // Create our main timer
         this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
 
+        // Add our upload control
+        var fTelnetUpload: HTMLInputElement = <HTMLInputElement>document.createElement('input');
+        fTelnetUpload.type = 'file';
+        fTelnetUpload.id = 'fTelnetUpload';
+        fTelnetUpload.onchange = (): void => { this.OnUploadFileSelected(); };
+        fTelnetUpload.style.display = 'none';
+        this._Parent.appendChild(fTelnetUpload);
+
         return true;
     }
 
@@ -338,6 +346,25 @@ class fTelnet {
         this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
     }
 
+    public static OnUploadFileSelected(): void {
+        if (this._Connection === null) { return; }
+        if (!this._Connection.connected) { return; }
+
+        var fTelentUpload: HTMLInputElement = <HTMLInputElement>document.getElementById('fTelnetUpload');
+
+        // Get the YModemSend class ready to go
+        this._YModemSend = new YModemSend(this._Connection);
+
+        // Setup the listeners
+        clearInterval(this._Timer);
+        this._YModemSend.ontransfercomplete = (): void => { this.OnUploadComplete(); };
+
+        // Loop through the FileList and prep them for upload
+        for (var i: number = 0; i < fTelentUpload.files.length; i++) {
+            this.UploadFile(fTelentUpload.files[i], fTelentUpload.files.length);
+        }
+    }
+
     public static get Port(): number {
         return this._Port;
     }
@@ -419,21 +446,8 @@ class fTelnet {
         }
     }
 
-    public static Upload(files: FileList): void {
-        if (this._Connection === null) { return; }
-        if (!this._Connection.connected) { return; }
-
-        // Get the YModemSend class ready to go
-        this._YModemSend = new YModemSend(this._Connection);
-
-        // Setup the listeners
-        clearInterval(this._Timer);
-        this._YModemSend.ontransfercomplete = (): void => { this.OnUploadComplete(); };
-
-        // Loop through the FileList and prep them for upload
-        for (var i: number = 0; i < files.length; i++) {
-            this.UploadFile(files[i], files.length);
-        }
+    public static Upload(): void {
+        document.getElementById('fTelnetUpload').click();
     }
 
     private static UploadFile(file: File, fileCount: number): void {

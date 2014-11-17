@@ -22,18 +22,6 @@
     </script>
 
     <a href="javascript:fTelnet.Download();">Download</a>
-    <a href="javascript:Upload();">Upload</a>
-    <input type="file" id="fuUpload" style="display: none;" />
-
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript">
-        function Upload() {
-            $('#fuUpload').change(function () {
-                fTelnet.Upload(this.files);
-            });
-
-            $('#fuUpload').trigger('click');
-        }
-    </script>
+    <a href="javascript:fTelnet.Upload();">Upload</a>
 </body>
 </html>

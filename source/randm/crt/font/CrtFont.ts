@@ -177,13 +177,13 @@ class CrtFont {
                 }
 
                 this._Lower = new Image();
-                this._Lower.onload = () => { this.OnLoadUpper(); }
+                this._Lower.onload = (): void => { this.OnLoadUpper(); };
                 this._Lower.src = CrtFonts[this._NewCodePage + 'x' + this._NewSize.x + 'x' + this._NewSize.y];
                 this._Upper = null;
             } else {
                 // Load the lower font
                 this._Lower = new Image();
-                this._Lower.onload = () => { this.OnLoadLower(); }
+                this._Lower.onload = (): void => { this.OnLoadLower(); };
                 this._Lower.src = CrtFonts['ASCIIx' + width + 'x' + height];
             }
         } else {
@@ -194,7 +194,7 @@ class CrtFont {
     private OnLoadLower(): void {
         // Load the upper font
         this._Upper = new Image();
-        this._Upper.onload = () => { this.OnLoadUpper(); }
+        this._Upper.onload = (): void => { this.OnLoadUpper(); };
         this._Upper.src = CrtFonts[this._NewCodePage + 'x' + this._NewSize.x + 'x' + this._NewSize.y];
     }
 

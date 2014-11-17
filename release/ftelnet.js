@@ -102,6 +102,16 @@ var fTelnet = (function () {
             _this.OnTimer();
         }, 50);
 
+        // Add our upload control
+        var fTelnetUpload = document.createElement('input');
+        fTelnetUpload.type = 'file';
+        fTelnetUpload.id = 'fTelnetUpload';
+        fTelnetUpload.onchange = function () {
+            _this.OnUploadFileSelected();
+        };
+        fTelnetUpload.style.display = 'none';
+        this._Parent.appendChild(fTelnetUpload);
+
         return true;
     };
 
@@ -397,6 +407,31 @@ var fTelnet = (function () {
         }, 50);
     };
 
+    fTelnet.OnUploadFileSelected = function () {
+        var _this = this;
+        if (this._Connection === null) {
+            return;
+        }
+        if (!this._Connection.connected) {
+            return;
+        }
+
+        var fTelentUpload = document.getElementById('fTelnetUpload');
+
+        // Get the YModemSend class ready to go
+        this._YModemSend = new YModemSend(this._Connection);
+
+        // Setup the listeners
+        clearInterval(this._Timer);
+        this._YModemSend.ontransfercomplete = function () {
+            _this.OnUploadComplete();
+        };
+
+        for (var i = 0; i < fTelentUpload.files.length; i++) {
+            this.UploadFile(fTelentUpload.files[i], fTelentUpload.files.length);
+        }
+    };
+
     Object.defineProperty(fTelnet, "Port", {
         get: function () {
             return this._Port;
@@ -514,27 +549,8 @@ var fTelnet = (function () {
         }
     };
 
-    fTelnet.Upload = function (files) {
-        var _this = this;
-        if (this._Connection === null) {
-            return;
-        }
-        if (!this._Connection.connected) {
-            return;
-        }
-
-        // Get the YModemSend class ready to go
-        this._YModemSend = new YModemSend(this._Connection);
-
-        // Setup the listeners
-        clearInterval(this._Timer);
-        this._YModemSend.ontransfercomplete = function () {
-            _this.OnUploadComplete();
-        };
-
-        for (var i = 0; i < files.length; i++) {
-            this.UploadFile(files[i], files.length);
-        }
+    fTelnet.Upload = function () {
+        document.getElementById('fTelnetUpload').click();
     };
 
     fTelnet.UploadFile = function (file, fileCount) {
