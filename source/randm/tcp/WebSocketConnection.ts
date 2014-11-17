@@ -92,7 +92,7 @@ class WebSocketConnection {
 
     public get connected(): boolean {
         if (this._WebSocket) {
-            return (this._WebSocket.readyState === this._WebSocket.OPEN);
+            return (this._WebSocket.readyState === this._WebSocket.OPEN) || (this._WebSocket.readyState === WebSocket.OPEN);
         }
 
         return false;
@@ -204,7 +204,6 @@ class WebSocketConnection {
             for (var i: number = 0; i < data.length; i++) {
                 ToSendString += String.fromCharCode(data[i]);
             }
-
             this._WebSocket.send(ToSendString);
         }
     }

@@ -869,7 +869,6 @@ class Crt {
 
         for (var Y: number = 0; Y < Height; Y++) {
             for (var X: number = 0; X < Width; X++) {
-                console.log('Restoring: ' + buffer[Y][X].Ch + ' to ' + left + ':' + top);
                 this.FastWrite(buffer[Y][X].Ch, X + left, Y + top, buffer[Y][X]);
             }
         }

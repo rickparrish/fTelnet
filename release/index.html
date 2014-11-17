@@ -9,6 +9,20 @@
         <div id="fTelnet-div">Initializing fTelnet...</div>
     </div>
 
+    <!-- Add WebSocket support to IE9 and below -->
+    <!--[if lt IE 10]>
+        <script type="text/javascript" src="swfobject.js"></script>
+        <script type="text/javascript" src="web_socket.js"></script>
+        <script>
+            // Let the library know where WebSocketMain.swf is:
+            WEB_SOCKET_SWF_LOCATION = "WebSocketMain.swf";
+        </script>
+    <![endif]-->
+
+    <!--[if lt IE 9]>
+
+    <![endif]-->
+
     <script src="Blob.js"></script>
     <script src="FileSaver.js"></script>
     <script src="ftelnet.js"></script>

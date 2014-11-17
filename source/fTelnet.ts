@@ -107,7 +107,7 @@ class fTelnet {
             Ansi.onesc255n = (): void => { this.OnAnsiESC255n(); };
             Ansi.onescQ = (e: ESCQEvent): void => { this.OnAnsiESCQ(e); };
 
-            Ansi.Write(atob(this._SplashScreen));
+            // TODO atob in IE9 not supported Ansi.Write(atob(this._SplashScreen));
         } else {
             console.log('fTelnet Error: Unable to init Crt');
             return false;
@@ -318,7 +318,6 @@ class fTelnet {
             // Read the number of bytes we want
             var Data: string = this._Connection.readString(BytesToRead);
             if (Data.length > 0) {
-                // if (DEBUG) console.log('fTelnet.OnTimer Data = ' + Data);
                 Ansi.Write(Data);
             }
 
