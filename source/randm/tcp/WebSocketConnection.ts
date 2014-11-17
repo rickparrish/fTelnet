@@ -54,9 +54,9 @@ class WebSocketConnection {
     }
 
     public connect(hostname: string, port: number, proxyHostname?: string, proxyPort?: number, proxyPortSecure?: number): void {
-        if (proxyHostname === undefined) { proxyHostname = ''; }
-        if (proxyPort === undefined) { proxyPort = 1123; }
-        if (proxyPortSecure === undefined) { proxyPortSecure = 11235; }
+        if (typeof proxyHostname === 'undefined') { proxyHostname = ''; }
+        if (typeof proxyPort === 'undefined') { proxyPort = 1123; }
+        if (typeof proxyPortSecure === 'undefined') { proxyPortSecure = 11235; }
 
         this._WasConnected = false;
 

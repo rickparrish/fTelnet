@@ -158,7 +158,7 @@ class CrtFont {
 
     public Load(codePage: string, width: number, height: number): void {
         // Ensure the requested font exists
-        if (CrtFonts[codePage + 'x' + width + 'x' + height] !== undefined) {
+        if (typeof CrtFonts[codePage + 'x' + width + 'x' + height] !== 'undefined') {
             CrtFont.ANSI_COLOURS[7] = 0xA8A8A8;
             CrtFont.ANSI_COLOURS[0] = 0x000000;
 

@@ -104,7 +104,7 @@ class YModemReceive {
 
     public Download(): void {
         // Create our main timer
-        this._Timer = setInterval(() => { this.OnTimer(); }, 50);
+        this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
 
         // Create the transfer dialog
         this._Blink = Crt.Blink;
@@ -315,6 +315,9 @@ class YModemReceive {
                     this._ExpectingHeader = true;
                     this._Files.push(this._File);
 
+                    // Save the file
+                    this.SaveFile(this._Files.length - 1);
+
                     break;
                 default:
                     // Didn't expect this, so abort
@@ -322,5 +325,18 @@ class YModemReceive {
                     return;
             }
         }
+    }
+
+    private SaveFile(index: number): void {
+        var ByteString: string = this._Files[index].data.toString();
+
+        var Buffer: ArrayBuffer = new ArrayBuffer(ByteString.length);
+        var View: DataView = new DataView(Buffer);
+        for (var i: number = 0; i < ByteString.length; i++) {
+            View.setUint8(i, ByteString.charCodeAt(i));
+        }
+
+        var FileBlob: Blob = new Blob([Buffer], { type: 'application/octet-binary' });
+        saveAs(FileBlob, this._Files[index].name);
     }
 }

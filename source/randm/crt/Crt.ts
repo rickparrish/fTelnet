@@ -306,7 +306,7 @@ class Crt {
     }
 
     public static DelChar(count?: number): void {
-        if (count === undefined) { count = 1; }
+        if (typeof count === 'undefined') { count = 1; }
 
         var i: number;
         for (i = this.WhereXA(); i <= this.WindMinX + this.WindCols - count; i++) {
@@ -329,7 +329,7 @@ class Crt {
         /// attributes. Thus, if TextBackground is not black, the new line becomes the
         /// background color.
         /// </remarks>
-        if (count === undefined) { count = 1; }
+        if (typeof count === 'undefined') { count = 1; }
         this.ScrollUpCustom(this.WindMinX + 1, this.WhereYA(), this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
     }
 
@@ -382,7 +382,7 @@ class Crt {
         /// <param name='ACharInfo' type='CharInfo'>The text attribute to colour the text</param>
         /// <param name='AUpdateBuffer' type='Boolean' optional='true'>Whether to update the internal buffer or not 
         ///   (default is true)< / param>
-        if (updateBuffer === undefined) { updateBuffer = true; }
+        if (typeof updateBuffer === 'undefined') { updateBuffer = true; }
 
         if ((x <= this._ScreenSize.x) && (y <= this._ScreenSize.y)) {
             for (var i: number = 0; i < text.length; i++) {
@@ -470,7 +470,7 @@ class Crt {
     }
 
     public static InsChar(count?: number): void {
-        if (count === undefined) { count = 1; }
+        if (typeof count === 'undefined') { count = 1; }
 
         var i: number;
         for (i = this.WindMinX + this.WindCols; i >= this.WhereXA() + count; i--) {
@@ -495,7 +495,7 @@ class Crt {
         /// 
         /// InsLine is window-relative.
         /// </remarks>
-        if (count === undefined) { count = 1; }
+        if (typeof count === 'undefined') { count = 1; }
         this.ScrollDownCustom(this.WindMinX + 1, this.WhereYA(), this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
 
     }
@@ -1387,7 +1387,7 @@ class Crt {
     }
 
     private static WriteASCII(text: string): void {
-        if (text === undefined) { text = ''; }
+        if (typeof text === 'undefined') { text = ''; }
 
         var X: number = this.WhereX();
         var Y: number = this.WhereY();
@@ -1488,7 +1488,7 @@ class Crt {
     }
 
     private static WriteATASCII(text: string): void {
-        if (text === undefined) { text = ''; }
+        if (typeof text === 'undefined') { text = ''; }
 
         var X: number = this.WhereX();
         var Y: number = this.WhereY();
@@ -1656,7 +1656,7 @@ class Crt {
     }
 
     private static WritePETSCII(text: string): void {
-        if (text === undefined) { text = ''; }
+        if (typeof text === 'undefined') { text = ''; }
 
         var X: number = this.WhereX();
         var Y: number = this.WhereY();
@@ -1858,7 +1858,7 @@ class Crt {
         /// Text is wrapped if it exceeds the right edge of the window
         /// </remarks>
         /// <param name='AText'>The text to print to the screen</param>
-        if (text === undefined) { text = ''; }
+        if (typeof text === 'undefined') { text = ''; }
         this.Write(text + '\r\n');
     }
 }

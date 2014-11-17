@@ -21,11 +21,6 @@
     <Content Include="app.css" />
     <Content Include="index.html" />
     <Content Include="release\index.html" />
-    <Content Include="source\client\savefilesbutton\Down.png" />
-    <Content Include="source\client\savefilesbutton\filesave-48.png" />
-    <Content Include="source\client\savefilesbutton\Icon Source.url" />
-    <Content Include="source\client\savefilesbutton\Over.png" />
-    <Content Include="source\client\savefilesbutton\Up.png" />
     <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
     <Content Include="source\randm\crt\font\PNG\437-12x23.png" />
     <Content Include="source\randm\crt\font\PNG\437-6x8.png" />
@@ -89,7 +84,6 @@
     <TypeScriptCompile Include="source\3rdparty\Offset.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="source\client\savefilesbutton\SaveFilesButton.ts" />
     <TypeScriptCompile Include="source\fTelnet.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\ByteArray.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Keyboard.ts" />

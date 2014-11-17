@@ -22,7 +22,6 @@ class fTelnet {
     private static _Connection: WebSocketConnection;
     private static _LastTimer: number;
     private static _Parent: HTMLElement;
-    private static _SaveFilesButton: SaveFilesButton;
     private static _Timer: number;
     private static _YModemReceive: YModemReceive;
     private static _YModemSend: YModemSend;
@@ -50,7 +49,6 @@ class fTelnet {
         this._Connection = null;
         this._LastTimer = 0;
         // this._Parent;
-        // this._SaveFilesButton
         // this._Timer
         // this._YModemReceive
         // this._YModemSend
@@ -102,9 +100,6 @@ class fTelnet {
                 console.log('fTelnet Error: WebSocket not supported');
                 return false;
             }
-
-            // Create the Save Files button
-            this._SaveFilesButton = new SaveFilesButton(this._Parent);
 
             // Create the ansi cursor position handler
             Ansi.onesc5n = (): void => { this.OnAnsiESC5n(); };
@@ -268,10 +263,6 @@ class fTelnet {
     }
 
     private static OnConnectionClose(): void {
-        // Remove save button (if visible)
-        // this._SaveFilesButton.Image.removeEventListener('click', this.OnSaveFilesButtonClick, false);
-        this._SaveFilesButton.Hide();
-
         this.UpdateStatusBar(' Disconnected from ' + this._Hostname + ':' + this._Port);
     }
 
@@ -304,128 +295,6 @@ class fTelnet {
     private static OnDownloadComplete(): void {
         // Restart listeners for keyboard and connection data
         this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
-
-        // Display the save button (if files were completed)
-        if (this._YModemReceive.FileCount > 0) { this.ShowSaveFilesButton(); }
-    }
-
-    private static OnSaveFilesButtonClick(): void {
-        if (this._YModemReceive === null) { return; }
-        if (this._YModemReceive.FileCount === 0) { return; }
-
-        var i: number;
-        var j: number;
-        var ByteString: string;
-        var buffer: ArrayBuffer;
-        var dataView: DataView;
-        var myBlob: Blob;
-
-        if (this._YModemReceive.FileCount === 1) {
-            // If we have just one file, save it
-            ByteString = this._YModemReceive.FileAt(0).data.toString();
-
-            buffer = new ArrayBuffer(ByteString.length);
-            dataView = new DataView(buffer);
-            for (i = 0; i < ByteString.length; i++) {
-                dataView.setUint8(i, ByteString.charCodeAt(i));
-            }
-
-            myBlob = new Blob([buffer], { type: 'application/octet-binary' });
-            saveAs(myBlob, this._YModemReceive.FileAt(0).name);
-        } else if (this._YModemReceive.FileCount > 1) {
-            // More than one requires bundling in a TAR archive
-            var TAR: ByteArray = new ByteArray();
-            for (i = 0; i < this._YModemReceive.FileCount; i++) {
-                // Create header
-                var Header: ByteArray = new ByteArray();
-                // File Name 100 bytes
-                var FileName: string = this._YModemReceive.FileAt(i).name;
-                for (j = 0; j < 100; j++) {
-                    if (j < FileName.length) {
-                        Header.writeByte(FileName.charCodeAt(j));
-                    } else {
-                        Header.writeByte(0);
-                    }
-                }
-                // File Mode 8 bytes
-                for (j = 0; j < 8; j++) { Header.writeByte(0); }
-                // Owner's UserID 8 bytes
-                for (j = 0; j < 8; j++) { Header.writeByte(0); }
-                // Owner's GroupID 8 bytes
-                for (j = 0; j < 8; j++) { Header.writeByte(0); }
-                // File size in bytes with leading 0s 11 bytes plus 1 null
-                var FileSize: string = this._YModemReceive.FileAt(i).data.length.toString(8);
-                for (j = 0; j < 11 - FileSize.length; j++) { Header.writeByte('0'.charCodeAt(0)); }
-                for (j = 0; j < FileSize.length; j++) { Header.writeByte(FileSize.charCodeAt(j)); }
-                Header.writeByte(0);
-                // Last modification time in numeric Unix time format 11 bytes plus 1 null 
-                // (ASCII representation of the octal number of seconds since January 1, 1970, 00:00 UTC)
-                for (j = 0; j < 11; j++) { Header.writeByte(0); }
-                Header.writeByte(0);
-                // Checksum for header block 8 bytes (spaces initially)
-                for (j = 0; j < 8; j++) { Header.writeByte(32); }
-                // Link indicator 1 byte
-                Header.writeByte('0'.charCodeAt(0));
-                // Name of linked file 100 bytes
-                for (j = 0; j < 100; j++) { Header.writeByte(0); }
-                // Reset of 512 byte header
-                for (j = 0; j < 255; j++) { Header.writeByte(0); }
-
-                // Calculate checksum (sum of unsigned bytes)
-                Header.position = 0;
-                var CheckSum: number = 0;
-                for (j = 0; j < 512; j++) {
-                    CheckSum += Header.readUnsignedByte();
-                }
-
-                // Write header up to checksum
-                TAR.writeBytes(Header, 0, 148);
-
-                // Write checksum (zero prefixed 6 digit octal number followed by NULL SPACE)
-                var CheckSumStr: string = CheckSum.toString(8);
-                for (j = 0; j < 6 - CheckSumStr.length; j++) { TAR.writeByte('0'.charCodeAt(0)); }
-                for (j = 0; j < CheckSumStr.length; j++) { TAR.writeByte(CheckSumStr.charCodeAt(j)); }
-                TAR.writeByte(0);
-                TAR.writeByte(32);
-
-                // Write header after hash
-                TAR.writeBytes(Header, 156, 356);
-
-                // Add file data
-                TAR.writeBytes(this._YModemReceive.FileAt(i).data);
-
-                // Add the padding if the file isn't a multiple of 512 bytes
-                if (this._YModemReceive.FileAt(i).data.length % 512 !== 0) {
-                    for (j = 0; j < 512 - (this._YModemReceive.FileAt(i).data.length % 512); j++) {
-                        TAR.writeByte(0);
-                    }
-                }
-            }
-
-            // Add 2 zero filled blocks for end of archive
-            for (i = 0; i < 1024; i++) {
-                TAR.writeByte(0);
-            }
-
-            // Save the tar
-            ByteString = TAR.toString();
-
-            buffer = new ArrayBuffer(ByteString.length);
-            dataView = new DataView(buffer);
-            for (i = 0; i < ByteString.length; i++) {
-                dataView.setUint8(i, ByteString.charCodeAt(i));
-            }
-
-            myBlob = new Blob([buffer], { type: 'application/octet-binary' });
-            saveAs(myBlob, 'fTelnet-BatchDownload.tar');
-        }
-
-        // Remove button
-        // this._SaveFilesButton.Image.removeEventListener('click', this.OnSaveFilesButtonClick, false);
-        this._SaveFilesButton.Hide();
-
-        // Reset display
-        Crt.Canvas.style.opacity = '1';
     }
 
     private static OnTimer(): void {
@@ -523,13 +392,6 @@ class fTelnet {
 
     public static set ServerName(value: string) {
         this._ServerName = value;
-    }
-
-    private static ShowSaveFilesButton(): void {
-        Crt.Canvas.style.opacity = '0.4';
-
-        this._SaveFilesButton.Image.addEventListener('click', (): void => { this.OnSaveFilesButtonClick(); }, false);
-        this._SaveFilesButton.Show();
     }
 
     public static get SplashScreen(): string {

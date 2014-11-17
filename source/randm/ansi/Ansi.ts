@@ -831,8 +831,8 @@ class Ansi {
     }
 
     public static CursorPosition(x?: number, y?: number): string {
-        if (x === undefined) { x = Crt.WhereXA(); }
-        if (y === undefined) { y = Crt.WhereYA(); }
+        if (typeof x === 'undefined') { x = Crt.WhereXA(); }
+        if (typeof y === 'undefined') { y = Crt.WhereYA(); }
 
         return '\x1B[' + y + ';' + x + 'R';
     }
