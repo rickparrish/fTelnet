@@ -66,7 +66,7 @@ class fTelnet {
             var RE: RegExp = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})');
             if (RE.exec(navigator.userAgent) !== null) { Version = parseFloat(RegExp.$1); }
             if (Version < 9.0) {
-                alert('fTelnet Error: Internet Explorer >= 10 is required.  Better still would be to use Firefox or Chrome instead of Internet Explorer.');
+                alert('fTelnet Error: Internet Explorer >= 9 is required.  Better still would be to use Firefox or Chrome instead of Internet Explorer.');
                 return false;
             }
         }
@@ -107,7 +107,7 @@ class fTelnet {
             Ansi.onesc255n = (): void => { this.OnAnsiESC255n(); };
             Ansi.onescQ = (e: ESCQEvent): void => { this.OnAnsiESCQ(e); };
 
-            // TODO atob in IE9 not supported Ansi.Write(atob(this._SplashScreen));
+            Ansi.Write(atob(this._SplashScreen));
         } else {
             console.log('fTelnet Error: Unable to init Crt');
             return false;

@@ -9,8 +9,9 @@
         <div id="fTelnet-div">Initializing fTelnet...</div>
     </div>
 
-    <!-- Add WebSocket support to IE9 and below -->
+    <!-- Add missing features to IE9 and below -->
     <!--[if lt IE 10]>
+        <script type="text/javascript" src="atob-btoa.js"></script>
         <script type="text/javascript" src="swfobject.js"></script>
         <script type="text/javascript" src="web_socket.js"></script>
         <script>
@@ -19,8 +20,11 @@
         </script>
     <![endif]-->
 
+    <!-- Don't show errors in IE8 and below -->
     <!--[if lt IE 9]>
-
+        <script>
+            Object.defineProperty = function () { /* Do Nothing */ };
+        </script>
     <![endif]-->
 
     <script src="Blob.js"></script>
@@ -31,10 +35,10 @@
             fTelnet.Hostname = "sbbs.ftelnet.ca";
             fTelnet.Port = 23;
             fTelnet.ProxyHostname = "proxy-us-ga.ftelnet.ca";
-            fTelnet.Connect();
         }
     </script>
 
+    <a href="javascript:fTelnet.Connect();">Connect</a>
     <a href="javascript:fTelnet.Download();">Download</a>
     <a href="javascript:fTelnet.Upload();">Upload</a>
 </body>
