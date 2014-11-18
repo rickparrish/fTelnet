@@ -161,10 +161,8 @@ class WebSocketConnection {
                 Data.writeByte(u8[i]);
             }
         } else if (this._Protocol === 'base64') {
-            var decoded: number[] = Base64.decode(e.data, 0);
-            for (i = 0; i < decoded.length; i++) {
-                Data.writeByte(decoded[i]);
-            }
+            // TODO Ensure atob still works with websockify
+            Data.writeString(atob(e.data));
         } else {
             Data.writeString(e.data);
         }
@@ -197,10 +195,14 @@ class WebSocketConnection {
         if (this._Protocol === 'binary') {
             this._WebSocket.send(new Uint8Array(data).buffer);
         } else if (this._Protocol === 'base64') {
-            this._WebSocket.send(Base64.encode(data));
+            // TODO Ensure btoa still works with websockify
+            var ToSendString: string = '';
+            for (var i: number = 0; i < data.length; i++) {
+                ToSendString += String.fromCharCode(data[i]);
+            }
+            this._WebSocket.send(btoa(ToSendString));
         } else {
             var ToSendString: string = '';
-
             for (var i: number = 0; i < data.length; i++) {
                 ToSendString += String.fromCharCode(data[i]);
             }

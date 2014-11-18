@@ -1,4 +1,77 @@
-﻿/*
+﻿// Base64 utility methods
+// Needed for: IE9-
+(function () {
+    if ('atob' in window && 'btoa' in window)
+        return;
+    var B64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    function atob(input) {
+        input = String(input);
+        var position = 0, output = [], buffer = 0, bits = 0, n;
+        input = input.replace(/\s/g, '');
+        if ((input.length % 4) === 0) {
+            input = input.replace(/=+$/, '');
+        }
+        if ((input.length % 4) === 1) {
+            throw Error("InvalidCharacterError");
+        }
+        if (/[^+/0-9A-Za-z]/.test(input)) {
+            throw Error("InvalidCharacterError");
+        }
+        while (position < input.length) {
+            n = B64_ALPHABET.indexOf(input.charAt(position));
+            buffer = (buffer << 6) | n;
+            bits += 6;
+            if (bits === 24) {
+                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
+                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+                output.push(String.fromCharCode(buffer & 0xFF));
+                bits = 0;
+                buffer = 0;
+            }
+            position += 1;
+        }
+        if (bits === 12) {
+            buffer = buffer >> 4;
+            output.push(String.fromCharCode(buffer & 0xFF));
+        } else if (bits === 18) {
+            buffer = buffer >> 2;
+            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+            output.push(String.fromCharCode(buffer & 0xFF));
+        }
+        return output.join('');
+    }
+    ;
+    function btoa(input) {
+        input = String(input);
+        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
+        if (/[^\x00-\xFF]/.test(input)) {
+            throw Error("InvalidCharacterError");
+        }
+        while (position < input.length) {
+            o1 = input.charCodeAt(position++);
+            o2 = input.charCodeAt(position++);
+            o3 = input.charCodeAt(position++);
+
+            // 111111 112222 222233 333333
+            e1 = o1 >> 2;
+            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
+            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
+            e4 = o3 & 0x3f;
+            if (position === input.length + 2) {
+                e3 = 64;
+                e4 = 64;
+            } else if (position === input.length + 1) {
+                e4 = 64;
+            }
+            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
+        }
+        return out.join('');
+    }
+    ;
+    window.atob = atob;
+    window.btoa = btoa;
+}());
+/*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
@@ -5802,10 +5875,8 @@ var WebSocketConnection = (function () {
                 Data.writeByte(u8[i]);
             }
         } else if (this._Protocol === 'base64') {
-            var decoded = Base64.decode(e.data, 0);
-            for (i = 0; i < decoded.length; i++) {
-                Data.writeByte(decoded[i]);
-            }
+            // TODO Ensure atob still works with websockify
+            Data.writeString(atob(e.data));
         } else {
             Data.writeString(e.data);
         }
@@ -5838,10 +5909,14 @@ var WebSocketConnection = (function () {
         if (this._Protocol === 'binary') {
             this._WebSocket.send(new Uint8Array(data).buffer);
         } else if (this._Protocol === 'base64') {
-            this._WebSocket.send(Base64.encode(data));
+            // TODO Ensure btoa still works with websockify
+            var ToSendString = '';
+            for (var i = 0; i < data.length; i++) {
+                ToSendString += String.fromCharCode(data[i]);
+            }
+            this._WebSocket.send(btoa(ToSendString));
         } else {
             var ToSendString = '';
-
             for (var i = 0; i < data.length; i++) {
                 ToSendString += String.fromCharCode(data[i]);
             }
@@ -7128,114 +7203,6 @@ var YModemSend = (function () {
     };
     return YModemSend;
 })();
-/* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-// From: http://hg.mozilla.org/mozilla-central/raw-file/ec10630b1a54/js/src/devtools/jint/sunspider/string-base64.js
-/*jslint white: false, bitwise: false, plusplus: false */
-/*global console */
-var Base64 = {
-    /* Convert data (an array of integers) to a Base64 string. */
-    toBase64Table: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split(''),
-    base64Pad: '=',
-    encode: function (data) {
-        'use strict';
-        var result = '';
-        var toBase64Table = Base64.toBase64Table;
-        var base64Pad = Base64.base64Pad;
-        var length = data.length;
-        var i;
-
-        for (i = 0; i < (length - 2); i += 3) {
-            result += toBase64Table[data[i] >> 2];
-            result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
-            result += toBase64Table[((data[i + 1] & 0x0f) << 2) + (data[i + 2] >> 6)];
-            result += toBase64Table[data[i + 2] & 0x3f];
-        }
-
-        /* END LOOP */
-        // Convert the remaining 1 or 2 bytes, pad out to 4 characters.
-        if (length % 3) {
-            i = length - (length % 3);
-            result += toBase64Table[data[i] >> 2];
-            if ((length % 3) === 2) {
-                result += toBase64Table[((data[i] & 0x03) << 4) + (data[i + 1] >> 4)];
-                result += toBase64Table[(data[i + 1] & 0x0f) << 2];
-                result += base64Pad;
-            } else {
-                result += toBase64Table[(data[i] & 0x03) << 4];
-                result += base64Pad + base64Pad;
-            }
-        }
-
-        return result;
-    },
-    /* Convert Base64 data to a string */
-    toBinaryTable: [
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
-        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 0, -1, -1,
-        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
-    ],
-    decode: function (data, offset) {
-        'use strict';
-        offset = typeof (offset) !== 'undefined' ? offset : 0;
-        var toBinaryTable = Base64.toBinaryTable;
-        var base64Pad = Base64.base64Pad;
-        var result, result_length, idx, i, c, padding;
-        var leftbits = 0;
-        var leftdata = 0;
-        var data_length = data.indexOf('=') - offset;
-
-        if (data_length < 0) {
-            data_length = data.length - offset;
-        }
-
-        /* Every four characters is 3 resulting numbers */
-        result_length = (data_length >> 2) * 3 + Math.floor((data_length % 4) / 1.5);
-        result = new Array(result_length);
-
-        for (idx = 0, i = offset; i < data.length; i++) {
-            c = toBinaryTable[data.charCodeAt(i) & 0x7f];
-            padding = (data.charAt(i) === base64Pad);
-
-            // Skip illegal characters and whitespace
-            if (c === -1) {
-                console.error('Illegal character code ' + data.charCodeAt(i) + ' at position ' + i);
-            } else {
-                // Collect data into leftdata, update bitcount
-                leftdata = (leftdata << 6) | c;
-                leftbits += 6;
-
-                // If we have 8 or more bits, append 8 bits to the result
-                if (leftbits >= 8) {
-                    leftbits -= 8;
-
-                    // Append if not padding.
-                    if (!padding) {
-                        result[idx++] = (leftdata >> leftbits) & 0xff;
-                    }
-                    leftdata &= (1 << leftbits) - 1;
-                }
-            }
-        }
-
-        /* END LOOP */
-        // If there are any bits left, the base64 string was corrupted
-        if (leftbits) {
-            throw {
-                name: 'Base64-Error',
-                message: 'Corrupted base64 string'
-            };
-        }
-
-        return result;
-    }
-};
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software

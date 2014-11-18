@@ -21,6 +21,7 @@
     <Content Include="app.css" />
     <Content Include="index.html" />
     <Content Include="release\index.html" />
+    <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
     <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
     <Content Include="source\randm\crt\font\PNG\437-12x23.png" />
     <Content Include="source\randm\crt\font\PNG\437-6x8.png" />
@@ -118,7 +119,6 @@
     <TypeScriptCompile Include="source\randm\xfer\FileRecord.ts" />
     <TypeScriptCompile Include="source\randm\xfer\YModemReceive.ts" />
     <TypeScriptCompile Include="source\randm\xfer\YModemSend.ts" />
-    <TypeScriptCompile Include="source\3rdparty\string-base64.ts" />
     <TypeScriptCompile Include="source\randm\xfer\YModemSendState.ts" />
     <TypeScriptCompile Include="source\randm\StringUtils.ts" />
   </ItemGroup>
