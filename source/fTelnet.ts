@@ -27,7 +27,7 @@ class fTelnet {
     private static _YModemSend: YModemSend;
 
     // Settings to be loaded from HTML
-    private static _BitsPerSecond: number = 115200;
+    private static _BitsPerSecond: number = 57600;
     private static _Blink: boolean = true;
     private static _CodePage: string = '437';
     private static _ConnectionType: string = 'telnet';

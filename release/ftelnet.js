@@ -644,7 +644,7 @@ var fTelnet = (function () {
         // Read in the image file as a data URL.
         reader.readAsArrayBuffer(file);
     };
-    fTelnet._BitsPerSecond = 115200;
+    fTelnet._BitsPerSecond = 57600;
     fTelnet._Blink = true;
     fTelnet._CodePage = '437';
     fTelnet._ConnectionType = 'telnet';
