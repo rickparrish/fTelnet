@@ -26,6 +26,7 @@ class WebSocketConnection {
     // Public events
     public onclose: Function = function (): void { }; // Do nothing
     public onconnect: Function = function (): void { }; // Do nothing
+    public onlocalecho: Function = function (value: boolean): void { }; // Do nothing
     public onioerror: Function = function (): void { }; // Do nothing
     public onsecurityerror: Function = function (): void { }; // Do nothing
 
@@ -34,12 +35,14 @@ class WebSocketConnection {
 
     // TODO Protected variables
     public _InputBuffer: ByteArray = null;
+    public _LocalEcho: boolean;
     public _OutputBuffer: ByteArray = null;
     public _Protocol: string = 'plain';
     public _WebSocket: WebSocket = null;
 
     constructor() {
         this._InputBuffer = new ByteArray();
+        this._LocalEcho = false;
         this._OutputBuffer = new ByteArray();
     }
 
@@ -111,6 +114,10 @@ class WebSocketConnection {
         this._OutputBuffer.clear();
     }
 
+    public set LocalEcho(value: boolean) {
+        this._LocalEcho = value;
+    }
+
     public NegotiateInbound(data: ByteArray): void {
         // No negotiation for raw tcp connection
         while (data.bytesAvailable) {
@@ -132,7 +139,7 @@ class WebSocketConnection {
         this.onioerror(e);
     }
 
-    private OnSocketOpen(): void {
+    public OnSocketOpen(): void {
         if (this._WebSocket.protocol) {
             this._Protocol = this._WebSocket.protocol;
         } else {

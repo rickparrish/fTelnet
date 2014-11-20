@@ -19,12 +19,7 @@
 */
 /// <reference path="../WebSocketConnection.ts" />
 class TelnetConnection extends WebSocketConnection {
-    // TODO Event to let fTelnet to know to enable or disable echo
-    // public static const ECHO_OFF: String = 'EchoOff';
-    // public static const ECHO_ON: String = 'EchoOn';
-
     // Private variables
-    private _LocalEcho: boolean;
     private _NegotiatedOptions: number[];
     private _NegotiationState: TelnetNegotiationState;
     private _TerminalTypeIndex: number;
@@ -33,7 +28,6 @@ class TelnetConnection extends WebSocketConnection {
     constructor() {
         super();
 
-        this._LocalEcho = false;
         this._NegotiatedOptions = [];
         for (var i: number = 0; i < 256; i++) {
             this._NegotiatedOptions[i] = 0;
@@ -69,24 +63,24 @@ class TelnetConnection extends WebSocketConnection {
     private HandleEcho(command: number): void {
         switch (command) {
             case TelnetCommand.Do:
-                this._LocalEcho = true;
                 this.SendWill(TelnetOption.Echo);
-                // TODO dispatchEvent(new Event(ECHO_ON));
+                this._LocalEcho = true;
+                this.onlocalecho(this._LocalEcho);
                 break;
             case TelnetCommand.Dont:
-                this._LocalEcho = false;
                 this.SendWont(TelnetOption.Echo);
-                // TODO dispatchEvent(new Event(ECHO_OFF));
+                this._LocalEcho = false;
+                this.onlocalecho(this._LocalEcho);
                 break;
             case TelnetCommand.Will:
-                this._LocalEcho = false;
                 this.SendDo(TelnetOption.Echo);
-                // TODO dispatchEvent(new Event(ECHO_OFF));
+                this._LocalEcho = false;
+                this.onlocalecho(this._LocalEcho);
                 break;
             case TelnetCommand.Wont:
-                this._LocalEcho = true;
                 this.SendDont(TelnetOption.Echo);
-                // TODO dispatchEvent(new Event(ECHO_ON));
+                this._LocalEcho = true;
+                this.onlocalecho(this._LocalEcho);
                 break;
         }
     }
@@ -171,6 +165,7 @@ class TelnetConnection extends WebSocketConnection {
 
     public set LocalEcho(value: boolean) {
         this._LocalEcho = value;
+
         if (this.connected) {
             if (this._LocalEcho) {
                 this.SendWill(TelnetOption.Echo);
@@ -276,6 +271,16 @@ class TelnetConnection extends WebSocketConnection {
     }
 
     // TODO Need NegotiateOutbound
+
+    public OnSocketOpen(): void {
+        super.OnSocketOpen();
+
+        if (this._LocalEcho) {
+            this.SendWill(TelnetOption.Echo);
+        } else {
+            this.SendWont(TelnetOption.Echo);
+        }
+    }
 
     private SendDo(option: number): void {
         if (this._NegotiatedOptions[option] !== TelnetCommand.Do) {

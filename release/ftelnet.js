@@ -248,11 +248,15 @@ var fTelnet = (function () {
                 break;
         }
 
+        this._Connection.LocalEcho = this._LocalEcho;
         this._Connection.onclose = function () {
             _this.OnConnectionClose();
         };
         this._Connection.onconnect = function () {
             _this.OnConnectionConnect();
+        };
+        this._Connection.onlocalecho = function (value) {
+            _this.OnConnectionLocalEcho(value);
         };
         this._Connection.onioerror = function () {
             _this.OnConnectionIOError();
@@ -378,6 +382,23 @@ var fTelnet = (function () {
     });
 
 
+    Object.defineProperty(fTelnet, "LocalEcho", {
+        get: function () {
+            return this._LocalEcho;
+        },
+        set: function (value) {
+            this._LocalEcho = value;
+
+            Crt.LocalEcho = value;
+            if ((this._Connection !== null) && (this._Connection.connected)) {
+                this._Connection.LocalEcho = value;
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+
     fTelnet.OnAnsiESC5n = function () {
         this._Connection.writeString('\x1B[0n');
     };
@@ -406,6 +427,11 @@ var fTelnet = (function () {
         } else {
             this.UpdateStatusBar(' Connected to ' + this._Hostname + ':' + this._Port + ' via proxy');
         }
+    };
+
+    fTelnet.OnConnectionLocalEcho = function (value) {
+        this._LocalEcho = value;
+        Crt.LocalEcho = value;
     };
 
     fTelnet.OnConnectionIOError = function () {
@@ -652,6 +678,7 @@ var fTelnet = (function () {
     fTelnet._FontHeight = 16;
     fTelnet._FontWidth = 9;
     fTelnet._Hostname = 'bbs.ftelnet.ca';
+    fTelnet._LocalEcho = false;
     fTelnet._Port = 1123;
     fTelnet._ProxyHostname = '';
     fTelnet._ProxyPort = 1123;
@@ -5719,6 +5746,8 @@ var WebSocketConnection = (function () {
         };
         this.onconnect = function () {
         };
+        this.onlocalecho = function (value) {
+        };
         this.onioerror = function () {
         };
         this.onsecurityerror = function () {
@@ -5731,6 +5760,7 @@ var WebSocketConnection = (function () {
         this._Protocol = 'plain';
         this._WebSocket = null;
         this._InputBuffer = new ByteArray();
+        this._LocalEcho = false;
         this._OutputBuffer = new ByteArray();
     }
     Object.defineProperty(WebSocketConnection.prototype, "bytesAvailable", {
@@ -5823,6 +5853,14 @@ var WebSocketConnection = (function () {
         this.Send(ToSendBytes);
         this._OutputBuffer.clear();
     };
+
+    Object.defineProperty(WebSocketConnection.prototype, "LocalEcho", {
+        set: function (value) {
+            this._LocalEcho = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
 
     WebSocketConnection.prototype.NegotiateInbound = function (data) {
         while (data.bytesAvailable) {
@@ -5964,7 +6002,6 @@ var TelnetConnection = (function (_super) {
     function TelnetConnection() {
         _super.call(this);
 
-        this._LocalEcho = false;
         this._NegotiatedOptions = [];
         for (var i = 0; i < 256; i++) {
             this._NegotiatedOptions[i] = 0;
@@ -5999,24 +6036,24 @@ var TelnetConnection = (function (_super) {
     TelnetConnection.prototype.HandleEcho = function (command) {
         switch (command) {
             case 253 /* Do */:
-                this._LocalEcho = true;
                 this.SendWill(1 /* Echo */);
-
+                this._LocalEcho = true;
+                this.onlocalecho(this._LocalEcho);
                 break;
             case 254 /* Dont */:
-                this._LocalEcho = false;
                 this.SendWont(1 /* Echo */);
-
+                this._LocalEcho = false;
+                this.onlocalecho(this._LocalEcho);
                 break;
             case 251 /* Will */:
-                this._LocalEcho = false;
                 this.SendDo(1 /* Echo */);
-
+                this._LocalEcho = false;
+                this.onlocalecho(this._LocalEcho);
                 break;
             case 252 /* Wont */:
-                this._LocalEcho = true;
                 this.SendDont(1 /* Echo */);
-
+                this._LocalEcho = true;
+                this.onlocalecho(this._LocalEcho);
                 break;
         }
     };
@@ -6102,6 +6139,7 @@ var TelnetConnection = (function (_super) {
     Object.defineProperty(TelnetConnection.prototype, "LocalEcho", {
         set: function (value) {
             this._LocalEcho = value;
+
             if (this.connected) {
                 if (this._LocalEcho) {
                     this.SendWill(1 /* Echo */);
@@ -6277,6 +6315,16 @@ var TelnetConnection = (function (_super) {
     };
 
     // TODO Need NegotiateOutbound
+    TelnetConnection.prototype.OnSocketOpen = function () {
+        _super.prototype.OnSocketOpen.call(this);
+
+        if (this._LocalEcho) {
+            this.SendWill(1 /* Echo */);
+        } else {
+            this.SendWont(1 /* Echo */);
+        }
+    };
+
     TelnetConnection.prototype.SendDo = function (option) {
         if (this._NegotiatedOptions[option] !== 253 /* Do */) {
             // Haven't negotiated this option

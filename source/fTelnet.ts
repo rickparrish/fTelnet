@@ -35,6 +35,7 @@ class fTelnet {
     private static _FontHeight: number = 16;
     private static _FontWidth: number = 9;
     private static _Hostname: string = 'bbs.ftelnet.ca';
+    private static _LocalEcho: boolean = false;
     private static _Port: number = 1123;
     private static _ProxyHostname: string = '';
     private static _ProxyPort: number = 1123;
@@ -169,8 +170,10 @@ class fTelnet {
             default: this._Connection = new TelnetConnection(); break;
         }
 
+        this._Connection.LocalEcho = this._LocalEcho;
         this._Connection.onclose = (): void => { this.OnConnectionClose(); };
         this._Connection.onconnect = (): void => { this.OnConnectionConnect(); };
+        this._Connection.onlocalecho = (value: boolean): void => { this.OnConnectionLocalEcho(value); };
         this._Connection.onioerror = (): void => { this.OnConnectionIOError(); };
         this._Connection.onsecurityerror = (): void => { this.OnConnectionSecurityError(); };
 
@@ -254,6 +257,19 @@ class fTelnet {
         this._Hostname = value;
     }
 
+    public static get LocalEcho(): boolean {
+        return this._LocalEcho;
+    }
+
+    public static set LocalEcho(value: boolean) {
+        this._LocalEcho = value;
+
+        Crt.LocalEcho = value;
+        if ((this._Connection !== null) && (this._Connection.connected)) {
+            this._Connection.LocalEcho = value;
+        }
+    }
+
     private static OnAnsiESC5n(): void {
         this._Connection.writeString('\x1B[0n');
     }
@@ -282,6 +298,11 @@ class fTelnet {
         } else {
             this.UpdateStatusBar(' Connected to ' + this._Hostname + ':' + this._Port + ' via proxy');
         }
+    }
+
+    private static OnConnectionLocalEcho(value: boolean): void {
+        this._LocalEcho = value;
+        Crt.LocalEcho = value;
     }
 
     private static OnConnectionIOError(): void {
