@@ -30,12 +30,16 @@
     <script src="FileSaver.js"></script>
     <script src="ftelnet.js"></script>
     <script>
+        fTelnet.Hostname = "empiredirectory.net";//"bbs.ftelnet.ca";
+        fTelnet.Port = 3458;//23;
+        fTelnet.ProxyHostname = "proxy-us-ga.ftelnet.ca";
+        fTelnet.Enter = "\r\n";
+        fTelnet.LocalEcho = true;
+        fTelnet.BareLFtoCRLF = true;
+        fTelnet.ScreenColumns = 85;
+
         if (fTelnet.Init('fTelnet-div')) {
-            fTelnet.Hostname = "empiredirectory.net";//"bbs.ftelnet.ca";
-            fTelnet.Port = 4321;//23;
-            //fTelnet.ProxyHostname = "proxy-us-ga.ftelnet.ca";
-            fTelnet.Enter = "\r\n";
-            fTelnet.LocalEcho = true;
+            // TODO Auto connect?
         }
     </script>
 

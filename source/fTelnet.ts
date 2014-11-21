@@ -19,14 +19,15 @@
 */
 class fTelnet {
     // Private variables
-    private static _Connection: WebSocketConnection;
-    private static _LastTimer: number;
-    private static _Parent: HTMLElement;
-    private static _Timer: number;
-    private static _YModemReceive: YModemReceive;
-    private static _YModemSend: YModemSend;
+    private static _Connection: WebSocketConnection = null;
+    private static _LastTimer: number = 0;
+    private static _Parent: HTMLElement = null;
+    private static _Timer: number = null;
+    private static _YModemReceive: YModemReceive = null;
+    private static _YModemSend: YModemSend = null;
 
     // Settings to be loaded from HTML
+    private static _BareLFtoCRLF: boolean = false;
     private static _BitsPerSecond: number = 57600;
     private static _Blink: boolean = true;
     private static _CodePage: string = '437';
@@ -47,13 +48,6 @@ class fTelnet {
     private static _StatusBar: boolean = true;
 
     public static Init(parentId: string): boolean {
-        this._Connection = null;
-        this._LastTimer = 0;
-        // this._Parent;
-        // this._Timer
-        // this._YModemReceive
-        // this._YModemSend
-
         // Ensure we have our parent
         if (document.getElementById(parentId) === null) {
             alert('fTelnet Error: Element with id="' + parentId + '" was not found');
@@ -74,7 +68,9 @@ class fTelnet {
 
         // Seup the crt window
         if (Crt.Init(this._Parent)) {
+            Crt.BareLFtoCRLF = this._BareLFtoCRLF;
             Crt.Blink = this._Blink;
+            Crt.LocalEcho = this._LocalEcho;
             Crt.SetFont(this._CodePage, this._FontWidth, this._FontHeight);
             Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
             if (this._StatusBar) {
@@ -126,6 +122,15 @@ class fTelnet {
         this._Parent.appendChild(fTelnetUpload);
 
         return true;
+    }
+
+    public static get BareLFtoCRLF(): boolean {
+        return this._BareLFtoCRLF;
+    }
+
+    public static set BareLFtoCRLF(value: boolean) {
+        this._BareLFtoCRLF = value;
+        Crt.BareLFtoCRLF = value;
     }
 
     public static get BitsPerSecond(): number {

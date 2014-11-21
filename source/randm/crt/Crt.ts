@@ -68,56 +68,34 @@ class Crt {
     public static PETSCII_LIGHTGRAY: number = 15;
 
     /* Private variables */
-    private static _Atari: boolean;
-    private static _ATASCIIEscaped: boolean;
-    private static _Blink: boolean;
-    private static _BlinkHidden: boolean;
-    private static _Buffer: CharInfo[][];
-    private static _C64: boolean;
-    private static _Canvas: HTMLCanvasElement;
-    private static _CanvasContext: CanvasRenderingContext2D;
-    private static _CharInfo: CharInfo;
-    private static _Cursor: Cursor;
-    private static _FlushBeforeWritePETSCII: number[];
-    private static _Font: CrtFont;
-    private static _InScrollBack: boolean;
-    private static _KeyBuf: KeyPressEvent[];
-    private static _LastChar: number;
-    private static _LocalEcho: boolean;
-    private static _ScreenSize: Point;
-    private static _ScrollBack: CharInfo[][];
-    private static _ScrollBackPosition: number;
-    private static _ScrollBackSize: number;
-    private static _ScrollBackTemp: CharInfo[][];
-    private static _WindMin: number;
-    private static _WindMax: number;
+    private static _Atari: boolean = false;
+    private static _ATASCIIEscaped: boolean = false;
+    private static _BareLFtoCRLF: boolean = false;
+    private static _Blink: boolean = true;
+    private static _BlinkHidden: boolean = false;
+    private static _Buffer: CharInfo[][] = null;
+    private static _C64: boolean = false;
+    private static _Canvas: HTMLCanvasElement = null;
+    private static _CanvasContext: CanvasRenderingContext2D = null;
+    private static _CharInfo: CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
+    private static _Cursor: Cursor = null;
+    private static _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
+    private static _Font: CrtFont = null;
+    private static _InScrollBack: boolean = false;
+    private static _KeyBuf: KeyPressEvent[] = [];
+    private static _LastChar: number = 0x00;
+    private static _LocalEcho: boolean = false;
+    private static _ScreenSize: Point = new Point(80, 25);
+    private static _ScrollBack: CharInfo[][] = null;
+    private static _ScrollBackPosition: number = -1;
+    private static _ScrollBackSize: number = 1000;
+    private static _ScrollBackTemp: CharInfo[][] = null;
+    private static _WindMin: number = 0;
+    private static _WindMax: number = (80 - 1) | ((25 - 1) << 8);
 
     public static Init(parent: HTMLElement): boolean {
-        // Init variables
-        this._Atari = false;
-        this._ATASCIIEscaped = false;
-        this._Blink = true;
-        this._BlinkHidden = false;
-        // this._Buffer
-        this._C64 = false;
-        // this._Canvas
-        // this._CanvasContext
-        this._CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
-        // this._Cursor
-        this._FlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
         this._Font = new CrtFont();
         this._Font.onchange = (): void => { this.OnFontChanged(); };
-        this._InScrollBack = false;
-        this._KeyBuf = [];
-        this._LastChar = 0;
-        this._LocalEcho = false;
-        this._ScreenSize = new Point(80, 25);
-        // this._ScrollBack
-        this._ScrollBackPosition = -1;
-        this._ScrollBackSize = 1000;
-        // this._ScrollBackTemp
-        // this._WindMin
-        // this._WindMax
 
         // Create the canvas
         this._Canvas = document.createElement('canvas');
@@ -133,6 +111,7 @@ class Crt {
         }
 
         // Replace the contents of the parent with the canvas
+        // TODO Probably should have fTelnet add it to the parent
         parent.innerHTML = '';
         parent.appendChild(this._Canvas);
 
@@ -183,6 +162,14 @@ class Crt {
 
     public static set Blink(value: boolean) {
         this._Blink = value;
+    }
+
+    public static get BareLFtoCRLF(): boolean {
+        return this._BareLFtoCRLF;
+    }
+
+    public static set BareLFtoCRLF(value: boolean) {
+        this._BareLFtoCRLF = value;
     }
 
     public static get C64(): boolean {
@@ -1431,7 +1418,12 @@ class Crt {
             } else if (text.charCodeAt(i) === 0x0A) {
                 // Line feed, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
-                X += Buf.length;
+                if (this._BareLFtoCRLF && (this._LastChar != 0x0D)) {
+                    // Bare LF, so pretend we also got a CR
+                    X = 1;
+                } else {
+                    X += Buf.length;
+                }
                 Y += 1;
                 DoGoto = true;
 
@@ -1466,6 +1458,9 @@ class Crt {
                     DoGoto = true;
                 }
             }
+
+            // Store the last character (we use this for BareLFtoCRLF)
+            this._LastChar = text.charCodeAt(i);
 
             // Check if we've passed the bottom edge of the window
             if (Y > this.WindRows) {

@@ -91,13 +91,6 @@ var fTelnet = (function () {
     }
     fTelnet.Init = function (parentId) {
         var _this = this;
-        this._Connection = null;
-        this._LastTimer = 0;
-
-        // this._Parent;
-        // this._Timer
-        // this._YModemReceive
-        // this._YModemSend
         // Ensure we have our parent
         if (document.getElementById(parentId) === null) {
             alert('fTelnet Error: Element with id="' + parentId + '" was not found');
@@ -120,7 +113,9 @@ var fTelnet = (function () {
 
         // Seup the crt window
         if (Crt.Init(this._Parent)) {
+            Crt.BareLFtoCRLF = this._BareLFtoCRLF;
             Crt.Blink = this._Blink;
+            Crt.LocalEcho = this._LocalEcho;
             Crt.SetFont(this._CodePage, this._FontWidth, this._FontHeight);
             Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
             if (this._StatusBar) {
@@ -187,6 +182,19 @@ var fTelnet = (function () {
 
         return true;
     };
+
+    Object.defineProperty(fTelnet, "BareLFtoCRLF", {
+        get: function () {
+            return this._BareLFtoCRLF;
+        },
+        set: function (value) {
+            this._BareLFtoCRLF = value;
+            Crt.BareLFtoCRLF = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
 
     Object.defineProperty(fTelnet, "BitsPerSecond", {
         get: function () {
@@ -670,6 +678,14 @@ var fTelnet = (function () {
         // Read in the image file as a data URL.
         reader.readAsArrayBuffer(file);
     };
+    fTelnet._Connection = null;
+    fTelnet._LastTimer = 0;
+    fTelnet._Parent = null;
+    fTelnet._Timer = null;
+    fTelnet._YModemReceive = null;
+    fTelnet._YModemSend = null;
+
+    fTelnet._BareLFtoCRLF = false;
     fTelnet._BitsPerSecond = 57600;
     fTelnet._Blink = true;
     fTelnet._CodePage = '437';
@@ -2800,38 +2816,11 @@ var Crt = (function () {
     }
     Crt.Init = function (parent) {
         var _this = this;
-        // Init variables
-        this._Atari = false;
-        this._ATASCIIEscaped = false;
-        this._Blink = true;
-        this._BlinkHidden = false;
-
-        // this._Buffer
-        this._C64 = false;
-
-        // this._Canvas
-        // this._CanvasContext
-        this._CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
-
-        // this._Cursor
-        this._FlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
         this._Font = new CrtFont();
         this._Font.onchange = function () {
             _this.OnFontChanged();
         };
-        this._InScrollBack = false;
-        this._KeyBuf = [];
-        this._LastChar = 0;
-        this._LocalEcho = false;
-        this._ScreenSize = new Point(80, 25);
 
-        // this._ScrollBack
-        this._ScrollBackPosition = -1;
-        this._ScrollBackSize = 1000;
-
-        // this._ScrollBackTemp
-        // this._WindMin
-        // this._WindMax
         // Create the canvas
         this._Canvas = document.createElement('canvas');
         this._Canvas.id = 'fTelnetCanvas';
@@ -2846,6 +2835,7 @@ var Crt = (function () {
         }
 
         // Replace the contents of the parent with the canvas
+        // TODO Probably should have fTelnet add it to the parent
         parent.innerHTML = '';
         parent.appendChild(this._Canvas);
 
@@ -2908,6 +2898,18 @@ var Crt = (function () {
         },
         set: function (value) {
             this._Blink = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+
+    Object.defineProperty(Crt, "BareLFtoCRLF", {
+        get: function () {
+            return this._BareLFtoCRLF;
+        },
+        set: function (value) {
+            this._BareLFtoCRLF = value;
         },
         enumerable: true,
         configurable: true
@@ -4375,7 +4377,12 @@ var Crt = (function () {
             } else if (text.charCodeAt(i) === 0x0A) {
                 // Line feed, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
-                X += Buf.length;
+                if (this._BareLFtoCRLF && (this._LastChar != 0x0D)) {
+                    // Bare LF, so pretend we also got a CR
+                    X = 1;
+                } else {
+                    X += Buf.length;
+                }
                 Y += 1;
                 DoGoto = true;
 
@@ -4410,6 +4417,9 @@ var Crt = (function () {
                     DoGoto = true;
                 }
             }
+
+            // Store the last character (we use this for BareLFtoCRLF)
+            this._LastChar = text.charCodeAt(i);
 
             // Check if we've passed the bottom edge of the window
             if (Y > this.WindRows) {
@@ -4853,6 +4863,31 @@ var Crt = (function () {
     Crt.PETSCII_LIGHTGREEN = 13;
     Crt.PETSCII_LIGHTBLUE = 14;
     Crt.PETSCII_LIGHTGRAY = 15;
+
+    Crt._Atari = false;
+    Crt._ATASCIIEscaped = false;
+    Crt._BareLFtoCRLF = false;
+    Crt._Blink = true;
+    Crt._BlinkHidden = false;
+    Crt._Buffer = null;
+    Crt._C64 = false;
+    Crt._Canvas = null;
+    Crt._CanvasContext = null;
+    Crt._CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
+    Crt._Cursor = null;
+    Crt._FlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
+    Crt._Font = null;
+    Crt._InScrollBack = false;
+    Crt._KeyBuf = [];
+    Crt._LastChar = 0x00;
+    Crt._LocalEcho = false;
+    Crt._ScreenSize = new Point(80, 25);
+    Crt._ScrollBack = null;
+    Crt._ScrollBackPosition = -1;
+    Crt._ScrollBackSize = 1000;
+    Crt._ScrollBackTemp = null;
+    Crt._WindMin = 0;
+    Crt._WindMax = (80 - 1) | ((25 - 1) << 8);
     return Crt;
 })();
 /*
