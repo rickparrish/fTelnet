@@ -23,12 +23,12 @@ var WebSocketSupportsTypedArrays: boolean = (('Uint8Array' in window) && ('set' 
 var WebSocketSupportsBinaryType: boolean = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));
 
 class WebSocketConnection {
-    // Public events
-    public onclose: Function = function (): void { }; // Do nothing
-    public onconnect: Function = function (): void { }; // Do nothing
-    public onlocalecho: Function = function (value: boolean): void { }; // Do nothing
-    public onioerror: Function = function (): void { }; // Do nothing
-    public onsecurityerror: Function = function (): void { }; // Do nothing
+    // Events
+    public onclose: IEvent = new TypedEvent();
+    public onconnect: IEvent = new TypedEvent();
+    public onlocalecho: IBooleanEvent = new TypedEvent();
+    public onioerror: IEvent = new TypedEvent();
+    public onsecurityerror: IEvent = new TypedEvent();
 
     // Private variables
     private _WasConnected: boolean = false;
@@ -128,15 +128,15 @@ class WebSocketConnection {
 
     private OnSocketClose(): void {
         if (this._WasConnected) {
-            this.onclose();
+            this.onclose.trigger();
         } else {
-            this.onsecurityerror();
+            this.onsecurityerror.trigger();
         }
         this._WasConnected = false;
     }
 
     private OnSocketError(e: ErrorEvent): void {
-        this.onioerror(e);
+        this.onioerror.trigger(e);
     }
 
     public OnSocketOpen(): void {
@@ -147,7 +147,7 @@ class WebSocketConnection {
         }
 
         this._WasConnected = true;
-        this.onconnect();
+        this.onconnect.trigger();
     }
 
     private OnSocketMessage(e: any): void {

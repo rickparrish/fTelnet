@@ -24,8 +24,8 @@ class Crt {
     /// Compatibility with the Borland Pascal CRT unit was attempted, along with a few new additions
     /// </summary>
 
-    // Public events
-    public static SCREEN_SIZE_CHANGED: string = 'SCREEN_SIZE_CHANGED';
+    // Events
+    public static onscreensizechange: IEvent = new TypedEvent();
 
     /*  Color Constants
     ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -95,7 +95,7 @@ class Crt {
 
     public static Init(parent: HTMLElement): boolean {
         this._Font = new CrtFont();
-        this._Font.onchange = (): void => { this.OnFontChanged(); };
+        this._Font.onchange.add((): void => { this.OnFontChanged(); });
 
         // Create the canvas
         this._Canvas = document.createElement('canvas');
@@ -124,8 +124,8 @@ class Crt {
 
         // Create the cursor
         this._Cursor = new Cursor(parent, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
-        this._Cursor.onhide = (): void => { this.OnBlinkHide(); };
-        this._Cursor.onshow = (): void => { this.OnBlinkShow(); };
+        this._Cursor.onhide.add((): void => { this.OnBlinkHide(); });
+        this._Cursor.onshow.add((): void => { this.OnBlinkShow(); });
 
         // Update the WindMin/WindMax records
         this._WindMin = 0;
@@ -1148,11 +1148,7 @@ class Crt {
         }
 
         // Let the program know about the update
-        // TODO Is the commented or uncommented code correct?
-        // this._Canvas.dispatchEvent(this.SCREEN_SIZE_CHANGED);
-        var evObj: Event = document.createEvent('Events');
-        evObj.initEvent(this.SCREEN_SIZE_CHANGED, true, false);
-        this._Canvas.dispatchEvent(evObj);
+        this.onscreensizechange.trigger();
     }
 
     public static ShowCursor(): void {

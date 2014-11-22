@@ -18,9 +18,9 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 class Cursor {
-    // Public events
-    public onhide: Function = function (): void { }; // Do nothing
-    public onshow: Function = function (): void { }; // Do nothing
+    // Events
+    public onhide: IEvent = new TypedEvent();
+    public onshow: IEvent = new TypedEvent();
 
     // Private variables
     private _BlinkRate: number;
@@ -99,8 +99,8 @@ class Cursor {
 
         // Let the Crt unit know it can blink text now
         switch (this._BlinkState) {
-            case BlinkState.Hide: this.onhide(); break;
-            case BlinkState.Show: this.onshow(); break;
+            case BlinkState.Hide: this.onhide.trigger(); break;
+            case BlinkState.Show: this.onshow.trigger(); break;
         }
     }
 

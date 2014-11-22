@@ -77,7 +77,7 @@ class fTelnet {
                 Crt.Window(1, 1, this._ScreenColumns, this._ScreenRows - 1);
                 this.UpdateStatusBar(' Not connected');
             }
-            Crt.Canvas.addEventListener(Crt.SCREEN_SIZE_CHANGED, (): void => { this.OnCrtScreenSizeChanged(); }, false);
+            Crt.onscreensizechange.add((): void => { this.OnCrtScreenSizeChanged(); });
 
             // Test websocket support
             if (!('WebSocket' in window)) {
@@ -99,10 +99,10 @@ class fTelnet {
             }
 
             // Create the ansi cursor position handler
-            Ansi.onesc5n = (): void => { this.OnAnsiESC5n(); };
-            Ansi.onesc6n = (): void => { this.OnAnsiESC6n(); };
-            Ansi.onesc255n = (): void => { this.OnAnsiESC255n(); };
-            Ansi.onescQ = (e: ESCQEvent): void => { this.OnAnsiESCQ(e); };
+            Ansi.onesc5n.add((): void => { this.OnAnsiESC5n(); });
+            Ansi.onesc6n.add((): void => { this.OnAnsiESC6n(); });
+            Ansi.onesc255n.add((): void => { this.OnAnsiESC255n(); });
+            Ansi.onescQ.add((codePage: string, width: number, height: number): void => { this.OnAnsiESCQ(codePage, width, height); });
 
             Ansi.Write(atob(this._SplashScreen));
         } else {
@@ -176,11 +176,11 @@ class fTelnet {
         }
 
         this._Connection.LocalEcho = this._LocalEcho;
-        this._Connection.onclose = (): void => { this.OnConnectionClose(); };
-        this._Connection.onconnect = (): void => { this.OnConnectionConnect(); };
-        this._Connection.onlocalecho = (value: boolean): void => { this.OnConnectionLocalEcho(value); };
-        this._Connection.onioerror = (): void => { this.OnConnectionIOError(); };
-        this._Connection.onsecurityerror = (): void => { this.OnConnectionSecurityError(); };
+        this._Connection.onclose.add((): void => { this.OnConnectionClose(); });
+        this._Connection.onconnect.add((): void => { this.OnConnectionConnect(); });
+        this._Connection.onlocalecho.add((value: boolean): void => { this.OnConnectionLocalEcho(value); });
+        this._Connection.onioerror.add((): void => { this.OnConnectionIOError(); });
+        this._Connection.onsecurityerror.add((): void => { this.OnConnectionSecurityError(); });
 
         // Reset display
         Crt.NormVideo();
@@ -205,10 +205,11 @@ class fTelnet {
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
 
-        this._Connection.onclose = function (): void {  }; // Do nothing
-        this._Connection.onconnect = function (): void {  }; // Do nothing
-        this._Connection.onioerror = function (): void {  }; // Do nothing
-        this._Connection.onsecurityerror = function (): void {  }; // Do nothing
+        this._Connection.onclose.remove();
+        this._Connection.onconnect.remove();
+        this._Connection.onioerror.remove();
+        this._Connection.onlocalecho.remove();
+        this._Connection.onsecurityerror.remove();
         this._Connection.close();
         this._Connection = null;
 
@@ -224,7 +225,7 @@ class fTelnet {
 
         // Setup listeners for during transfer
         clearInterval(this._Timer);
-        this._YModemReceive.ontransfercomplete = (): void => { this.OnDownloadComplete(); };
+        this._YModemReceive.ontransfercomplete.add((): void => { this.OnDownloadComplete(); });
 
         // Download the file
         this._YModemReceive.Download();
@@ -287,8 +288,8 @@ class fTelnet {
         this._Connection.writeString(Ansi.CursorPosition(Crt.WindCols, Crt.WindRows));
     }
 
-    private static OnAnsiESCQ(e: ESCQEvent): void {
-        Crt.SetFont(e.CodePage, e.Width, e.Height);
+    private static OnAnsiESCQ(codePage: string, width: number, height: number): void {
+        Crt.SetFont(codePage, width, height);
     }
 
     private static OnConnectionClose(): void {
@@ -382,7 +383,7 @@ class fTelnet {
 
         // Setup the listeners
         clearInterval(this._Timer);
-        this._YModemSend.ontransfercomplete = (): void => { this.OnUploadComplete(); };
+        this._YModemSend.ontransfercomplete.add((): void => { this.OnUploadComplete(); });
 
         // Loop through the FileList and prep them for upload
         for (var i: number = 0; i < fTelentUpload.files.length; i++) {

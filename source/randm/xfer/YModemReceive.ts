@@ -18,8 +18,8 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 class YModemReceive {
-    // Public events
-    public ontransfercomplete: Function = function (): void { }; // Do nothing
+    // Events
+    public ontransfercomplete: IEvent = new TypedEvent();
 
     // Private constants
     private SOH: number = 0x01;
@@ -99,7 +99,7 @@ class YModemReceive {
         Crt.Blink = this._Blink;
         Crt.ShowCursor();
 
-        this.ontransfercomplete();
+        this.ontransfercomplete.trigger();
     }
 
     public Download(): void {

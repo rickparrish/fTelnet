@@ -17,14 +17,8 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-class ESCQEvent {
-    public CodePage: string;
-    public Height: number;
-    public Width: number;
-
-    constructor(codePage: string, width: number, height: number) {
-        this.CodePage = codePage;
-        this.Width = width;
-        this.Height = height;
-    }
+interface IESCQEvent extends IEvent {
+    add(listener: (codePage: string, width: number, height: number) => void): void;
+    remove(listener?: (codePage: string, width: number, height: number) => void): void;
+    trigger(codePage: string, width: number, height: number): void;
 }

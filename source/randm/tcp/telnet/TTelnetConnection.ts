@@ -65,22 +65,22 @@ class TelnetConnection extends WebSocketConnection {
             case TelnetCommand.Do:
                 this.SendWill(TelnetOption.Echo);
                 this._LocalEcho = true;
-                this.onlocalecho(this._LocalEcho);
+                this.onlocalecho.trigger(this._LocalEcho);
                 break;
             case TelnetCommand.Dont:
                 this.SendWont(TelnetOption.Echo);
                 this._LocalEcho = false;
-                this.onlocalecho(this._LocalEcho);
+                this.onlocalecho.trigger(this._LocalEcho);
                 break;
             case TelnetCommand.Will:
                 this.SendDo(TelnetOption.Echo);
                 this._LocalEcho = false;
-                this.onlocalecho(this._LocalEcho);
+                this.onlocalecho.trigger(this._LocalEcho);
                 break;
             case TelnetCommand.Wont:
                 this.SendDont(TelnetOption.Echo);
                 this._LocalEcho = true;
-                this.onlocalecho(this._LocalEcho);
+                this.onlocalecho.trigger(this._LocalEcho);
                 break;
         }
     }

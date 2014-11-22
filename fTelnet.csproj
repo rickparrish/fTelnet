@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="source\3rdparty\Events.ts" />
     <TypeScriptCompile Include="source\3rdparty\FileSaver.d.ts" />
     <TypeScriptCompile Include="source\3rdparty\Offset.ts">
       <SubType>Code</SubType>
@@ -91,7 +92,7 @@
     <TypeScriptCompile Include="source\randm\actionscript\Point.ts" />
     <TypeScriptCompile Include="source\randm\ansi\Ansi.ts" />
     <TypeScriptCompile Include="source\randm\ansi\AnsiParserState.ts" />
-    <TypeScriptCompile Include="source\randm\ansi\ESCQEvent.ts" />
+    <TypeScriptCompile Include="source\randm\ansi\IESCQEvent.ts" />
     <TypeScriptCompile Include="source\randm\crt\CharInfo.ts" />
     <TypeScriptCompile Include="source\randm\crt\controls\BorderStyle.ts" />
     <TypeScriptCompile Include="source\randm\crt\controls\ContentAlignment.ts" />

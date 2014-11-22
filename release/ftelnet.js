@@ -122,9 +122,9 @@ var fTelnet = (function () {
                 Crt.Window(1, 1, this._ScreenColumns, this._ScreenRows - 1);
                 this.UpdateStatusBar(' Not connected');
             }
-            Crt.Canvas.addEventListener(Crt.SCREEN_SIZE_CHANGED, function () {
+            Crt.onscreensizechange.add(function () {
                 _this.OnCrtScreenSizeChanged();
-            }, false);
+            });
 
             // Test websocket support
             if (!('WebSocket' in window)) {
@@ -146,18 +146,18 @@ var fTelnet = (function () {
             }
 
             // Create the ansi cursor position handler
-            Ansi.onesc5n = function () {
+            Ansi.onesc5n.add(function () {
                 _this.OnAnsiESC5n();
-            };
-            Ansi.onesc6n = function () {
+            });
+            Ansi.onesc6n.add(function () {
                 _this.OnAnsiESC6n();
-            };
-            Ansi.onesc255n = function () {
+            });
+            Ansi.onesc255n.add(function () {
                 _this.OnAnsiESC255n();
-            };
-            Ansi.onescQ = function (e) {
-                _this.OnAnsiESCQ(e);
-            };
+            });
+            Ansi.onescQ.add(function (codePage, width, height) {
+                _this.OnAnsiESCQ(codePage, width, height);
+            });
 
             Ansi.Write(atob(this._SplashScreen));
         } else {
@@ -257,21 +257,21 @@ var fTelnet = (function () {
         }
 
         this._Connection.LocalEcho = this._LocalEcho;
-        this._Connection.onclose = function () {
+        this._Connection.onclose.add(function () {
             _this.OnConnectionClose();
-        };
-        this._Connection.onconnect = function () {
+        });
+        this._Connection.onconnect.add(function () {
             _this.OnConnectionConnect();
-        };
-        this._Connection.onlocalecho = function (value) {
+        });
+        this._Connection.onlocalecho.add(function (value) {
             _this.OnConnectionLocalEcho(value);
-        };
-        this._Connection.onioerror = function () {
+        });
+        this._Connection.onioerror.add(function () {
             _this.OnConnectionIOError();
-        };
-        this._Connection.onsecurityerror = function () {
+        });
+        this._Connection.onsecurityerror.add(function () {
             _this.OnConnectionSecurityError();
-        };
+        });
 
         // Reset display
         Crt.NormVideo();
@@ -306,14 +306,11 @@ var fTelnet = (function () {
             return;
         }
 
-        this._Connection.onclose = function () {
-        }; // Do nothing
-        this._Connection.onconnect = function () {
-        }; // Do nothing
-        this._Connection.onioerror = function () {
-        }; // Do nothing
-        this._Connection.onsecurityerror = function () {
-        }; // Do nothing
+        this._Connection.onclose.remove();
+        this._Connection.onconnect.remove();
+        this._Connection.onioerror.remove();
+        this._Connection.onlocalecho.remove();
+        this._Connection.onsecurityerror.remove();
         this._Connection.close();
         this._Connection = null;
 
@@ -334,9 +331,9 @@ var fTelnet = (function () {
 
         // Setup listeners for during transfer
         clearInterval(this._Timer);
-        this._YModemReceive.ontransfercomplete = function () {
+        this._YModemReceive.ontransfercomplete.add(function () {
             _this.OnDownloadComplete();
-        };
+        });
 
         // Download the file
         this._YModemReceive.Download();
@@ -419,8 +416,8 @@ var fTelnet = (function () {
         this._Connection.writeString(Ansi.CursorPosition(Crt.WindCols, Crt.WindRows));
     };
 
-    fTelnet.OnAnsiESCQ = function (e) {
-        Crt.SetFont(e.CodePage, e.Width, e.Height);
+    fTelnet.OnAnsiESCQ = function (codePage, width, height) {
+        Crt.SetFont(codePage, width, height);
     };
 
     fTelnet.OnConnectionClose = function () {
@@ -529,9 +526,9 @@ var fTelnet = (function () {
 
         // Setup the listeners
         clearInterval(this._Timer);
-        this._YModemSend.ontransfercomplete = function () {
+        this._YModemSend.ontransfercomplete.add(function () {
             _this.OnUploadComplete();
-        };
+        });
 
         for (var i = 0; i < fTelentUpload.files.length; i++) {
             this.UploadFile(fTelentUpload.files[i], fTelentUpload.files.length);
@@ -708,9 +705,53 @@ var fTelnet = (function () {
 })();
 /// <reference path='source/fTelnet.ts' />
 // TODO List:
-// Events on various objects
 // If an invalid font is specified, the default 437x9x16 should be used
 // Incorporate Blob.js and FileSaver.js (and any other 3rd party .js) into ftelnet.js
+// Kill status bar in favour of a div below the canvas
+// Buttons for things on new div (connect/disconnect/upload/download/scrollback/vkeyboard)
+// From: https://typescript.codeplex.com/discussions/402228
+
+var TypedEvent = (function () {
+    function TypedEvent() {
+        // Private member vars
+        this._listeners = [];
+    }
+    TypedEvent.prototype.add = function (listener) {
+        /// <summary>Registers a new listener for the event.</summary>
+        /// <param name="listener">The callback function to register.</param>
+        this._listeners.push(listener);
+    };
+    TypedEvent.prototype.remove = function (listener) {
+        /// <summary>Unregisters a listener from the event.</summary>
+        /// <param name="listener">The callback function that was registered. If missing then all listeners will be removed.</param>
+        if (typeof listener === 'function') {
+            for (var i = 0, l = this._listeners.length; i < l; l++) {
+                if (this._listeners[i] === listener) {
+                    this._listeners.splice(i, 1);
+                    break;
+                }
+            }
+        } else {
+            this._listeners = [];
+        }
+    };
+
+    TypedEvent.prototype.trigger = function () {
+        var a = [];
+        for (var _i = 0; _i < (arguments.length - 0); _i++) {
+            a[_i] = arguments[_i + 0];
+        }
+        /// <summary>Invokes all of the listeners for this event.</summary>
+        /// <param name="args">Optional set of arguments to pass to listners.</param>
+        var context = {};
+        var listeners = this._listeners.slice(0);
+        for (var i = 0, l = listeners.length; i < l; i++) {
+            listeners[i].apply(context, a || []);
+        }
+    };
+    return TypedEvent;
+})();
+
 // From: http://javascript.info/tutorial/coordinates
 var Offset;
 (function (Offset) {
@@ -1063,13 +1104,13 @@ var Ansi = (function () {
                 }
                 switch (parseInt(this._AnsiParams.shift(), 10)) {
                     case 0:
-                        this.onripdetect();
+                        this.onripdetect.trigger();
                         break;
                     case 1:
-                        this.onripdisable();
+                        this.onripdisable.trigger();
                         break;
                     case 2:
-                        this.onripenable();
+                        this.onripenable.trigger();
                         break;
                     default:
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -1427,13 +1468,13 @@ var Ansi = (function () {
                 x = parseInt(this._AnsiParams.shift(), 10);
                 switch (x) {
                     case 5:
-                        this.onesc5n();
+                        this.onesc5n.trigger();
                         break;
                     case 6:
-                        this.onesc6n();
+                        this.onesc6n.trigger();
                         break;
                     case 255:
-                        this.onesc255n();
+                        this.onesc255n.trigger();
                         break;
                     default:
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -1454,7 +1495,7 @@ var Ansi = (function () {
                 x = parseInt(this._AnsiParams.shift(), 10);
                 y = parseInt(this._AnsiParams.shift(), 10);
                 z = parseInt(this._AnsiParams.shift(), 10);
-                this.onescQ(new ESCQEvent(x.toString(10), y, z));
+                this.onescQ.trigger(x.toString(10), y, z);
                 break;
             case 'r':
                 if (this._AnsiIntermediates.length === 0) {
@@ -1820,20 +1861,13 @@ var Ansi = (function () {
     Ansi.WriteLn = function (text) {
         this.Write(text + '\r\n');
     };
-    Ansi.onesc5n = function () {
-    };
-    Ansi.onesc6n = function () {
-    };
-    Ansi.onesc255n = function () {
-    };
-    Ansi.onescQ = function (e) {
-    };
-    Ansi.onripdetect = function () {
-    };
-    Ansi.onripdisable = function () {
-    };
-    Ansi.onripenable = function () {
-    };
+    Ansi.onesc5n = new TypedEvent();
+    Ansi.onesc6n = new TypedEvent();
+    Ansi.onesc255n = new TypedEvent();
+    Ansi.onescQ = new TypedEvent();
+    Ansi.onripdetect = new TypedEvent();
+    Ansi.onripdisable = new TypedEvent();
+    Ansi.onripenable = new TypedEvent();
 
     Ansi.ANSI_COLORS = [0, 4, 2, 6, 1, 5, 3, 7];
 
@@ -1890,29 +1924,6 @@ var AnsiParserState;
     /// </summary>
     AnsiParserState[AnsiParserState["IntermediateByte"] = 4] = "IntermediateByte";
 })(AnsiParserState || (AnsiParserState = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var ESCQEvent = (function () {
-    function ESCQEvent(codePage, width, height) {
-        this.CodePage = codePage;
-        this.Width = width;
-        this.Height = height;
-    }
-    return ESCQEvent;
-})();
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -2817,9 +2828,9 @@ var Crt = (function () {
     Crt.Init = function (parent) {
         var _this = this;
         this._Font = new CrtFont();
-        this._Font.onchange = function () {
+        this._Font.onchange.add(function () {
             _this.OnFontChanged();
-        };
+        });
 
         // Create the canvas
         this._Canvas = document.createElement('canvas');
@@ -2852,12 +2863,12 @@ var Crt = (function () {
 
         // Create the cursor
         this._Cursor = new Cursor(parent, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
-        this._Cursor.onhide = function () {
+        this._Cursor.onhide.add(function () {
             _this.OnBlinkHide();
-        };
-        this._Cursor.onshow = function () {
+        });
+        this._Cursor.onshow.add(function () {
             _this.OnBlinkShow();
-        };
+        });
 
         // Update the WindMin/WindMax records
         this._WindMin = 0;
@@ -4067,11 +4078,7 @@ var Crt = (function () {
         }
 
         // Let the program know about the update
-        // TODO Is the commented or uncommented code correct?
-        // this._Canvas.dispatchEvent(this.SCREEN_SIZE_CHANGED);
-        var evObj = document.createEvent('Events');
-        evObj.initEvent(this.SCREEN_SIZE_CHANGED, true, false);
-        this._Canvas.dispatchEvent(evObj);
+        this.onscreensizechange.trigger();
     };
 
     Crt.ShowCursor = function () {
@@ -4827,7 +4834,7 @@ var Crt = (function () {
         }
         this.Write(text + '\r\n');
     };
-    Crt.SCREEN_SIZE_CHANGED = 'SCREEN_SIZE_CHANGED';
+    Crt.onscreensizechange = new TypedEvent();
 
     Crt.BLACK = 0;
     Crt.BLUE = 1;
@@ -4928,11 +4935,9 @@ along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 var Cursor = (function () {
     function Cursor(parent, colour, size) {
         var _this = this;
-        // Public events
-        this.onhide = function () {
-        };
-        this.onshow = function () {
-        };
+        // Events
+        this.onhide = new TypedEvent();
+        this.onshow = new TypedEvent();
         this._BlinkRate = 500;
         this._BlinkState = 1 /* Hide */;
 
@@ -5011,10 +5016,10 @@ var Cursor = (function () {
 
         switch (this._BlinkState) {
             case 1 /* Hide */:
-                this.onhide();
+                this.onhide.trigger();
                 break;
             case 0 /* Show */:
-                this.onshow();
+                this.onshow.trigger();
                 break;
         }
     };
@@ -5104,9 +5109,8 @@ CrtFonts['ASCIIx9x16'] = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABIAAAAAQ
 
 var CrtFont = (function () {
     function CrtFont() {
-        // Public event
-        this.onchange = function () {
-        };
+        // Events
+        this.onchange = new TypedEvent();
         // this._Canvas
         // this._CanvasContext
         this._CharMap = [];
@@ -5281,7 +5285,7 @@ var CrtFont = (function () {
 
         // Raise change event
         this._Loading -= 1;
-        this.onchange();
+        this.onchange.trigger();
     };
 
     Object.defineProperty(CrtFont.prototype, "Size", {
@@ -5776,17 +5780,12 @@ var WebSocketSupportsBinaryType = (WebSocketSupportsTypedArrays && ('binaryType'
 
 var WebSocketConnection = (function () {
     function WebSocketConnection() {
-        // Public events
-        this.onclose = function () {
-        };
-        this.onconnect = function () {
-        };
-        this.onlocalecho = function (value) {
-        };
-        this.onioerror = function () {
-        };
-        this.onsecurityerror = function () {
-        };
+        // Events
+        this.onclose = new TypedEvent();
+        this.onconnect = new TypedEvent();
+        this.onlocalecho = new TypedEvent();
+        this.onioerror = new TypedEvent();
+        this.onsecurityerror = new TypedEvent();
         // Private variables
         this._WasConnected = false;
         // TODO Protected variables
@@ -5906,15 +5905,15 @@ var WebSocketConnection = (function () {
 
     WebSocketConnection.prototype.OnSocketClose = function () {
         if (this._WasConnected) {
-            this.onclose();
+            this.onclose.trigger();
         } else {
-            this.onsecurityerror();
+            this.onsecurityerror.trigger();
         }
         this._WasConnected = false;
     };
 
     WebSocketConnection.prototype.OnSocketError = function (e) {
-        this.onioerror(e);
+        this.onioerror.trigger(e);
     };
 
     WebSocketConnection.prototype.OnSocketOpen = function () {
@@ -5925,7 +5924,7 @@ var WebSocketConnection = (function () {
         }
 
         this._WasConnected = true;
-        this.onconnect();
+        this.onconnect.trigger();
     };
 
     WebSocketConnection.prototype.OnSocketMessage = function (e) {
@@ -6073,22 +6072,22 @@ var TelnetConnection = (function (_super) {
             case 253 /* Do */:
                 this.SendWill(1 /* Echo */);
                 this._LocalEcho = true;
-                this.onlocalecho(this._LocalEcho);
+                this.onlocalecho.trigger(this._LocalEcho);
                 break;
             case 254 /* Dont */:
                 this.SendWont(1 /* Echo */);
                 this._LocalEcho = false;
-                this.onlocalecho(this._LocalEcho);
+                this.onlocalecho.trigger(this._LocalEcho);
                 break;
             case 251 /* Will */:
                 this.SendDo(1 /* Echo */);
                 this._LocalEcho = false;
-                this.onlocalecho(this._LocalEcho);
+                this.onlocalecho.trigger(this._LocalEcho);
                 break;
             case 252 /* Wont */:
                 this.SendDont(1 /* Echo */);
                 this._LocalEcho = true;
-                this.onlocalecho(this._LocalEcho);
+                this.onlocalecho.trigger(this._LocalEcho);
                 break;
         }
     };
@@ -6569,9 +6568,8 @@ along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var YModemReceive = (function () {
     function YModemReceive(connection) {
-        // Public events
-        this.ontransfercomplete = function () {
-        };
+        // Events
+        this.ontransfercomplete = new TypedEvent();
         // Private constants
         this.SOH = 0x01;
         this.STX = 0x02;
@@ -6634,7 +6632,7 @@ var YModemReceive = (function () {
         Crt.Blink = this._Blink;
         Crt.ShowCursor();
 
-        this.ontransfercomplete();
+        this.ontransfercomplete.trigger();
     };
 
     YModemReceive.prototype.Download = function () {
@@ -6893,9 +6891,8 @@ along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 var YModemSend = (function () {
     function YModemSend(connection) {
-        // Public events
-        this.ontransfercomplete = function () {
-        };
+        // Events
+        this.ontransfercomplete = new TypedEvent();
         // Private constants
         this.SOH = 0x01;
         this.STX = 0x02;
@@ -6960,7 +6957,7 @@ var YModemSend = (function () {
         Crt.Blink = this._Blink;
         Crt.ShowCursor();
 
-        this.ontransfercomplete();
+        this.ontransfercomplete.trigger();
     };
 
     YModemSend.prototype.HandleIOError = function (ioe) {

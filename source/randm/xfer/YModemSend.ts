@@ -18,8 +18,8 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 class YModemSend {
-    // Public events
-    public ontransfercomplete: Function = function (): void { }; // Do nothing
+    // Events
+    public ontransfercomplete: IEvent = new TypedEvent();
 
     // Private constants
     private SOH: number = 0x01;
@@ -103,7 +103,7 @@ class YModemSend {
         Crt.Blink = this._Blink;
         Crt.ShowCursor();
 
-        this.ontransfercomplete();
+        this.ontransfercomplete.trigger();
     }
 
     private HandleIOError(ioe: Error): void {

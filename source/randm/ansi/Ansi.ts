@@ -18,13 +18,14 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 class Ansi {
-    public static onesc5n: Function = function (): void { }; // Do nothing
-    public static onesc6n: Function = function (): void { }; // Do nothing
-    public static onesc255n: Function = function (): void { }; // Do nothing
-    public static onescQ: Function = function (e: ESCQEvent): void { }; // Do nothing
-    public static onripdetect: Function = function (): void { }; // Do nothing
-    public static onripdisable: Function = function (): void { }; // Do nothing
-    public static onripenable: Function = function (): void { }; // Do nothing
+    // Events
+    public static onesc5n: IEvent = new TypedEvent();
+    public static onesc6n: IEvent = new TypedEvent();
+    public static onesc255n: IEvent = new TypedEvent();
+    public static onescQ: IESCQEvent = new TypedEvent();
+    public static onripdetect: IEvent = new TypedEvent();
+    public static onripdisable: IEvent = new TypedEvent();
+    public static onripenable: IEvent = new TypedEvent();
 
     private static ANSI_COLORS: number[] = [0, 4, 2, 6, 1, 5, 3, 7];
 
@@ -55,9 +56,9 @@ class Ansi {
                             NOT IN CTERM.TXT */
                 if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
                 switch (parseInt(this._AnsiParams.shift(), 10)) {
-                    case 0: this.onripdetect(); break;
-                    case 1: this.onripdisable(); break;
-                    case 2: this.onripenable(); break;
+                    case 0: this.onripdetect.trigger(); break;
+                    case 1: this.onripdisable.trigger(); break;
+                    case 2: this.onripenable.trigger(); break;
                     default:
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
                         break;
@@ -622,9 +623,9 @@ class Ansi {
                 if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
                 x = parseInt(this._AnsiParams.shift(), 10);
                 switch (x) {
-                    case 5: this.onesc5n(); break;
-                    case 6: this.onesc6n(); break;
-                    case 255: this.onesc255n(); break;
+                    case 5: this.onesc5n.trigger(); break;
+                    case 6: this.onesc6n.trigger(); break;
+                    case 255: this.onesc255n.trigger(); break;
                     default:
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
                         break;
@@ -653,7 +654,7 @@ class Ansi {
                 x = parseInt(this._AnsiParams.shift(), 10);
                 y = parseInt(this._AnsiParams.shift(), 10);
                 z = parseInt(this._AnsiParams.shift(), 10);
-                this.onescQ(new ESCQEvent(x.toString(10), y, z));
+                this.onescQ.trigger(x.toString(10), y, z);
                 break;
             case 'r':
                 if (this._AnsiIntermediates.length === 0) {
