@@ -81,7 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="source\3rdparty\Events.ts" />
+    <TypeScriptCompile Include="source\3rdparty\TypedEvent.ts" />
     <TypeScriptCompile Include="source\3rdparty\FileSaver.d.ts" />
     <TypeScriptCompile Include="source\3rdparty\Offset.ts">
       <SubType>Code</SubType>

@@ -59,14 +59,14 @@ class Cursor {
             this.Draw();
 
             // Start the I/O timer
-            this._Timer = setInterval(() => { this.OnTimer(); }, this._BlinkRate);
+            this._Timer = setInterval((): void => { this.OnTimer(); }, this._BlinkRate);
         }
     }
 
     public set BlinkRate(value: number) {
         this._BlinkRate = value;
         clearInterval(this._Timer);
-        this._Timer = setInterval(() => { this.OnTimer(); }, this._BlinkRate);
+        this._Timer = setInterval((): void => { this.OnTimer(); }, this._BlinkRate);
     }
 
     public set Colour(value: string) {

@@ -25,6 +25,7 @@ class Crt {
     /// </summary>
 
     // Events
+    public static onfontchange: IEvent = new TypedEvent();
     public static onscreensizechange: IEvent = new TypedEvent();
 
     /*  Color Constants
@@ -111,7 +112,7 @@ class Crt {
         }
 
         // Replace the contents of the parent with the canvas
-        // TODO Probably should have fTelnet add it to the parent
+        // TODO Probably should have fTelnet.ts add it to the parent
         parent.innerHTML = '';
         parent.appendChild(this._Canvas);
 
@@ -350,10 +351,6 @@ class Crt {
 
             // Set our position in the scrollback
             this._ScrollBackPosition = this._ScrollBackTemp.length;
-
-            // Display footer showing we're in scrollback mode 
-            this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 31, false, false, false), false);
-            this.FastWrite('SCROLLBACK (' + (this._ScrollBackPosition - (this._ScreenSize.y - 1) + 1) + '/' + (this._ScrollBackTemp.length - (this._ScreenSize.y - 1) + 1) + '): Use Up/Down or PgUp/PgDn to navigate and Esc when done', 1, this._ScreenSize.y, new CharInfo(' ', 31, false, false, false), false);
         }
     }
 
@@ -579,6 +576,8 @@ class Crt {
                 }
             }
         }
+
+        this.onfontchange.trigger();
     }
 
     private static OnKeyDown(ke: KeyboardEvent): void {
@@ -596,10 +595,9 @@ class Crt {
             if (ke.keyCode === Keyboard.DOWN) {
                 if (this._ScrollBackPosition < this._ScrollBackTemp.length) {
                     this._ScrollBackPosition += 1;
-                    this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y - 1, 1, new CharInfo(' ', 7, false, false, false), false);
-                    this.FastWrite('SCROLLBACK (' + (this._ScrollBackPosition - (this._ScreenSize.y - 1) + 1) + '/' + (this._ScrollBackTemp.length - (this._ScreenSize.y - 1) + 1) + '): Use Up/Down or PgUp/PgDn to navigate and Esc when done ', 1, this._ScreenSize.y, new CharInfo(' ', 31), false);
+                    this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 7, false, false, false), false);
 
-                    YDest = this._ScreenSize.y - 1;
+                    YDest = this._ScreenSize.y;
                     YSource = this._ScrollBackPosition - 1;
                     XEnd = Math.min(this._ScreenSize.x, this._ScrollBackTemp[YSource].length);
                     for (X = 0; X < XEnd; X++) {
@@ -618,23 +616,20 @@ class Crt {
 
                 this._InScrollBack = false;
             } else if (ke.keyCode === Keyboard.PAGE_DOWN) {
-                for (i = 0; i < (this._ScreenSize.y - 1); i++) {
-                    // TODO Not working
-                    // TODO OnKeyDown(new KeyboardEvent('keydown', true, false, 0, Keyboard.DOWN));
+                for (i = 0; i < this._ScreenSize.y; i++) {
+                    this.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);
                 }
             } else if (ke.keyCode === Keyboard.PAGE_UP) {
-                for (i = 0; i < (this._ScreenSize.y - 1); i++) {
-                    // TODO Not working
-                    // TODO OnKeyDown(new KeyboardEvent('keydown', true, false, 0, Keyboard.UP));
+                for (i = 0; i < this._ScreenSize.y; i++) {
+                    this.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);
                 }
             } else if (ke.keyCode === Keyboard.UP) {
-                if (this._ScrollBackPosition > (this._ScreenSize.y - 1)) {
+                if (this._ScrollBackPosition > this._ScreenSize.y) {
                     this._ScrollBackPosition -= 1;
-                    this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y - 1, 1, new CharInfo(' ', 7, false, false), false);
-                    this.FastWrite('SCROLLBACK (' + (this._ScrollBackPosition - (this._ScreenSize.y - 1) + 1) + '/' + (this._ScrollBackTemp.length - (this._ScreenSize.y - 1) + 1) + '): Use Up/Down or PgUp/PgDn to navigate and Esc when done ', 1, this._ScreenSize.y, new CharInfo(' ', 31), false);
+                    this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 7, false, false), false);
 
                     YDest = 1;
-                    YSource = this._ScrollBackPosition - (this._ScreenSize.y - 1);
+                    YSource = this._ScrollBackPosition - this._ScreenSize.y;
                     XEnd = Math.min(this._ScreenSize.x, this._ScrollBackTemp[YSource].length);
                     for (X = 0; X < XEnd; X++) {
                         this.FastWrite(this._ScrollBackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollBackTemp[YSource][X], false);
@@ -791,45 +786,25 @@ class Crt {
     }
 
     public static PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
-        // TODO Will the browser allow me to create a fake keyboard event?
-        var KE: KeyboardEvent = new KeyboardEvent();
-        KE.altKey = alt;
-        KE.charCode = pushedCharCode;
-        KE.ctrlKey = ctrl;
-        KE.keyCode = pushedKeyCode;
-        KE.shiftKey = shift;
-        // TODO Necessary? KE.preventDefault = function (): void { };
-        this.OnKeyDown(KE);
-
-        // this.OnKeyDown({
-        //     altKey: alt,
-        //     charCode: pushedCharCode,
-        //     ctrlKey: ctrl,
-        //     keyCode: pushedKeyCode,
-        //     shiftKey: shift,
-        //     preventDefault: function (): void { /* do nothing */ }
-        // });
+         this.OnKeyDown(<KeyboardEvent>{
+             altKey: alt,
+             charCode: pushedCharCode,
+             ctrlKey: ctrl,
+             keyCode: pushedKeyCode,
+             shiftKey: shift,
+             preventDefault: function (): void { /* do nothing */ }
+         });
     }
 
     public static PushKeyPress(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
-        // TODO Will the browser allow me to create a fake keyboard event?
-        var KE: KeyboardEvent = new KeyboardEvent();
-        KE.altKey = alt;
-        KE.charCode = pushedCharCode;
-        KE.ctrlKey = ctrl;
-        KE.keyCode = pushedKeyCode;
-        KE.shiftKey = shift;
-        // TODO Necessary? KE.preventDefault = function (): void { };
-        this.OnKeyPress(KE);
-
-        // this.OnKeyPress({
-        //     altKey: alt,
-        //     charCode: pushedCharCode,
-        //     ctrlKey: ctrl,
-        //     keyCode: pushedKeyCode,
-        //     shiftKey: shift,
-        //     preventDefault: function (): void { /* do nothing */ }
-        // });
+         this.OnKeyPress(<KeyboardEvent>{
+             altKey: alt,
+             charCode: pushedCharCode,
+             ctrlKey: ctrl,
+             keyCode: pushedKeyCode,
+             shiftKey: shift,
+             preventDefault: function (): void { /* do nothing */ }
+         });
     }
 
     public static ReadKey(): KeyPressEvent {
@@ -1103,6 +1078,7 @@ class Crt {
         this._Font.Load(codePage, width, height);
     }
 
+    // TODO Doesn't seem to be working
     public static SetScreenSize(columns: number, rows: number): void {
         // Check if we're in scrollback
         if (this._InScrollBack) { return; }
@@ -1414,7 +1390,7 @@ class Crt {
             } else if (text.charCodeAt(i) === 0x0A) {
                 // Line feed, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
-                if (this._BareLFtoCRLF && (this._LastChar != 0x0D)) {
+                if (this._BareLFtoCRLF && (this._LastChar !== 0x0D)) {
                     // Bare LF, so pretend we also got a CR
                     X = 1;
                 } else {

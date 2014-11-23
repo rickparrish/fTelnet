@@ -1,18 +1,20 @@
-﻿// Base64 utility methods
+﻿// From: Unknown, forgot to save the url!
+
+// Base64 utility methods
 // Needed for: IE9-
-(function () {
-    if ('atob' in window && 'btoa' in window)
-        return;
-    var B64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    function atob(input) {
+(function (): void {
+    if ('atob' in window && 'btoa' in window) { return; }
+
+    var B64_ALPHABET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    function atob(input: string): string {
         input = String(input);
-        var position = 0,
-        output = [],
-        buffer = 0, bits = 0, n;
+        var position: number = 0,
+            output: string[] = [],
+            buffer: number = 0, bits: number = 0, n: number;
         input = input.replace(/\s/g, '');
         if ((input.length % 4) === 0) { input = input.replace(/=+$/, ''); }
-        if ((input.length % 4) === 1) { throw Error("InvalidCharacterError"); }
-        if (/[^+/0-9A-Za-z]/.test(input)) { throw Error("InvalidCharacterError"); }
+        if ((input.length % 4) === 1) { throw Error('InvalidCharacterError'); }
+        if (/[^+/0-9A-Za-z]/.test(input)) { throw Error('InvalidCharacterError'); }
         while (position < input.length) {
             n = B64_ALPHABET.indexOf(input.charAt(position));
             buffer = (buffer << 6) | n;
@@ -36,13 +38,13 @@
         }
         return output.join('');
     };
-    function btoa(input) {
+    function btoa(input: string): string {
         input = String(input);
-        var position = 0,
-        out = [],
-        o1, o2, o3,
-        e1, e2, e3, e4;
-        if (/[^\x00-\xFF]/.test(input)) { throw Error("InvalidCharacterError"); }
+        var position: number = 0,
+            out: string[] = [],
+            o1: number, o2: number, o3: number,
+            e1: number, e2: number, e3: number, e4: number;
+        if (/[^\x00-\xFF]/.test(input)) { throw Error('InvalidCharacterError'); }
         while (position < input.length) {
             o1 = input.charCodeAt(position++);
             o2 = input.charCodeAt(position++);
@@ -55,17 +57,16 @@
             if (position === input.length + 2) {
                 e3 = 64;
                 e4 = 64;
-            }
-            else if (position === input.length + 1) {
+            } else if (position === input.length + 1) {
                 e4 = 64;
             }
             out.push(B64_ALPHABET.charAt(e1),
-            B64_ALPHABET.charAt(e2),
-            B64_ALPHABET.charAt(e3),
-            B64_ALPHABET.charAt(e4));
+                B64_ALPHABET.charAt(e2),
+                B64_ALPHABET.charAt(e3),
+                B64_ALPHABET.charAt(e4));
         }
         return out.join('');
     };
     window.atob = atob;
     window.btoa = btoa;
-}());
+} ());

@@ -413,7 +413,7 @@ class YModemSend {
         // If the queue has just this one item, start the timers and listeners
         if (this._Files.length === fileCount) {
             // Create our main timer
-            this._Timer = setInterval(() => { this.OnTimer(); }, 50);
+            this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
 
             // Determine the number of total bytes
             for (var i: number = 0; i < this._Files.length; i++) {

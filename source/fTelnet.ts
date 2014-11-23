@@ -19,9 +19,13 @@
 */
 class fTelnet {
     // Private variables
+    private static _ButtonBar: HTMLDivElement = null;
     private static _Connection: WebSocketConnection = null;
     private static _LastTimer: number = 0;
     private static _Parent: HTMLElement = null;
+    private static _ScrollbackBar: HTMLDivElement = null;
+    private static _StatusBar: HTMLDivElement = null;
+    private static _StyleBlock: HTMLStyleElement = null;
     private static _Timer: number = null;
     private static _YModemReceive: YModemReceive = null;
     private static _YModemSend: YModemSend = null;
@@ -45,7 +49,6 @@ class fTelnet {
     private static _ScreenRows: number = 25;
     private static _ServerName: string = 'fTelnet / GameSrv Support Server';
     private static _SplashScreen: string = 'G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==';
-    private static _StatusBar: boolean = true;
 
     public static Init(parentId: string): boolean {
         // Ensure we have our parent
@@ -68,16 +71,13 @@ class fTelnet {
 
         // Seup the crt window
         if (Crt.Init(this._Parent)) {
+            Crt.onfontchange.add((): void => { this.OnCrtScreenSizeChanged(); });
+            Crt.onscreensizechange.add((): void => { this.OnCrtScreenSizeChanged(); });
             Crt.BareLFtoCRLF = this._BareLFtoCRLF;
             Crt.Blink = this._Blink;
             Crt.LocalEcho = this._LocalEcho;
             Crt.SetFont(this._CodePage, this._FontWidth, this._FontHeight);
             Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
-            if (this._StatusBar) {
-                Crt.Window(1, 1, this._ScreenColumns, this._ScreenRows - 1);
-                this.UpdateStatusBar(' Not connected');
-            }
-            Crt.onscreensizechange.add((): void => { this.OnCrtScreenSizeChanged(); });
 
             // Test websocket support
             if (!('WebSocket' in window)) {
@@ -103,6 +103,45 @@ class fTelnet {
             Ansi.onesc6n.add((): void => { this.OnAnsiESC6n(); });
             Ansi.onesc255n.add((): void => { this.OnAnsiESC255n(); });
             Ansi.onescQ.add((codePage: string, width: number, height: number): void => { this.OnAnsiESCQ(codePage, width, height); });
+
+            // Create the style element
+            this._StyleBlock = document.createElement('style');
+            this._StyleBlock.type = "text/css";
+            this._StyleBlock.innerText = '#fTelnetScrollback { background-color: red; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; } #fTelnetScrollback a { color: white; text-decoration: none; }' +
+                '#fTelnetButtons { background-color: green; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; } #fTelnetButtons a { color: white; text-decoration: none; }' +
+                '#fTelnetStatusBar { background-color: blue; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; }';
+            this._Parent.appendChild(this._StyleBlock);
+
+            // Create the scrollback bar
+            this._ScrollbackBar = document.createElement('div');
+            this._ScrollbackBar.id = 'fTelnetScrollback';
+            this._ScrollbackBar.innerHTML = '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false);">Page Up</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a>';
+            this._ScrollbackBar.style.display = 'none';
+            this._Parent.appendChild(this._ScrollbackBar);
+            // TODO Also have a span to hold the current line number
+
+            // Create the button bar
+            this._ButtonBar = document.createElement('div');
+            this._ButtonBar.id = 'fTelnetButtons';
+            this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' +
+                '<a href="#" onclick="fTelnet.Disconnect();">Disconnect</a> | ' +
+                '<a href="#" onclick="fTelnet.Download();">Download</a> | ' +
+                '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' +
+                '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a>';
+            this._Parent.appendChild(this._ButtonBar);
+
+            // Create the status bar
+            this._StatusBar = document.createElement('div');
+            this._StatusBar.id = 'fTelnetStatusBar';
+            this._StatusBar.innerHTML = 'Not connected';
+            this._Parent.appendChild(this._StatusBar);
+
+            // Size the scrollback and button divs
+            this.OnCrtScreenSizeChanged();
 
             Ansi.Write(atob(this._SplashScreen));
         } else {
@@ -188,10 +227,10 @@ class fTelnet {
 
         // Make connection
         if (this._ProxyHostname === '') {
-            this.UpdateStatusBar(' Connecting to ' + this._Hostname + ':' + this._Port);
+            this._StatusBar.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port;
             this._Connection.connect(this._Hostname, this._Port);
         } else {
-            this.UpdateStatusBar(' Connecting to ' + this._Hostname + ':' + this._Port + ' via proxy');
+            this._StatusBar.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via proxy';
             this._Connection.connect(this._Hostname, this._Port, this._ProxyHostname, this._ProxyPort, this._ProxyPortSecure);
         }
     }
@@ -237,6 +276,20 @@ class fTelnet {
 
     public static set Enter(value: string) {
         this._Enter = value;
+    }
+
+    public static EnterScrollback() {
+        if (this._ScrollbackBar.style.display = 'none') {
+            Crt.EnterScrollBack();
+            this._ScrollbackBar.style.display = 'block';
+        }
+    }
+
+    public static ExitScrollback() {
+        if (this._ScrollbackBar.style.display = 'block') {
+            Crt.PushKeyDown(Keyboard.ESCAPE, Keyboard.ESCAPE, false, false, false);
+            this._ScrollbackBar.style.display = 'none';
+        }
     }
 
     public static get FontHeight(): number {
@@ -293,16 +346,16 @@ class fTelnet {
     }
 
     private static OnConnectionClose(): void {
-        this.UpdateStatusBar(' Disconnected from ' + this._Hostname + ':' + this._Port);
+        this._StatusBar.innerHTML = 'Disconnected from ' + this._Hostname + ':' + this._Port;
     }
 
     private static OnConnectionConnect(): void {
         Crt.ClrScr();
 
         if (this._ProxyHostname === '') {
-            this.UpdateStatusBar(' Connected to ' + this._Hostname + ':' + this._Port);
+            this._StatusBar.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port;
         } else {
-            this.UpdateStatusBar(' Connected to ' + this._Hostname + ':' + this._Port + ' via proxy');
+            this._StatusBar.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via proxy';
         }
     }
 
@@ -317,14 +370,16 @@ class fTelnet {
 
     private static OnConnectionSecurityError(): void {
         if (this._ProxyHostname === '') {
-            this.UpdateStatusBar(' Unable to connect to ' + this._Hostname + ':' + this._Port);
+            this._StatusBar.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port;
         } else {
-            this.UpdateStatusBar(' Unable to connect to ' + this._Hostname + ':' + this._Port + ' via proxy');
+            this._StatusBar.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port + ' via proxy';
         }
     }
 
     private static OnCrtScreenSizeChanged(): void {
-        // TODO Redraw status bar
+        this._ButtonBar.style.width = Crt.ScreenCols * Crt.Font.Width + 'px';
+        this._ScrollbackBar.style.width = this._ButtonBar.style.width;
+        this._StatusBar.style.width = this._ButtonBar.style.width;
     }
 
     private static OnDownloadComplete(): void {
@@ -453,23 +508,6 @@ class fTelnet {
 
     public static set SplashScreen(value: string) {
         this._SplashScreen = value;
-    }
-
-    public static get StatusBar(): boolean {
-        return this._StatusBar;
-    }
-
-    public static set StatusBar(value: boolean) {
-        this._StatusBar = value;
-    }
-
-    private static UpdateStatusBar(text: string): void {
-        if (this._StatusBar) {
-            while (text.length < this._ScreenColumns) {
-                text += ' ';
-            }
-            Crt.FastWrite(text, 1, this._ScreenRows, new CharInfo(' ', 31), true);
-        }
     }
 
     public static Upload(): void {

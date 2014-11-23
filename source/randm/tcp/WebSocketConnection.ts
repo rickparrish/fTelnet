@@ -199,18 +199,19 @@ class WebSocketConnection {
     }
 
     public Send(data: number[]): void {
+        var i: number = 0;
+        var ToSendString: string = '';
+
         if (this._Protocol === 'binary') {
             this._WebSocket.send(new Uint8Array(data).buffer);
         } else if (this._Protocol === 'base64') {
             // TODO Ensure btoa still works with websockify
-            var ToSendString: string = '';
-            for (var i: number = 0; i < data.length; i++) {
+            for (i = 0; i < data.length; i++) {
                 ToSendString += String.fromCharCode(data[i]);
             }
             this._WebSocket.send(btoa(ToSendString));
         } else {
-            var ToSendString: string = '';
-            for (var i: number = 0; i < data.length; i++) {
+            for (i = 0; i < data.length; i++) {
                 ToSendString += String.fromCharCode(data[i]);
             }
             this._WebSocket.send(ToSendString);
