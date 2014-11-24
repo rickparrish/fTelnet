@@ -21,6 +21,9 @@ class fTelnet {
     // Private variables
     private static _ButtonBar: HTMLDivElement = null;
     private static _Connection: WebSocketConnection = null;
+    private static _FocusWarningBar: HTMLDivElement = null;
+    private static _HasFocus: boolean = true;
+    private static _InitMessageBar: HTMLDivElement = null;
     private static _LastTimer: number = 0;
     private static _Parent: HTMLElement = null;
     private static _ScrollbackBar: HTMLDivElement = null;
@@ -58,19 +61,34 @@ class fTelnet {
         }
         this._Parent = document.getElementById(parentId);
 
+        // Add init message
+        this._InitMessageBar = document.createElement('div');
+        this._InitMessageBar.id = 'fTelnetInitMessage';
+        this._InitMessageBar.innerHTML = 'Initializing fTelnet...';
+        this._Parent.appendChild(this._InitMessageBar);
+
         // IE less than 9.0 will throw script errors and not even load
         if (navigator.appName === 'Microsoft Internet Explorer') {
             var Version: number = -1;
             var RE: RegExp = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})');
             if (RE.exec(navigator.userAgent) !== null) { Version = parseFloat(RegExp.$1); }
             if (Version < 9.0) {
-                alert('fTelnet Error: Internet Explorer >= 9 is required.  Better still would be to use Firefox or Chrome instead of Internet Explorer.');
+                this._InitMessageBar.innerHTML = 'fTelnet Error: Internet Explorer < 9 is not supported.<br /><br />Please upgrade to IE 9 or newer, or better still would be to use Firefox or Chrome instead of IE.';
                 return false;
             }
         }
 
+        // Create the focus bar (needs to be before crt so it appears above the client area)
+        this._FocusWarningBar = document.createElement('div');
+        this._FocusWarningBar.id = 'fTelnetFocusWarning';
+        this._FocusWarningBar.innerHTML = '*** CLICK HERE TO GIVE fTelnet FOCUS ***';
+        this._FocusWarningBar.style.display = 'none';
+        this._Parent.appendChild(this._FocusWarningBar);
+
         // Seup the crt window
         if (Crt.Init(this._Parent)) {
+            this._InitMessageBar.style.display = 'none';
+
             Crt.onfontchange.add((): void => { this.OnCrtScreenSizeChanged(); });
             Crt.onscreensizechange.add((): void => { this.OnCrtScreenSizeChanged(); });
             Crt.BareLFtoCRLF = this._BareLFtoCRLF;
@@ -107,7 +125,8 @@ class fTelnet {
             // Create the style element
             this._StyleBlock = document.createElement('style');
             this._StyleBlock.type = "text/css";
-            this._StyleBlock.innerText = '#fTelnetScrollback { background-color: red; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; } #fTelnetScrollback a { color: white; text-decoration: none; }' +
+            this._StyleBlock.innerHTML = '#fTelnetFocusWarning { background-color: red; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; }' +
+                '#fTelnetScrollback { background-color: red; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; } #fTelnetScrollback a { color: white; text-decoration: none; }' +
                 '#fTelnetButtons { background-color: green; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; } #fTelnetButtons a { color: white; text-decoration: none; }' +
                 '#fTelnetStatusBar { background-color: blue; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; }';
             this._Parent.appendChild(this._StyleBlock);
@@ -145,7 +164,7 @@ class fTelnet {
 
             Ansi.Write(atob(this._SplashScreen));
         } else {
-            console.log('fTelnet Error: Unable to init Crt');
+            this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
             return false;
         }
 
@@ -377,9 +396,10 @@ class fTelnet {
     }
 
     private static OnCrtScreenSizeChanged(): void {
-        this._ButtonBar.style.width = Crt.ScreenCols * Crt.Font.Width + 'px';
-        this._ScrollbackBar.style.width = this._ButtonBar.style.width;
-        this._StatusBar.style.width = this._ButtonBar.style.width;
+        this._FocusWarningBar.style.width = Crt.ScreenCols * Crt.Font.Width + 'px';
+        this._ButtonBar.style.width = this._FocusWarningBar.style.width;
+        this._ScrollbackBar.style.width = this._FocusWarningBar.style.width;
+        this._StatusBar.style.width = this._FocusWarningBar.style.width;
     }
 
     private static OnDownloadComplete(): void {
@@ -389,6 +409,15 @@ class fTelnet {
 
     private static OnTimer(): void {
         if ((this._Connection !== null) && (this._Connection.connected)) {
+            // Check for focus change
+            if (document.hasFocus() && !this._HasFocus) {
+                this._HasFocus = true;
+                this._FocusWarningBar.style.display = 'none';
+            } else if (!document.hasFocus() && this._HasFocus) {
+                this._HasFocus = false;
+                this._FocusWarningBar.style.display = 'block';
+            }
+
             // Determine how long it took between frames
             var MSecElapsed: number = new Date().getTime() - this._LastTimer;
             if (MSecElapsed < 1) { MSecElapsed = 1; }

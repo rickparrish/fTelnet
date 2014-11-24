@@ -111,9 +111,7 @@ class Crt {
             return false;
         }
 
-        // Replace the contents of the parent with the canvas
-        // TODO Probably should have fTelnet.ts add it to the parent
-        parent.innerHTML = '';
+        // Add crt to parent
         parent.appendChild(this._Canvas);
 
         // Register keydown and keypress handlers
