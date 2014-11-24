@@ -1,80 +1,4 @@
-﻿// From: Unknown, forgot to save the url!
-// Base64 utility methods
-// Needed for: IE9-
-(function () {
-    if ('atob' in window && 'btoa' in window) {
-        return;
-    }
-
-    var B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    function atob(input) {
-        input = String(input);
-        var position = 0, output = [], buffer = 0, bits = 0, n;
-        input = input.replace(/\s/g, '');
-        if ((input.length % 4) === 0) {
-            input = input.replace(/=+$/, '');
-        }
-        if ((input.length % 4) === 1) {
-            throw Error('InvalidCharacterError');
-        }
-        if (/[^+/0-9A-Za-z]/.test(input)) {
-            throw Error('InvalidCharacterError');
-        }
-        while (position < input.length) {
-            n = B64_ALPHABET.indexOf(input.charAt(position));
-            buffer = (buffer << 6) | n;
-            bits += 6;
-            if (bits === 24) {
-                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
-                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
-                output.push(String.fromCharCode(buffer & 0xFF));
-                bits = 0;
-                buffer = 0;
-            }
-            position += 1;
-        }
-        if (bits === 12) {
-            buffer = buffer >> 4;
-            output.push(String.fromCharCode(buffer & 0xFF));
-        } else if (bits === 18) {
-            buffer = buffer >> 2;
-            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
-            output.push(String.fromCharCode(buffer & 0xFF));
-        }
-        return output.join('');
-    }
-    ;
-    function btoa(input) {
-        input = String(input);
-        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
-        if (/[^\x00-\xFF]/.test(input)) {
-            throw Error('InvalidCharacterError');
-        }
-        while (position < input.length) {
-            o1 = input.charCodeAt(position++);
-            o2 = input.charCodeAt(position++);
-            o3 = input.charCodeAt(position++);
-
-            // 111111 112222 222233 333333
-            e1 = o1 >> 2;
-            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
-            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
-            e4 = o3 & 0x3f;
-            if (position === input.length + 2) {
-                e3 = 64;
-                e4 = 64;
-            } else if (position === input.length + 1) {
-                e4 = 64;
-            }
-            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
-        }
-        return out.join('');
-    }
-    ;
-    window.atob = atob;
-    window.btoa = btoa;
-}());
-/*
+﻿/*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
@@ -679,18 +603,6 @@ var fTelnet = (function () {
     });
 
 
-    Object.defineProperty(fTelnet, "ServerName", {
-        get: function () {
-            return this._ServerName;
-        },
-        set: function (value) {
-            this._ServerName = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-
-
     Object.defineProperty(fTelnet, "SplashScreen", {
         get: function () {
             return this._SplashScreen;
@@ -755,8 +667,7 @@ var fTelnet = (function () {
     fTelnet._ProxyPort = 1123;
     fTelnet._ProxyPortSecure = 11235;
     fTelnet._ScreenColumns = 80;
-    fTelnet._ScreenRows = 25;
-    fTelnet._ServerName = 'fTelnet / GameSrv Support Server';
+    fTelnet._ScreenRows = 24;
     fTelnet._SplashScreen = 'G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==';
     return fTelnet;
 })();
@@ -766,49 +677,83 @@ var fTelnet = (function () {
 // Incorporate Blob.js and FileSaver.js (and any other 3rd party .js) into ftelnet.js
 // Add virtual keyboard and button bar button to toggle
 // Add button to toggle full screen
-// From: https://typescript.codeplex.com/discussions/402228
-
-var TypedEvent = (function () {
-    function TypedEvent() {
-        // Private member vars
-        this._listeners = [];
+// Handle auto-sizing
+// From: Unknown, forgot to save the url!
+// Base64 utility methods
+// Needed for: IE9-
+(function () {
+    if ('atob' in window && 'btoa' in window) {
+        return;
     }
-    TypedEvent.prototype.add = function (listener) {
-        /// <summary>Registers a new listener for the event.</summary>
-        /// <param name="listener">The callback function to register.</param>
-        this._listeners.push(listener);
-    };
-    TypedEvent.prototype.remove = function (listener) {
-        /// <summary>Unregisters a listener from the event.</summary>
-        /// <param name="listener">The callback function that was registered. If missing then all listeners will be removed.</param>
-        if (typeof listener === 'function') {
-            for (var i = 0, l = this._listeners.length; i < l; l++) {
-                if (this._listeners[i] === listener) {
-                    this._listeners.splice(i, 1);
-                    break;
-                }
+
+    var B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    function atob(input) {
+        input = String(input);
+        var position = 0, output = [], buffer = 0, bits = 0, n;
+        input = input.replace(/\s/g, '');
+        if ((input.length % 4) === 0) {
+            input = input.replace(/=+$/, '');
+        }
+        if ((input.length % 4) === 1) {
+            throw Error('InvalidCharacterError');
+        }
+        if (/[^+/0-9A-Za-z]/.test(input)) {
+            throw Error('InvalidCharacterError');
+        }
+        while (position < input.length) {
+            n = B64_ALPHABET.indexOf(input.charAt(position));
+            buffer = (buffer << 6) | n;
+            bits += 6;
+            if (bits === 24) {
+                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
+                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+                output.push(String.fromCharCode(buffer & 0xFF));
+                bits = 0;
+                buffer = 0;
             }
-        } else {
-            this._listeners = [];
+            position += 1;
         }
-    };
+        if (bits === 12) {
+            buffer = buffer >> 4;
+            output.push(String.fromCharCode(buffer & 0xFF));
+        } else if (bits === 18) {
+            buffer = buffer >> 2;
+            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+            output.push(String.fromCharCode(buffer & 0xFF));
+        }
+        return output.join('');
+    }
+    ;
+    function btoa(input) {
+        input = String(input);
+        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
+        if (/[^\x00-\xFF]/.test(input)) {
+            throw Error('InvalidCharacterError');
+        }
+        while (position < input.length) {
+            o1 = input.charCodeAt(position++);
+            o2 = input.charCodeAt(position++);
+            o3 = input.charCodeAt(position++);
 
-    TypedEvent.prototype.trigger = function () {
-        var a = [];
-        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-            a[_i] = arguments[_i + 0];
+            // 111111 112222 222233 333333
+            e1 = o1 >> 2;
+            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
+            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
+            e4 = o3 & 0x3f;
+            if (position === input.length + 2) {
+                e3 = 64;
+                e4 = 64;
+            } else if (position === input.length + 1) {
+                e4 = 64;
+            }
+            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
         }
-        /// <summary>Invokes all of the listeners for this event.</summary>
-        /// <param name="args">Optional set of arguments to pass to listners.</param>
-        var context = {};
-        var listeners = this._listeners.slice(0);
-        for (var i = 0, l = listeners.length; i < l; i++) {
-            listeners[i].apply(context, a || []);
-        }
-    };
-    return TypedEvent;
-})();
-
+        return out.join('');
+    }
+    ;
+    window.atob = atob;
+    window.btoa = btoa;
+}());
 // From: http://javascript.info/tutorial/coordinates
 var Offset;
 (function (Offset) {
@@ -852,6 +797,49 @@ var Offset;
     }
     Offset.getOffset = getOffset;
 })(Offset || (Offset = {}));
+// From: https://typescript.codeplex.com/discussions/402228
+
+var TypedEvent = (function () {
+    function TypedEvent() {
+        // Private member vars
+        this._listeners = [];
+    }
+    TypedEvent.prototype.add = function (listener) {
+        /// <summary>Registers a new listener for the event.</summary>
+        /// <param name="listener">The callback function to register.</param>
+        this._listeners.push(listener);
+    };
+    TypedEvent.prototype.remove = function (listener) {
+        /// <summary>Unregisters a listener from the event.</summary>
+        /// <param name="listener">The callback function that was registered. If missing then all listeners will be removed.</param>
+        if (typeof listener === 'function') {
+            for (var i = 0, l = this._listeners.length; i < l; l++) {
+                if (this._listeners[i] === listener) {
+                    this._listeners.splice(i, 1);
+                    break;
+                }
+            }
+        } else {
+            this._listeners = [];
+        }
+    };
+
+    TypedEvent.prototype.trigger = function () {
+        var a = [];
+        for (var _i = 0; _i < (arguments.length - 0); _i++) {
+            a[_i] = arguments[_i + 0];
+        }
+        /// <summary>Invokes all of the listeners for this event.</summary>
+        /// <param name="args">Optional set of arguments to pass to listners.</param>
+        var context = {};
+        var listeners = this._listeners.slice(0);
+        for (var i = 0, l = listeners.length; i < l; i++) {
+            listeners[i].apply(context, a || []);
+        }
+    };
+    return TypedEvent;
+})();
+
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -2106,27 +2094,6 @@ it under the terms of the GNU Affero General Public License as
 published by the Free Software Foundation, either version 3 of the
 License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var ProgressBarStyle;
-(function (ProgressBarStyle) {
-    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
-    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
-    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
-})(ProgressBarStyle || (ProgressBarStyle = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
@@ -2863,6 +2830,27 @@ var CrtProgressBar = (function (_super) {
 
     return CrtProgressBar;
 })(CrtControl);
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY, without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var ProgressBarStyle;
+(function (ProgressBarStyle) {
+    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
+    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
+    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
+})(ProgressBarStyle || (ProgressBarStyle = {}));
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -5517,6 +5505,90 @@ it under the terms of the GNU Affero General Public License as
 published by the Free Software Foundation, either version 3 of the
 License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var StringUtils = (function () {
+    function StringUtils() {
+    }
+    StringUtils.AddCommas = function (value) {
+        var Result = '';
+
+        var Position = 1;
+        for (var i = value.toString().length - 1; i >= 0; i--) {
+            if ((Position > 3) && (Position % 3 === 1)) {
+                Result = ',' + Result;
+            }
+            Result = value.toString().charAt(i) + Result;
+            Position++;
+        }
+
+        return Result;
+    };
+
+    StringUtils.FormatPercent = function (value, fractionDigits) {
+        return (value * 100).toFixed(fractionDigits) + '%';
+    };
+
+    StringUtils.NewString = function (ch, length) {
+        if (ch.length === 0) {
+            return '';
+        }
+
+        var Result = '';
+        for (var i = 0; i < length; i++) {
+            Result += ch.charAt(0);
+        }
+        return Result;
+    };
+
+    StringUtils.PadLeft = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text = ch.charAt(0) + text;
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.PadRight = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text += ch.charAt(0);
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.Trim = function (text) {
+        return this.TrimLeft(this.TrimRight(text));
+    };
+
+    StringUtils.TrimLeft = function (text) {
+        return text.replace(/^\s+/g, '');
+    };
+
+    StringUtils.TrimRight = function (text) {
+        return text.replace(/\s+$/g, '');
+    };
+    return StringUtils;
+})();
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
@@ -7339,88 +7411,4 @@ var YModemSendState;
     YModemSendState[YModemSendState["SendingData"] = 3] = "SendingData";
     YModemSendState[YModemSendState["WaitingForFileAck"] = 4] = "WaitingForFileAck";
 })(YModemSendState || (YModemSendState = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var StringUtils = (function () {
-    function StringUtils() {
-    }
-    StringUtils.AddCommas = function (value) {
-        var Result = '';
-
-        var Position = 1;
-        for (var i = value.toString().length - 1; i >= 0; i--) {
-            if ((Position > 3) && (Position % 3 === 1)) {
-                Result = ',' + Result;
-            }
-            Result = value.toString().charAt(i) + Result;
-            Position++;
-        }
-
-        return Result;
-    };
-
-    StringUtils.FormatPercent = function (value, fractionDigits) {
-        return (value * 100).toFixed(fractionDigits) + '%';
-    };
-
-    StringUtils.NewString = function (ch, length) {
-        if (ch.length === 0) {
-            return '';
-        }
-
-        var Result = '';
-        for (var i = 0; i < length; i++) {
-            Result += ch.charAt(0);
-        }
-        return Result;
-    };
-
-    StringUtils.PadLeft = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text = ch.charAt(0) + text;
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.PadRight = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text += ch.charAt(0);
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.Trim = function (text) {
-        return this.TrimLeft(this.TrimRight(text));
-    };
-
-    StringUtils.TrimLeft = function (text) {
-        return text.replace(/^\s+/g, '');
-    };
-
-    StringUtils.TrimRight = function (text) {
-        return text.replace(/\s+$/g, '');
-    };
-    return StringUtils;
-})();
 //# sourceMappingURL=ftelnet.js.map
