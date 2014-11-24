@@ -211,7 +211,14 @@ class Ansi {
                     while (this._AnsiParams.length < 2) { this._AnsiParams.push('0'); }
                     x = parseInt(this._AnsiParams.shift(), 10);
                     y = parseInt(this._AnsiParams.shift(), 10);
-                    console.log('Unhandled ESC sequence: Font Selection (set font ' + x + ' to ' + y + ')');
+                    if ((x === 0) && (y >= 0) && (y <= 40)) {
+                        // TODO Should pick based on available screen space, not on biggest to smallest
+                        Crt.SetFont('SyncTerm-' + y.toString(10), 8, 16) ||
+                            Crt.SetFont('SyncTerm-' + y.toString(10), 8, 14) ||
+                            Crt.SetFont('SyncTerm-' + y.toString(10), 8, 8);
+                    } else {
+                        console.log('Unhandled ESC sequence: Secondary Font Selection (set font ' + x + ' to ' + y + ')');
+                    }
                     break;
                 }
                 break;

@@ -6,3 +6,4 @@
 // Add virtual keyboard and button bar button to toggle
 // Add button to toggle full screen
 // Handle auto-sizing
+// SyncTerm font-switching support

@@ -1064,7 +1064,7 @@ class Crt {
         this._CharInfo = new CharInfo(charInfo.Ch, charInfo.Attr, charInfo.Blink, charInfo.Underline, charInfo.Reverse);
     }
 
-    public static SetFont(codePage: string, width: number, height: number): void {
+    public static SetFont(codePage: string, width: number, height: number): boolean {
         /// <summary>
         /// Try to set the console font size to characters with the given X and Y size
         /// </summary>
@@ -1073,7 +1073,7 @@ class Crt {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        this._Font.Load(codePage, width, height);
+        return this._Font.Load(codePage, width, height);
     }
 
     // TODO Doesn't seem to be working

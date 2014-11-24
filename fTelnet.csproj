@@ -23,6 +23,7 @@
     <Content Include="release\docs\index.html" />
     <Content Include="release\index.html" />
     <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
+    <Content Include="release\synctermfonts.js" />
     <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
     <Content Include="source\randm\crt\font\PNG\437-12x23.png" />
     <Content Include="source\randm\crt\font\PNG\437-6x8.png" />
@@ -106,11 +107,7 @@
     <TypeScriptCompile Include="source\randm\crt\cursor\BlinkState.ts" />
     <TypeScriptCompile Include="source\randm\crt\cursor\Cursor.ts" />
     <TypeScriptCompile Include="source\randm\crt\font\CrtFont.ts" />
-    <TypeScriptCompile Include="source\randm\crt\font\TFont437.ts" />
-    <TypeScriptCompile Include="source\randm\crt\font\TFontAmiga.ts" />
-    <TypeScriptCompile Include="source\randm\crt\font\TFontAtari.ts" />
-    <TypeScriptCompile Include="source\randm\crt\font\TFontC64.ts" />
-    <TypeScriptCompile Include="source\randm\crt\font\TFontIntl.ts" />
+    <TypeScriptCompile Include="source\randm\crt\font\CrtFonts.ts" />
     <TypeScriptCompile Include="source\randm\crt\KeyPressEvent.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetNegotiationState.ts" />
