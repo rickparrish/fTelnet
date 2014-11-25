@@ -1,0 +1,182 @@
+@KeySize: floor(@KeyboardWidth / 16); // 16 is a magic number that gets the tab width to be roughly 1.5 keys wide
+@KeyPaddingLeft: floor(@KeySize / 7); // Another magic number
+@KeyWidth: @KeySize - @KeyMargin;
+@KeyHeight: @KeyWidth;
+
+@FunctionWidth: floor((@KeyboardWidth - (@KeyMargin * 16)) / 17); // 16 margins, 17 keys
+@FunctionHeight: @KeyHeight;
+
+@SPIDWidth: floor((@KeyboardWidth - (@FunctionWidth * 12) - (@KeyMargin * 16)) / 5); // 12 F-keys, 16 margins, 5 other keys (SPID + Esc)
+@EscWidth: @KeyboardWidth - (@FunctionWidth * 12) - (@SPIDWidth * 4) - (@KeyMargin * 16);
+
+@BackspaceWidth: @KeyboardWidth - (@KeyWidth * 14) - (@KeyMargin * 14);
+
+@TabWidth: floor((@KeyboardWidth - (@KeyWidth * 13) - (@KeyMargin * 14)) / 2);
+@BackslashWidth: @KeyboardWidth - (@KeyWidth * 13) - (@KeyMargin * 14) - @TabWidth;
+
+@CapsLockWidth: floor((@KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13)) * 0.43); // CapsLock is 43% of the width of (CapsLock + Enter)
+@EnterWidth: @KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13) - @CapsLockWidth;
+
+@LeftShiftWidth: floor((@KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13)) * 0.57); // Left Shift is 57% of the width of (Left Shift + Right Shift)
+@RightShiftWidth: @KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13) - @LeftShiftWidth;
+
+@CtrlWidth: @LeftShiftWidth - @KeyWidth - @KeyMargin; // Ctrl is (Left Shift - Win), where Win is a regular key
+@SpaceBarWidth: @KeyboardWidth - (@KeyWidth * 7) - (@CtrlWidth * 2) - (@KeyMargin * 9);
+
+@KeyboardHeight: (@KeyHeight * 6) + (@KeyMargin * 5);
+
+#fTelnetKeyboard {
+    background-color: black;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    height: @KeyboardHeight;
+    width: @KeyboardWidth;
+
+    * {
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+    }
+
+    ::selection {
+        background-color: none;
+        color: inherit;
+    }
+
+    ::-moz-selection {
+        background-color: none;
+        color: inherit;
+    }
+
+    .row {
+        > :first-child {
+            margin-left: 0 !important;
+        }
+
+        div {
+            background-color: #444;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #eee;
+            font: normal @KeyFontSize sans-serif;
+            float: left;
+            height: @KeyHeight;
+            line-height: @KeyLineHeight;
+            margin: @KeyMargin 0 0 @KeyMargin;
+            padding: @KeyPaddingTop 0 0 @KeyPaddingLeft;
+            transition: background-color 0.2s ease;
+            width: @KeyWidth;
+        }
+
+            div:hover {
+                background-color: #eee;
+                color: #333;
+                font-weight: bold;
+                z-index: 1000;
+            }
+
+        .appmenu {
+            background-image: url("img/appmenu-key.png");
+            background-position: @ImagePositionLeft @ImagePositionTop;
+            background-repeat: no-repeat;
+        }
+
+        .arrow-down {
+            background-image: url("img/down-key.png");
+            background-position: @ImagePositionLeft @ImagePositionTop;
+            background-repeat: no-repeat;
+        }
+
+        .arrow-left {
+            background-image: url("img/left-key.png");
+            background-position: @ImagePositionLeft @ImagePositionTop;
+            background-repeat: no-repeat;
+        }
+
+        .arrow-right {
+            background-image: url("img/right-key.png");
+            background-position: @ImagePositionLeft @ImagePositionTop;
+            background-repeat: no-repeat;
+        }
+
+        .arrow-up {
+            background-image: url("img/up-key.png");
+            background-position: @ImagePositionLeft @ImagePositionTop;
+            background-repeat: no-repeat;
+        }
+
+        .backslash {
+            width: @BackslashWidth;
+        }
+
+        .backspace {
+            background-image: url("img/backspace-key.png");
+            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+            background-repeat: no-repeat;
+            width: @BackspaceWidth;
+        }
+
+        .capslock {
+            width: @CapsLockWidth;
+        }
+
+        .ctrl {
+            width: @CtrlWidth;
+        }
+
+        .enter {
+            background-image: url("img/enter-key.png");
+            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+            background-repeat: no-repeat;
+            width: @EnterWidth;
+        }
+
+        .lshift {
+            background-image: url("img/shift-key.png");
+            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+            background-repeat: no-repeat;
+            width: @LeftShiftWidth;
+        }
+
+        .rshift {
+            background-image: url("img/shift-key.png");
+            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+            background-repeat: no-repeat;
+            width: @RightShiftWidth;
+        }
+
+        .spacebar {
+            width: @SpaceBarWidth;
+        }
+
+        .tab {
+            background-image: url("img/tab-key.png");
+            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+            background-repeat: no-repeat;
+            width: @TabWidth;
+        }
+
+        .win {
+            background-image: url("img/windows-key.png");
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+    }
+
+    .function {
+        div {
+            height: @FunctionHeight;
+            margin-top: 0;
+            width: @FunctionWidth;
+        }
+
+        .esc {
+            width: @EscWidth;
+        }
+
+        .spid {
+            width: @SPIDWidth;
+        }
+    }
+}
