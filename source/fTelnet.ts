@@ -17,8 +17,6 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-declare var KEYBOARD_CSS_URL: string;
-
 class fTelnet {
     // Private variables
     private static _ButtonBar: HTMLDivElement = null;
@@ -253,7 +251,7 @@ class fTelnet {
     }
 
     private static CreateKeyboard(): HTMLDivElement {
-        var Keys = [
+        var Keys: any[] = [
             [
                 [27, 'Esc', '', 'esc'],
                 [112, 'F1', '', ''],
@@ -353,7 +351,7 @@ class fTelnet {
             ]
         ];
 
-        var Html = '';
+        var Html: string = '';
         for (var Row: number = 0; Row < Keys.length; Row++) {
             Html += '<div class="row';
             if (Row === 0) {
@@ -366,14 +364,13 @@ class fTelnet {
                 if (Keys[Row][i][3] !== '') {
                     Html += 'class="' + Keys[Row][i][3] + '" ';
                 }
-                Html += 'data-keycode="' + Keys[Row][i][0] + '">'
-                Html += Keys[Row][i][1] + '<br />' + Keys[Row][i][2]
+                Html += 'data-keycode="' + Keys[Row][i][0] + '">';
+                Html += Keys[Row][i][1] + '<br />' + Keys[Row][i][2];
                 Html += '</div>';
             }
             Html += '</div>';
         }
 
-        // Create the keyboard
         this._Keyboard = document.createElement('div');
         this._Keyboard.id = 'fTelnetKeyboard';
         this._Keyboard.innerHTML = Html;
@@ -510,18 +507,14 @@ class fTelnet {
         if (this._StatusBar != null) { this._StatusBar.style.width = NewWidth + 'px'; }
 
         // Pick virtual keyboard width
-        if (NewWidth >= 960) {
-            (<HTMLLinkElement>document.getElementById('KEYBOARD_CSS')).href = KEYBOARD_CSS_URL.replace('{size}', '960');
-        } else if (NewWidth >= 800) {
-            (<HTMLLinkElement>document.getElementById('KEYBOARD_CSS')).href = KEYBOARD_CSS_URL.replace('{size}', '800');
-        } else if (NewWidth >= 720) {
-            (<HTMLLinkElement>document.getElementById('KEYBOARD_CSS')).href = KEYBOARD_CSS_URL.replace('{size}', '720');
-        } else if (NewWidth >= 640) {
-            (<HTMLLinkElement>document.getElementById('KEYBOARD_CSS')).href = KEYBOARD_CSS_URL.replace('{size}', '640');
-        } else if (NewWidth >= 560) {
-            (<HTMLLinkElement>document.getElementById('KEYBOARD_CSS')).href = KEYBOARD_CSS_URL.replace('{size}', '560');
-        } else {
-            (<HTMLLinkElement>document.getElementById('KEYBOARD_CSS')).href = KEYBOARD_CSS_URL.replace('{size}', '480');
+        var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
+        var CssUrl: string = ScriptUrl.replace('/ftelnet.js', '/keyboard/keyboard-{size}.min.css');
+        var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480];
+        for (var i: number = 0; i < KeyboardSizes.length; i++) {
+            if ((NewWidth >= KeyboardSizes[i]) || (i === (KeyboardSizes.length - 1))) {
+                (<HTMLLinkElement>document.getElementById('KEYBOARD_CSS')).href = CssUrl.replace('{size}', KeyboardSizes[i].toString(10));
+                break;
+            }
         }
     }
 

@@ -5,6 +5,7 @@
   -webkit-box-sizing: border-box;
   height: 268px;
   width: 720px;
+  margin: auto;
 }
 #fTelnetKeyboard * {
   box-sizing: border-box;
@@ -125,4 +126,4 @@
 #fTelnetKeyboard .function .spid {
   width: 41px;
 }
-/*# sourceMappingURL=Keyboard-720.css.map */
+/*# sourceMappingURL=keyboard-720.css.map */
