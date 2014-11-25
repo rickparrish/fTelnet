@@ -59,16 +59,16 @@ class CrtFont {
     private _Upper: HTMLImageElement;
 
     constructor() {
-        // this._Canvas
-        // this._CanvasContext
+        this._Canvas = null;
+        this._CanvasContext = null;
         this._CharMap = [];
         this._CodePage = '437';
         this._Loading = 0;
-        // this._Lower
+        this._Lower = null;
         this._NewCodePage = '437';
         this._NewSize = new Point(9, 16);
         this._Size = new Point(9, 16);
-        // this._Upper
+        this._Upper = null;
 
         this._Canvas = document.createElement('canvas');
         if (this._Canvas.getContext) {
@@ -161,6 +161,11 @@ class CrtFont {
             var Pieces: string[] = FontName.split('x');
             var Width: number = parseInt(Pieces[1], 10);
             var Height: number = parseInt(Pieces[2], 10);
+
+            // Check if we're requesting the same font we already have
+            if ((this._Lower != null) && (this._CodePage === Pieces[0]) && (this._Size.x === Width) && (this._Size.y === Height)) {
+                return true;
+            }
 
             CrtFont.ANSI_COLOURS[7] = 0xA8A8A8;
             CrtFont.ANSI_COLOURS[0] = 0x000000;

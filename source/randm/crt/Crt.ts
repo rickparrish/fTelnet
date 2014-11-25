@@ -120,6 +120,7 @@ class Crt {
         // Register keydown and keypress handlers
         window.addEventListener('keydown', (ke: KeyboardEvent): void => { this.OnKeyDown(ke); }, false); // For special keys
         window.addEventListener('keypress', (ke: KeyboardEvent): void => { this.OnKeyPress(ke); }, false); // For regular keys
+        window.addEventListener('resize', (): void => { this.OnResize(); }, false);
 
         // Reset the screen buffer
         this.InitBuffers(true);
@@ -784,6 +785,11 @@ class Crt {
         if (keyString) {
             ke.preventDefault();
         }
+    }
+
+    private static OnResize(): void {
+        // See if we can switch to a different font size
+        Crt.SetFont(this._Font.CodePage);
     }
 
     public static PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {

@@ -23,8 +23,6 @@
     <Content Include="release\docs\index.html" />
     <Content Include="release\index.html" />
     <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
-    <Content Include="release\internationalfonts.js" />
-    <Content Include="release\synctermfonts.js" />
     <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
     <Content Include="source\randm\crt\font\PNG\437-12x23.png" />
     <Content Include="source\randm\crt\font\PNG\437-6x8.png" />
