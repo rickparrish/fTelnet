@@ -21,6 +21,7 @@
     <Content Include="app.css" />
     <Content Include="index.html" />
     <Content Include="release\docs\index.html" />
+    <Content Include="release\ftelnet.css" />
     <Content Include="release\index.html" />
     <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
     <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
