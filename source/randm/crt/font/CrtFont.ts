@@ -24,7 +24,7 @@ class CrtFont {
     // Public variables
     public static ANSI_COLOURS: number[] = [
         0x000000, 0x0000A8, 0x00A800, 0x00A8A8, 0xA80000, 0xA800A8, 0xA85400, 0xA8A8A8,
-		0x545454, 0x5454FC, 0x54FC54, 0x54FCFC, 0xFC5454, 0xFC54FC, 0xFCFC54, 0xFCFCFC];
+        0x545454, 0x5454FC, 0x54FC54, 0x54FCFC, 0xFC5454, 0xFC54FC, 0xFCFC54, 0xFCFCFC];
 
     // From http://www.c64-wiki.com/index.php/Color
     // public static PETSCII_COLOURS: string[] = [
@@ -151,18 +151,23 @@ class CrtFont {
         return this._Size.y;
     }
 
-    public Load(codePage: string, width: number, height: number): boolean {
-        // Ensure the requested font exists
-        if (typeof CrtFonts.Get(codePage, width, height) === 'undefined') {
-            console.log('fTelnet Error: Font CP=' + codePage + ', Width=' + width + ', Height=' + height + ' does not exist');
+    public Load(codePage: string, maxWidth: number, maxHeight: number): boolean {
+        // Find the biggest instance of the given font
+        var FontName = CrtFonts.GetBestFit(codePage, maxWidth, maxHeight);
+        if (FontName === null) {
+            console.log('fTelnet Error: Font CP=' + codePage + ' does not exist');
             return false;
         } else {
+            var Pieces = FontName.split('x');
+            var Width = parseInt(Pieces[1], 10);
+            var Height = parseInt(Pieces[2], 10);
+
             CrtFont.ANSI_COLOURS[7] = 0xA8A8A8;
             CrtFont.ANSI_COLOURS[0] = 0x000000;
 
             this._Loading += 1;
             this._NewCodePage = codePage;
-            this._NewSize = new Point(width, height);
+            this._NewSize = new Point(Width, Height);
 
             // Check for PC or other font
             if (isNaN(parseInt(codePage, 10))) {
@@ -176,13 +181,13 @@ class CrtFont {
 
                 this._Lower = new Image();
                 this._Lower.onload = (): void => { this.OnLoadUpper(); };
-                this._Lower.src = CrtFonts.Get(codePage, width, height);
+                this._Lower.src = CrtFonts.Get(codePage, Width, Height);
                 this._Upper = null;
             } else {
                 // Load the lower font
                 this._Lower = new Image();
                 this._Lower.onload = (): void => { this.OnLoadLower(); };
-                this._Lower.src = CrtFonts.Get('ASCII', width, height);
+                this._Lower.src = CrtFonts.Get('ASCII', Width, Height);
             }
 
             return true;

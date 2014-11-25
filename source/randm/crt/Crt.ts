@@ -86,6 +86,7 @@ class Crt {
     private static _KeyBuf: KeyPressEvent[] = [];
     private static _LastChar: number = 0x00;
     private static _LocalEcho: boolean = false;
+    private static _Parent: HTMLElement = null;
     private static _ScreenSize: Point = new Point(80, 25);
     private static _ScrollBack: CharInfo[][] = null;
     private static _ScrollBackPosition: number = -1;
@@ -95,6 +96,8 @@ class Crt {
     private static _WindMax: number = (80 - 1) | ((25 - 1) << 8);
 
     public static Init(parent: HTMLElement): boolean {
+        this._Parent = parent;
+
         this._Font = new CrtFont();
         this._Font.onchange.add((): void => { this.OnFontChanged(); });
 
@@ -1064,7 +1067,7 @@ class Crt {
         this._CharInfo = new CharInfo(charInfo.Ch, charInfo.Attr, charInfo.Blink, charInfo.Underline, charInfo.Reverse);
     }
 
-    public static SetFont(codePage: string, width: number, height: number): boolean {
+    public static SetFont(codePage: string): boolean {
         /// <summary>
         /// Try to set the console font size to characters with the given X and Y size
         /// </summary>
@@ -1073,7 +1076,7 @@ class Crt {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        return this._Font.Load(codePage, width, height);
+        return this._Font.Load(codePage, Math.floor(this._Parent.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
     }
 
     // TODO Doesn't seem to be working
@@ -1665,7 +1668,7 @@ class Crt {
                 DoGoto = true;
             } else if (text.charCodeAt(i) === 0x0E) {
                 // Select the lowercase/uppercase character set. 
-                this.SetFont('PETSCII-Lower', 16, 16);
+                this.SetFont('C64-Lower');
             } else if (text.charCodeAt(i) === 0x11) {
                 // Cursor down: Next character will be printed in subsequent column one text line further down the screen. 
                 Y += 1;
@@ -1714,7 +1717,7 @@ class Crt {
                 this.TextColor(this.PETSCII_ORANGE);
             } else if (text.charCodeAt(i) === 0x8E) {
                 // Select the uppercase/semigraphics character set. 
-                this.SetFont('PETSCII-Upper', 16, 16);
+                this.SetFont('C64-Upper');
             } else if (text.charCodeAt(i) === 0x90) {
                 // Changes the text color to black. 
                 this.TextColor(this.PETSCII_BLACK);

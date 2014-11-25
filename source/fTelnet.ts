@@ -40,8 +40,6 @@ class fTelnet {
     private static _CodePage: string = '437';
     private static _ConnectionType: string = 'telnet';
     private static _Enter: string = '\r';
-    private static _FontHeight: number = 16;
-    private static _FontWidth: number = 9;
     private static _Hostname: string = 'bbs.ftelnet.ca';
     private static _LocalEcho: boolean = false;
     private static _Port: number = 1123;
@@ -93,7 +91,7 @@ class fTelnet {
             Crt.BareLFtoCRLF = this._BareLFtoCRLF;
             Crt.Blink = this._Blink;
             Crt.LocalEcho = this._LocalEcho;
-            Crt.SetFont(this._CodePage, this._FontWidth, this._FontHeight);
+            Crt.SetFont(this._CodePage);
             Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
 
             // Test websocket support
@@ -119,7 +117,7 @@ class fTelnet {
             Ansi.onesc5n.add((): void => { this.OnAnsiESC5n(); });
             Ansi.onesc6n.add((): void => { this.OnAnsiESC6n(); });
             Ansi.onesc255n.add((): void => { this.OnAnsiESC255n(); });
-            Ansi.onescQ.add((codePage: string, width: number, height: number): void => { this.OnAnsiESCQ(codePage, width, height); });
+            Ansi.onescQ.add((codePage: string): void => { this.OnAnsiESCQ(codePage); });
 
             // Create the style element
             this._StyleBlock = document.createElement('style');
@@ -310,22 +308,6 @@ class fTelnet {
         }
     }
 
-    public static get FontHeight(): number {
-        return this._FontHeight;
-    }
-
-    public static set FontHeight(value: number) {
-        this._FontHeight = value;
-    }
-
-    public static get FontWidth(): number {
-        return this._FontWidth;
-    }
-
-    public static set FontWidth(value: number) {
-        this._FontWidth = value;
-    }
-
     public static get Hostname(): string {
         return this._Hostname;
     }
@@ -359,8 +341,8 @@ class fTelnet {
         this._Connection.writeString(Ansi.CursorPosition(Crt.WindCols, Crt.WindRows));
     }
 
-    private static OnAnsiESCQ(codePage: string, width: number, height: number): void {
-        Crt.SetFont(codePage, width, height);
+    private static OnAnsiESCQ(codePage: string): void {
+        Crt.SetFont(codePage);
     }
 
     private static OnConnectionClose(): void {

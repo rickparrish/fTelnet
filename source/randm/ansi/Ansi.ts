@@ -22,7 +22,7 @@ class Ansi {
     public static onesc5n: IEvent = new TypedEvent();
     public static onesc6n: IEvent = new TypedEvent();
     public static onesc255n: IEvent = new TypedEvent();
-    public static onescQ: IESCQEvent = new TypedEvent();
+    public static onescQ: IMessageEvent = new TypedEvent();
     public static onripdetect: IEvent = new TypedEvent();
     public static onripdisable: IEvent = new TypedEvent();
     public static onripenable: IEvent = new TypedEvent();
@@ -213,9 +213,7 @@ class Ansi {
                     y = parseInt(this._AnsiParams.shift(), 10);
                     if ((x === 0) && (y >= 0) && (y <= 40)) {
                         // TODO Should pick based on available screen space, not on biggest to smallest
-                        Crt.SetFont('SyncTerm-' + y.toString(10), 8, 16) ||
-                            Crt.SetFont('SyncTerm-' + y.toString(10), 8, 14) ||
-                            Crt.SetFont('SyncTerm-' + y.toString(10), 8, 8);
+                        Crt.SetFont('SyncTerm-' + y.toString(10));
                     } else {
                         console.log('Unhandled ESC sequence: Secondary Font Selection (set font ' + x + ' to ' + y + ')');
                     }
@@ -661,7 +659,7 @@ class Ansi {
                 x = parseInt(this._AnsiParams.shift(), 10);
                 y = parseInt(this._AnsiParams.shift(), 10);
                 z = parseInt(this._AnsiParams.shift(), 10);
-                this.onescQ.trigger(x.toString(10), y, z);
+                this.onescQ.trigger(x.toString(10));
                 break;
             case 'r':
                 if (this._AnsiIntermediates.length === 0) {
