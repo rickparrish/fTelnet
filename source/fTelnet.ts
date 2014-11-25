@@ -121,7 +121,7 @@ class fTelnet {
 
             // Create the style element
             this._StyleBlock = document.createElement('style');
-            this._StyleBlock.type = "text/css";
+            this._StyleBlock.type = 'text/css';
             this._StyleBlock.innerHTML = '#fTelnetFocusWarning { background-color: red; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; }' +
                 '#fTelnetScrollback { background-color: red; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; } #fTelnetScrollback a { color: white; text-decoration: none; }' +
                 '#fTelnetButtons { background-color: green; color: white; font: 16px "Courier New", Courier, monospace; margin: auto; padding: 5px 0; } #fTelnetButtons a { color: white; text-decoration: none; }' +
@@ -294,14 +294,14 @@ class fTelnet {
         this._Enter = value;
     }
 
-    public static EnterScrollback() {
+    public static EnterScrollback(): void {
         if (this._ScrollbackBar.style.display = 'none') {
             Crt.EnterScrollBack();
             this._ScrollbackBar.style.display = 'block';
         }
     }
 
-    public static ExitScrollback() {
+    public static ExitScrollback(): void {
         if (this._ScrollbackBar.style.display = 'block') {
             Crt.PushKeyDown(Keyboard.ESCAPE, Keyboard.ESCAPE, false, false, false);
             this._ScrollbackBar.style.display = 'none';

@@ -153,14 +153,14 @@ class CrtFont {
 
     public Load(codePage: string, maxWidth: number, maxHeight: number): boolean {
         // Find the biggest instance of the given font
-        var FontName = CrtFonts.GetBestFit(codePage, maxWidth, maxHeight);
+        var FontName: string = CrtFonts.GetBestFit(codePage, maxWidth, maxHeight);
         if (FontName === null) {
             console.log('fTelnet Error: Font CP=' + codePage + ' does not exist');
             return false;
         } else {
-            var Pieces = FontName.split('x');
-            var Width = parseInt(Pieces[1], 10);
-            var Height = parseInt(Pieces[2], 10);
+            var Pieces: string[] = FontName.split('x');
+            var Width: number = parseInt(Pieces[1], 10);
+            var Height: number = parseInt(Pieces[2], 10);
 
             CrtFont.ANSI_COLOURS[7] = 0xA8A8A8;
             CrtFont.ANSI_COLOURS[0] = 0x000000;
