@@ -789,7 +789,7 @@ class Crt {
 
     private static OnResize(): void {
         // See if we can switch to a different font size
-        Crt.SetFont(this._Font.CodePage);
+        Crt.SetFont(this._Font.Name);
     }
 
     public static PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
@@ -1073,7 +1073,7 @@ class Crt {
         this._CharInfo = new CharInfo(charInfo.Ch, charInfo.Attr, charInfo.Blink, charInfo.Underline, charInfo.Reverse);
     }
 
-    public static SetFont(codePage: string): boolean {
+    public static SetFont(font: string): boolean {
         /// <summary>
         /// Try to set the console font size to characters with the given X and Y size
         /// </summary>
@@ -1082,7 +1082,7 @@ class Crt {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        return this._Font.Load(codePage, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
     }
 
     // TODO Doesn't seem to be working

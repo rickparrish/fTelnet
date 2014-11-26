@@ -50,9 +50,9 @@ class CrtFont {
     private _Canvas: HTMLCanvasElement;
     private _CanvasContext: CanvasRenderingContext2D;
     private _CharMap: ImageData[];
-    private _CodePage: string;
     private _Loading: number;
-    private _NewCodePage: string;
+    private _Name: string;
+    private _NewName: string;
     private _NewSize: Point;
     private _Png: HTMLImageElement;
     private _Size: Point;
@@ -61,9 +61,9 @@ class CrtFont {
         this._Canvas = null;
         this._CanvasContext = null;
         this._CharMap = [];
-        this._CodePage = 'CP437';
+        this._Name = 'CP437';
         this._Loading = 0;
-        this._NewCodePage = 'CP437';
+        this._NewName = 'CP437';
         this._NewSize = new Point(9, 16);
         this._Png = null;
         this._Size = new Point(9, 16);
@@ -71,12 +71,8 @@ class CrtFont {
         this._Canvas = document.createElement('canvas');
         if (this._Canvas.getContext) {
             this._CanvasContext = this._Canvas.getContext('2d');
-            this.Load(this._CodePage, this._Size.x, this._Size.y);
+            this.Load(this._Name, this._Size.x, this._Size.y);
         }
-    }
-
-    public get CodePage(): string {
-        return this._CodePage;
     }
 
     public GetChar(charCode: number, charInfo: CharInfo): ImageData {
@@ -95,7 +91,7 @@ class CrtFont {
             // Now colour the character
             var Back: number;
             var Fore: number;
-            if (this._CodePage.indexOf('C64') === 0) {
+            if (this._Name.indexOf('C64') === 0) {
                 Back = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0xF0) >> 4];
                 Fore = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0x0F)];
             } else {
@@ -149,11 +145,11 @@ class CrtFont {
         return this._Size.y;
     }
 
-    public Load(codePage: string, maxWidth: number, maxHeight: number): boolean {
+    public Load(font: string, maxWidth: number, maxHeight: number): boolean {
         // Find the biggest instance of the given font
-        var FontName: string = CrtFonts.GetBestFit(codePage, maxWidth, maxHeight);
+        var FontName: string = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
         if (FontName === null) {
-            console.log('fTelnet Error: Font CP=' + codePage + ' does not exist');
+            console.log('fTelnet Error: Font CP=' + font + ' does not exist');
             return false;
         } else {
             var NameSize: string[] = FontName.split('_');
@@ -162,7 +158,7 @@ class CrtFont {
             var Height: number = parseInt(WidthHeight[1], 10);
 
             // Check if we're requesting the same font we already have
-            if ((this._Png != null) && (this._CodePage === NameSize[0]) && (this._Size.x === Width) && (this._Size.y === Height)) {
+            if ((this._Png != null) && (this._Name === NameSize[0]) && (this._Size.x === Width) && (this._Size.y === Height)) {
                 return true;
             }
 
@@ -170,11 +166,11 @@ class CrtFont {
             CrtFont.ANSI_COLOURS[0] = 0x000000;
 
             this._Loading += 1;
-            this._NewCodePage = codePage;
+            this._NewName = font;
             this._NewSize = new Point(Width, Height);
 
             // Override colour for Atari clients
-            if (codePage.indexOf('Atari') === 0) {
+            if (font.indexOf('Atari') === 0) {
                 CrtFont.ANSI_COLOURS[7] = 0x63B6E7;
                 CrtFont.ANSI_COLOURS[0] = 0x005184;
             }
@@ -182,10 +178,14 @@ class CrtFont {
             this._Png = new Image();
             this._Png.onload = (): void => { this.OnPngLoad(); };
             this._Png.onerror = (): void => { this.OnPngError(); };
-            this._Png.src = CrtFonts.GetLocalUrl(codePage, Width, Height);
+            this._Png.src = CrtFonts.GetLocalUrl(font, Width, Height);
 
             return true;
         }
+    }
+
+    public get Name(): string {
+        return this._Name;
     }
 
     private OnPngError(): void {
@@ -195,11 +195,11 @@ class CrtFont {
         this._Png.onerror = (): void => {
             alert("fTelnet Error: Unable to load requested font");
         };
-        this._Png.src = CrtFonts.GetRemoteUrl(this._NewCodePage, this._NewSize.x, this._NewSize.y);
+        this._Png.src = CrtFonts.GetRemoteUrl(this._NewName, this._NewSize.x, this._NewSize.y);
     }
 
     private OnPngLoad(): void {
-        this._CodePage = this._NewCodePage;
+        this._Name = this._NewName;
         this._Size = this._NewSize;
 
         // Reset Canvas

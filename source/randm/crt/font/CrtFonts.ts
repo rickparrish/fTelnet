@@ -165,11 +165,11 @@ class CrtFonts {
         'SyncTerm-9_8x16',
         'SyncTerm-9_8x8'];
 
-    public static GetBestFit(codePage: string, maxWidth: number, maxHeight: number): string {
-        // Find keys for the given codepage
+    public static GetBestFit(font: string, maxWidth: number, maxHeight: number): string {
+        // Find keys for the given font
         var MatchingFonts: string[] = [];
         for (var i: number = 0; i < this._Fonts.length; i++) {
-            if (this._Fonts[i].indexOf(codePage + '_') === 0) {
+            if (this._Fonts[i].indexOf(font + '_') === 0) {
                 MatchingFonts.push(this._Fonts[i]);
             }
         }

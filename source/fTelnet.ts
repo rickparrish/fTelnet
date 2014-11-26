@@ -37,9 +37,9 @@ class fTelnet {
     private static _BareLFtoCRLF: boolean = false;
     private static _BitsPerSecond: number = 57600;
     private static _Blink: boolean = true;
-    private static _CodePage: string = 'CP437';
     private static _ConnectionType: string = 'telnet';
     private static _Enter: string = '\r';
+    private static _Font: string = 'CP437';
     private static _Hostname: string = 'bbs.ftelnet.ca';
     private static _LocalEcho: boolean = false;
     private static _Port: number = 1123;
@@ -91,7 +91,7 @@ class fTelnet {
             Crt.BareLFtoCRLF = this._BareLFtoCRLF;
             Crt.Blink = this._Blink;
             Crt.LocalEcho = this._LocalEcho;
-            Crt.SetFont(this._CodePage);
+            Crt.SetFont(this._Font);
             Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
 
             // Test websocket support
@@ -117,7 +117,7 @@ class fTelnet {
             Ansi.onesc5n.add((): void => { this.OnAnsiESC5n(); });
             Ansi.onesc6n.add((): void => { this.OnAnsiESC6n(); });
             Ansi.onesc255n.add((): void => { this.OnAnsiESC255n(); });
-            Ansi.onescQ.add((codePage: string): void => { this.OnAnsiESCQ(codePage); });
+            Ansi.onescQ.add((font: string): void => { this.OnAnsiESCQ(font); });
 
             // Create the scrollback bar
             this._ScrollbackBar = document.createElement('div');
@@ -196,14 +196,6 @@ class fTelnet {
 
     public static set Blink(value: boolean) {
         this._Blink = value;
-    }
-
-    public static get CodePage(): string {
-        return this._CodePage;
-    }
-
-    public static set CodePage(value: string) {
-        this._CodePage = value;
     }
 
     public static get ConnectionType(): string {
@@ -432,6 +424,14 @@ class fTelnet {
         }
     }
 
+    public static get Font(): string {
+        return this._Font;
+    }
+
+    public static set Font(value: string) {
+        this._Font = value;
+    }
+
     public static get Hostname(): string {
         return this._Hostname;
     }
@@ -465,8 +465,8 @@ class fTelnet {
         this._Connection.writeString(Ansi.CursorPosition(Crt.WindCols, Crt.WindRows));
     }
 
-    private static OnAnsiESCQ(codePage: string): void {
-        Crt.SetFont(codePage);
+    private static OnAnsiESCQ(font: string): void {
+        Crt.SetFont(font);
     }
 
     private static OnConnectionClose(): void {

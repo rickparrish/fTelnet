@@ -64,7 +64,7 @@ var fTelnet = (function () {
             Crt.BareLFtoCRLF = this._BareLFtoCRLF;
             Crt.Blink = this._Blink;
             Crt.LocalEcho = this._LocalEcho;
-            Crt.SetFont(this._CodePage);
+            Crt.SetFont(this._Font);
             Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
 
             // Test websocket support
@@ -96,8 +96,8 @@ var fTelnet = (function () {
             Ansi.onesc255n.add(function () {
                 _this.OnAnsiESC255n();
             });
-            Ansi.onescQ.add(function (codePage) {
-                _this.OnAnsiESCQ(codePage);
+            Ansi.onescQ.add(function (font) {
+                _this.OnAnsiESCQ(font);
             });
 
             // Create the scrollback bar
@@ -181,18 +181,6 @@ var fTelnet = (function () {
         },
         set: function (value) {
             this._Blink = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-
-
-    Object.defineProperty(fTelnet, "CodePage", {
-        get: function () {
-            return this._CodePage;
-        },
-        set: function (value) {
-            this._CodePage = value;
         },
         enumerable: true,
         configurable: true
@@ -462,6 +450,18 @@ var fTelnet = (function () {
         }
     };
 
+    Object.defineProperty(fTelnet, "Font", {
+        get: function () {
+            return this._Font;
+        },
+        set: function (value) {
+            this._Font = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+
     Object.defineProperty(fTelnet, "Hostname", {
         get: function () {
             return this._Hostname;
@@ -503,8 +503,8 @@ var fTelnet = (function () {
         this._Connection.writeString(Ansi.CursorPosition(Crt.WindCols, Crt.WindRows));
     };
 
-    fTelnet.OnAnsiESCQ = function (codePage) {
-        Crt.SetFont(codePage);
+    fTelnet.OnAnsiESCQ = function (font) {
+        Crt.SetFont(font);
     };
 
     fTelnet.OnConnectionClose = function () {
@@ -780,9 +780,9 @@ var fTelnet = (function () {
     fTelnet._BareLFtoCRLF = false;
     fTelnet._BitsPerSecond = 57600;
     fTelnet._Blink = true;
-    fTelnet._CodePage = 'CP437';
     fTelnet._ConnectionType = 'telnet';
     fTelnet._Enter = '\r';
+    fTelnet._Font = 'CP437';
     fTelnet._Hostname = 'bbs.ftelnet.ca';
     fTelnet._LocalEcho = false;
     fTelnet._Port = 1123;
@@ -3875,7 +3875,7 @@ var Crt = (function () {
 
     Crt.OnResize = function () {
         // See if we can switch to a different font size
-        Crt.SetFont(this._Font.CodePage);
+        Crt.SetFont(this._Font.Name);
     };
 
     Crt.PushKeyDown = function (pushedCharCode, pushedKeyCode, ctrl, alt, shift) {
@@ -4173,7 +4173,7 @@ var Crt = (function () {
         this._CharInfo = new CharInfo(charInfo.Ch, charInfo.Attr, charInfo.Blink, charInfo.Underline, charInfo.Reverse);
     };
 
-    Crt.SetFont = function (codePage) {
+    Crt.SetFont = function (font) {
         /// <summary>
         /// Try to set the console font size to characters with the given X and Y size
         /// </summary>
@@ -4181,7 +4181,7 @@ var Crt = (function () {
         /// <param name='AY'>The vertical size</param>
         /// <returns>True if the size was found and set, False if the size was not available</returns>
         // Request the new font
-        return this._Font.Load(codePage, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
     };
 
     // TODO Doesn't seem to be working
@@ -5267,9 +5267,9 @@ var CrtFont = (function () {
         this._Canvas = null;
         this._CanvasContext = null;
         this._CharMap = [];
-        this._CodePage = 'CP437';
+        this._Name = 'CP437';
         this._Loading = 0;
-        this._NewCodePage = 'CP437';
+        this._NewName = 'CP437';
         this._NewSize = new Point(9, 16);
         this._Png = null;
         this._Size = new Point(9, 16);
@@ -5277,17 +5277,9 @@ var CrtFont = (function () {
         this._Canvas = document.createElement('canvas');
         if (this._Canvas.getContext) {
             this._CanvasContext = this._Canvas.getContext('2d');
-            this.Load(this._CodePage, this._Size.x, this._Size.y);
+            this.Load(this._Name, this._Size.x, this._Size.y);
         }
     }
-    Object.defineProperty(CrtFont.prototype, "CodePage", {
-        get: function () {
-            return this._CodePage;
-        },
-        enumerable: true,
-        configurable: true
-    });
-
     CrtFont.prototype.GetChar = function (charCode, charInfo) {
         if (this._Loading > 0) {
             return null;
@@ -5308,7 +5300,7 @@ var CrtFont = (function () {
             // Now colour the character
             var Back;
             var Fore;
-            if (this._CodePage.indexOf('C64') === 0) {
+            if (this._Name.indexOf('C64') === 0) {
                 Back = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0xF0) >> 4];
                 Fore = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0x0F)];
             } else {
@@ -5366,12 +5358,12 @@ var CrtFont = (function () {
         configurable: true
     });
 
-    CrtFont.prototype.Load = function (codePage, maxWidth, maxHeight) {
+    CrtFont.prototype.Load = function (font, maxWidth, maxHeight) {
         var _this = this;
         // Find the biggest instance of the given font
-        var FontName = CrtFonts.GetBestFit(codePage, maxWidth, maxHeight);
+        var FontName = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
         if (FontName === null) {
-            console.log('fTelnet Error: Font CP=' + codePage + ' does not exist');
+            console.log('fTelnet Error: Font CP=' + font + ' does not exist');
             return false;
         } else {
             var NameSize = FontName.split('_');
@@ -5380,7 +5372,7 @@ var CrtFont = (function () {
             var Height = parseInt(WidthHeight[1], 10);
 
             // Check if we're requesting the same font we already have
-            if ((this._Png != null) && (this._CodePage === NameSize[0]) && (this._Size.x === Width) && (this._Size.y === Height)) {
+            if ((this._Png != null) && (this._Name === NameSize[0]) && (this._Size.x === Width) && (this._Size.y === Height)) {
                 return true;
             }
 
@@ -5388,11 +5380,11 @@ var CrtFont = (function () {
             CrtFont.ANSI_COLOURS[0] = 0x000000;
 
             this._Loading += 1;
-            this._NewCodePage = codePage;
+            this._NewName = font;
             this._NewSize = new Point(Width, Height);
 
             // Override colour for Atari clients
-            if (codePage.indexOf('Atari') === 0) {
+            if (font.indexOf('Atari') === 0) {
                 CrtFont.ANSI_COLOURS[7] = 0x63B6E7;
                 CrtFont.ANSI_COLOURS[0] = 0x005184;
             }
@@ -5404,11 +5396,19 @@ var CrtFont = (function () {
             this._Png.onerror = function () {
                 _this.OnPngError();
             };
-            this._Png.src = CrtFonts.GetLocalUrl(codePage, Width, Height);
+            this._Png.src = CrtFonts.GetLocalUrl(font, Width, Height);
 
             return true;
         }
     };
+
+    Object.defineProperty(CrtFont.prototype, "Name", {
+        get: function () {
+            return this._Name;
+        },
+        enumerable: true,
+        configurable: true
+    });
 
     CrtFont.prototype.OnPngError = function () {
         var _this = this;
@@ -5420,11 +5420,11 @@ var CrtFont = (function () {
         this._Png.onerror = function () {
             alert("fTelnet Error: Unable to load requested font");
         };
-        this._Png.src = CrtFonts.GetRemoteUrl(this._NewCodePage, this._NewSize.x, this._NewSize.y);
+        this._Png.src = CrtFonts.GetRemoteUrl(this._NewName, this._NewSize.x, this._NewSize.y);
     };
 
     CrtFont.prototype.OnPngLoad = function () {
-        this._CodePage = this._NewCodePage;
+        this._Name = this._NewName;
         this._Size = this._NewSize;
 
         // Reset Canvas
@@ -5482,11 +5482,11 @@ along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 var CrtFonts = (function () {
     function CrtFonts() {
     }
-    CrtFonts.GetBestFit = function (codePage, maxWidth, maxHeight) {
-        // Find keys for the given codepage
+    CrtFonts.GetBestFit = function (font, maxWidth, maxHeight) {
+        // Find keys for the given font
         var MatchingFonts = [];
         for (var i = 0; i < this._Fonts.length; i++) {
-            if (this._Fonts[i].indexOf(codePage + '_') === 0) {
+            if (this._Fonts[i].indexOf(font + '_') === 0) {
                 MatchingFonts.push(this._Fonts[i]);
             }
         }
