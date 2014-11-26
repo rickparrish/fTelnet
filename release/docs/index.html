@@ -96,7 +96,7 @@
             <code>
                 &lt;!-- CSS used to style the buttons/statusbar/keyboard/etc --><br />
                 &lt;link href="fTelnet/fTelnet.css" rel="stylesheet"><br />
-                &lt;link href="" rel="stylesheet" id="KEYBOARD_CSS">
+                &lt;link href="" rel="stylesheet" id="fTelnetKeyboardCss">
                 <br />
                 &lt;!-- Javascript used to power fTelnet --><br />
                 &lt;script src="fTelnet/fTelnet.js">&lt;/script><br />
@@ -105,7 +105,7 @@
             <code>
                 &lt;div id="fTelnetContainer">&lt;/div><br />
                 &lt;script><br />
-                &nbsp; &nbsp; fTelnet.Init("fTelnetContainer"); // NOTE that this string matches the id of the div we created above<br />
+                &nbsp; &nbsp; fTelnet.Init();
                 &lt;/script><br />
             </code>
             <p>That should now get you up and running.  Want a more complete example?  <a href="../demos/index.html">Check out the demos</a></p>

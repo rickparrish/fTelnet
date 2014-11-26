@@ -1,9 +1,14 @@
-﻿#fTelnetFocusWarning {
+﻿#fTelnetContainer canvas {
+    display: block;
+    margin: auto;
+}
+
+#fTelnetFocusWarning {
     background-color: red;
     color: white;
     font: 16px "Courier New", Courier, monospace;
     margin: auto;
-    padding: 5px 0;
+    padding: 5px;
 }
 
 #fTelnetScrollback {
@@ -11,7 +16,7 @@
     color: white;
     font: 16px "Courier New", Courier, monospace;
     margin: auto;
-    padding: 5px 0;
+    padding: 5px;
 }
 
     #fTelnetScrollback a {
@@ -24,7 +29,7 @@
     color: white;
     font: 16px "Courier New", Courier, monospace;
     margin: auto;
-    padding: 5px 0;
+    padding: 5px;
 }
 
     #fTelnetButtons a {
@@ -37,5 +42,5 @@
     color: white;
     font: 16px "Courier New", Courier, monospace;
     margin: auto;
-    padding: 5px 0;
+    padding: 5px;
 }

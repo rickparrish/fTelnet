@@ -79,6 +79,7 @@ class Crt {
     private static _Canvas: HTMLCanvasElement = null;
     private static _CanvasContext: CanvasRenderingContext2D = null;
     private static _CharInfo: CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
+    private static _Container: HTMLElement = null;
     private static _Cursor: Cursor = null;
     private static _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
     private static _Font: CrtFont = null;
@@ -86,7 +87,6 @@ class Crt {
     private static _KeyBuf: KeyPressEvent[] = [];
     private static _LastChar: number = 0x00;
     private static _LocalEcho: boolean = false;
-    private static _Parent: HTMLElement = null;
     private static _ScreenSize: Point = new Point(80, 25);
     private static _ScrollBack: CharInfo[][] = null;
     private static _ScrollBackPosition: number = -1;
@@ -95,8 +95,8 @@ class Crt {
     private static _WindMin: number = 0;
     private static _WindMax: number = (80 - 1) | ((25 - 1) << 8);
 
-    public static Init(parent: HTMLElement): boolean {
-        this._Parent = parent;
+    public static Init(container: HTMLElement): boolean {
+        this._Container = container;
 
         this._Font = new CrtFont();
         this._Font.onchange.add((): void => { this.OnFontChanged(); });
@@ -114,8 +114,8 @@ class Crt {
             return false;
         }
 
-        // Add crt to parent
-        parent.appendChild(this._Canvas);
+        // Add crt to container
+        this._Container.appendChild(this._Canvas);
 
         // Register keydown and keypress handlers
         window.addEventListener('keydown', (ke: KeyboardEvent): void => { this.OnKeyDown(ke); }, false); // For special keys
@@ -126,7 +126,7 @@ class Crt {
         this.InitBuffers(true);
 
         // Create the cursor
-        this._Cursor = new Cursor(parent, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
+        this._Cursor = new Cursor(this._Container, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
         this._Cursor.onhide.add((): void => { this.OnBlinkHide(); });
         this._Cursor.onshow.add((): void => { this.OnBlinkShow(); });
 
@@ -1082,7 +1082,7 @@ class Crt {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        return this._Font.Load(codePage, Math.floor(this._Parent.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        return this._Font.Load(codePage, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
     }
 
     // TODO Doesn't seem to be working

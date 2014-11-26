@@ -3,12 +3,12 @@
 <head>
     <title>fTelnet Test</title>
     <link href="ftelnet.css" rel="stylesheet" type="text/css" />
-    <link href="" rel="stylesheet" id="KEYBOARD_CSS">
+    <link href="" rel="stylesheet" id="fTelnetKeyboardCss">
 </head>
 <body>
     <h1 style="text-align: center">fTelnet Test</h1>
-    <div style="text-align: center;">
-        <div id="fTelnet-div"></div>
+    <div>
+        <div id="fTelnetContainer"></div>
     </div>
 
     <!-- Add support for WebSocket to IE9 -->
@@ -36,10 +36,7 @@
         fTelnet.Hostname = "bbs.ftelnet.ca";
         fTelnet.Port = 23;
         fTelnet.ProxyHostname = "proxy-us-ga.ftelnet.ca";
-
-        if (fTelnet.Init('fTelnet-div')) {
-            // TODO Auto connect?
-        }
+        fTelnet.Init();
     </script>
 
     <a href="#" onclick="Crt.SetScreenSize(85, 25);">Screen</a> | 

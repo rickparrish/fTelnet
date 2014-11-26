@@ -21,12 +21,12 @@ class fTelnet {
     // Private variables
     private static _ButtonBar: HTMLDivElement = null;
     private static _Connection: WebSocketConnection = null;
+    private static _Container: HTMLElement = null;
     private static _FocusWarningBar: HTMLDivElement = null;
     private static _HasFocus: boolean = true;
     private static _InitMessageBar: HTMLDivElement = null;
     private static _Keyboard: HTMLDivElement = null;
     private static _LastTimer: number = 0;
-    private static _Parent: HTMLElement = null;
     private static _ScrollbackBar: HTMLDivElement = null;
     private static _StatusBar: HTMLDivElement = null;
     private static _Timer: number = null;
@@ -50,19 +50,19 @@ class fTelnet {
     private static _ScreenRows: number = 25;
     private static _SplashScreen: string = 'G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==';
 
-    public static Init(parentId: string): boolean {
-        // Ensure we have our parent
-        if (document.getElementById(parentId) === null) {
-            alert('fTelnet Error: Element with id="' + parentId + '" was not found');
+    public static Init(): boolean {
+        // Ensure we have our container
+        if (document.getElementById('fTelnetContainer') === null) {
+            alert('fTelnet Error: Element with id="fTelnetContainer" was not found');
             return false;
         }
-        this._Parent = document.getElementById(parentId);
+        this._Container = document.getElementById('fTelnetContainer');
 
         // Add init message
         this._InitMessageBar = document.createElement('div');
         this._InitMessageBar.id = 'fTelnetInitMessage';
         this._InitMessageBar.innerHTML = 'Initializing fTelnet...';
-        this._Parent.appendChild(this._InitMessageBar);
+        this._Container.appendChild(this._InitMessageBar);
 
         // IE less than 9.0 will throw script errors and not even load
         if (navigator.appName === 'Microsoft Internet Explorer') {
@@ -80,10 +80,10 @@ class fTelnet {
         this._FocusWarningBar.id = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO GIVE fTelnet FOCUS ***';
         this._FocusWarningBar.style.display = 'none';
-        this._Parent.appendChild(this._FocusWarningBar);
+        this._Container.appendChild(this._FocusWarningBar);
 
         // Seup the crt window
-        if (Crt.Init(this._Parent)) {
+        if (Crt.Init(this._Container)) {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.add((): void => { this.OnCrtScreenSizeChanged(); });
@@ -128,27 +128,27 @@ class fTelnet {
             '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' +
             '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a>';
             this._ScrollbackBar.style.display = 'none';
-            this._Parent.appendChild(this._ScrollbackBar);
+            this._Container.appendChild(this._ScrollbackBar);
             // TODO Also have a span to hold the current line number
 
             // Create the button bar
             this._ButtonBar = document.createElement('div');
             this._ButtonBar.id = 'fTelnetButtons';
             this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' +
-            '<a href="#" onclick="fTelnet.Disconnect();">Disconnect</a> | ' +
+            '<a href="#" onclick="fTelnet.Disconnect(true);">Disconnect</a> | ' +
             '<a href="#" onclick="fTelnet.Download();">Download</a> | ' +
             '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' +
             '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a>';
-            this._Parent.appendChild(this._ButtonBar);
+            this._Container.appendChild(this._ButtonBar);
 
             // Create the status bar
             this._StatusBar = document.createElement('div');
             this._StatusBar.id = 'fTelnetStatusBar';
             this._StatusBar.innerHTML = 'Not connected';
-            this._Parent.appendChild(this._StatusBar);
+            this._Container.appendChild(this._StatusBar);
 
             // Create the virtual keyboard
-            this._Parent.appendChild(this.CreateKeyboard());
+            this._Container.appendChild(this.CreateKeyboard());
 
             // Size the scrollback and button divs
             this.OnCrtScreenSizeChanged();
@@ -168,7 +168,7 @@ class fTelnet {
         fTelnetUpload.id = 'fTelnetUpload';
         fTelnetUpload.onchange = (): void => { this.OnUploadFileSelected(); };
         fTelnetUpload.style.display = 'none';
-        this._Parent.appendChild(fTelnetUpload);
+        this._Container.appendChild(fTelnetUpload);
 
         return true;
     }
@@ -378,19 +378,21 @@ class fTelnet {
         return this._Keyboard;
     }
 
-    public static Disconnect(): void {
+    public static Disconnect(prompt: boolean): void {
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
 
-        this._Connection.onclose.remove();
-        this._Connection.onconnect.remove();
-        this._Connection.onioerror.remove();
-        this._Connection.onlocalecho.remove();
-        this._Connection.onsecurityerror.remove();
-        this._Connection.close();
-        this._Connection = null;
+        if (prompt && confirm('Are you sure you want to disconnect?')) {
+            this._Connection.onclose.remove();
+            this._Connection.onconnect.remove();
+            this._Connection.onioerror.remove();
+            this._Connection.onlocalecho.remove();
+            this._Connection.onsecurityerror.remove();
+            this._Connection.close();
+            this._Connection = null;
 
-        this.OnConnectionClose();
+            this.OnConnectionClose();
+        }
     }
 
     public static Download(): void {
@@ -501,10 +503,10 @@ class fTelnet {
     private static OnCrtScreenSizeChanged(): void {
         var NewWidth: number = Crt.ScreenCols * Crt.Font.Width;
 
-        if (this._FocusWarningBar != null) { this._FocusWarningBar.style.width = NewWidth + 'px'; }
-        if (this._ButtonBar != null) { this._ButtonBar.style.width = NewWidth + 'px'; }
-        if (this._ScrollbackBar != null) { this._ScrollbackBar.style.width = NewWidth + 'px'; }
-        if (this._StatusBar != null) { this._StatusBar.style.width = NewWidth + 'px'; }
+        if (this._FocusWarningBar != null) { this._FocusWarningBar.style.width = NewWidth - 10 + 'px'; }
+        if (this._ButtonBar != null) { this._ButtonBar.style.width = NewWidth - 10 + 'px'; }
+        if (this._ScrollbackBar != null) { this._ScrollbackBar.style.width = NewWidth - 10 + 'px'; }
+        if (this._StatusBar != null) { this._StatusBar.style.width = NewWidth - 10 + 'px'; }
 
         // Pick virtual keyboard width
         var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
@@ -512,7 +514,7 @@ class fTelnet {
         var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480];
         for (var i: number = 0; i < KeyboardSizes.length; i++) {
             if ((NewWidth >= KeyboardSizes[i]) || (i === (KeyboardSizes.length - 1))) {
-                (<HTMLLinkElement>document.getElementById('KEYBOARD_CSS')).href = CssUrl.replace('{size}', KeyboardSizes[i].toString(10));
+                (<HTMLLinkElement>document.getElementById('fTelnetKeyboardCss')).href = CssUrl.replace('{size}', KeyboardSizes[i].toString(10));
                 break;
             }
         }

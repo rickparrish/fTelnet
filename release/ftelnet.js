@@ -16,20 +16,20 @@ along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 var fTelnet = (function () {
     function fTelnet() {
     }
-    fTelnet.Init = function (parentId) {
+    fTelnet.Init = function () {
         var _this = this;
-        // Ensure we have our parent
-        if (document.getElementById(parentId) === null) {
-            alert('fTelnet Error: Element with id="' + parentId + '" was not found');
+        // Ensure we have our container
+        if (document.getElementById('fTelnetContainer') === null) {
+            alert('fTelnet Error: Element with id="fTelnetContainer" was not found');
             return false;
         }
-        this._Parent = document.getElementById(parentId);
+        this._Container = document.getElementById('fTelnetContainer');
 
         // Add init message
         this._InitMessageBar = document.createElement('div');
         this._InitMessageBar.id = 'fTelnetInitMessage';
         this._InitMessageBar.innerHTML = 'Initializing fTelnet...';
-        this._Parent.appendChild(this._InitMessageBar);
+        this._Container.appendChild(this._InitMessageBar);
 
         // IE less than 9.0 will throw script errors and not even load
         if (navigator.appName === 'Microsoft Internet Explorer') {
@@ -49,10 +49,10 @@ var fTelnet = (function () {
         this._FocusWarningBar.id = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO GIVE fTelnet FOCUS ***';
         this._FocusWarningBar.style.display = 'none';
-        this._Parent.appendChild(this._FocusWarningBar);
+        this._Container.appendChild(this._FocusWarningBar);
 
         // Seup the crt window
-        if (Crt.Init(this._Parent)) {
+        if (Crt.Init(this._Container)) {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.add(function () {
@@ -105,23 +105,23 @@ var fTelnet = (function () {
             this._ScrollbackBar.id = 'fTelnetScrollback';
             this._ScrollbackBar.innerHTML = '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false);">Page Up</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a>';
             this._ScrollbackBar.style.display = 'none';
-            this._Parent.appendChild(this._ScrollbackBar);
+            this._Container.appendChild(this._ScrollbackBar);
 
             // TODO Also have a span to hold the current line number
             // Create the button bar
             this._ButtonBar = document.createElement('div');
             this._ButtonBar.id = 'fTelnetButtons';
-            this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' + '<a href="#" onclick="fTelnet.Disconnect();">Disconnect</a> | ' + '<a href="#" onclick="fTelnet.Download();">Download</a> | ' + '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' + '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a>';
-            this._Parent.appendChild(this._ButtonBar);
+            this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' + '<a href="#" onclick="fTelnet.Disconnect(true);">Disconnect</a> | ' + '<a href="#" onclick="fTelnet.Download();">Download</a> | ' + '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' + '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a>';
+            this._Container.appendChild(this._ButtonBar);
 
             // Create the status bar
             this._StatusBar = document.createElement('div');
             this._StatusBar.id = 'fTelnetStatusBar';
             this._StatusBar.innerHTML = 'Not connected';
-            this._Parent.appendChild(this._StatusBar);
+            this._Container.appendChild(this._StatusBar);
 
             // Create the virtual keyboard
-            this._Parent.appendChild(this.CreateKeyboard());
+            this._Container.appendChild(this.CreateKeyboard());
 
             // Size the scrollback and button divs
             this.OnCrtScreenSizeChanged();
@@ -145,7 +145,7 @@ var fTelnet = (function () {
             _this.OnUploadFileSelected();
         };
         fTelnetUpload.style.display = 'none';
-        this._Parent.appendChild(fTelnetUpload);
+        this._Container.appendChild(fTelnetUpload);
 
         return true;
     };
@@ -393,7 +393,7 @@ var fTelnet = (function () {
         return this._Keyboard;
     };
 
-    fTelnet.Disconnect = function () {
+    fTelnet.Disconnect = function (prompt) {
         if (this._Connection === null) {
             return;
         }
@@ -401,15 +401,17 @@ var fTelnet = (function () {
             return;
         }
 
-        this._Connection.onclose.remove();
-        this._Connection.onconnect.remove();
-        this._Connection.onioerror.remove();
-        this._Connection.onlocalecho.remove();
-        this._Connection.onsecurityerror.remove();
-        this._Connection.close();
-        this._Connection = null;
+        if (prompt && confirm('Are you sure you want to disconnect?')) {
+            this._Connection.onclose.remove();
+            this._Connection.onconnect.remove();
+            this._Connection.onioerror.remove();
+            this._Connection.onlocalecho.remove();
+            this._Connection.onsecurityerror.remove();
+            this._Connection.close();
+            this._Connection = null;
 
-        this.OnConnectionClose();
+            this.OnConnectionClose();
+        }
     };
 
     fTelnet.Download = function () {
@@ -540,16 +542,16 @@ var fTelnet = (function () {
         var NewWidth = Crt.ScreenCols * Crt.Font.Width;
 
         if (this._FocusWarningBar != null) {
-            this._FocusWarningBar.style.width = NewWidth + 'px';
+            this._FocusWarningBar.style.width = NewWidth - 10 + 'px';
         }
         if (this._ButtonBar != null) {
-            this._ButtonBar.style.width = NewWidth + 'px';
+            this._ButtonBar.style.width = NewWidth - 10 + 'px';
         }
         if (this._ScrollbackBar != null) {
-            this._ScrollbackBar.style.width = NewWidth + 'px';
+            this._ScrollbackBar.style.width = NewWidth - 10 + 'px';
         }
         if (this._StatusBar != null) {
-            this._StatusBar.style.width = NewWidth + 'px';
+            this._StatusBar.style.width = NewWidth - 10 + 'px';
         }
 
         // Pick virtual keyboard width
@@ -558,7 +560,7 @@ var fTelnet = (function () {
         var KeyboardSizes = [960, 800, 720, 640, 560, 480];
         for (var i = 0; i < KeyboardSizes.length; i++) {
             if ((NewWidth >= KeyboardSizes[i]) || (i === (KeyboardSizes.length - 1))) {
-                document.getElementById('KEYBOARD_CSS').href = CssUrl.replace('{size}', KeyboardSizes[i].toString(10));
+                document.getElementById('fTelnetKeyboardCss').href = CssUrl.replace('{size}', KeyboardSizes[i].toString(10));
                 break;
             }
         }
@@ -762,12 +764,12 @@ var fTelnet = (function () {
     };
     fTelnet._ButtonBar = null;
     fTelnet._Connection = null;
+    fTelnet._Container = null;
     fTelnet._FocusWarningBar = null;
     fTelnet._HasFocus = true;
     fTelnet._InitMessageBar = null;
     fTelnet._Keyboard = null;
     fTelnet._LastTimer = 0;
-    fTelnet._Parent = null;
     fTelnet._ScrollbackBar = null;
     fTelnet._StatusBar = null;
     fTelnet._Timer = null;
@@ -2993,9 +2995,9 @@ along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 var Crt = (function () {
     function Crt() {
     }
-    Crt.Init = function (parent) {
+    Crt.Init = function (container) {
         var _this = this;
-        this._Parent = parent;
+        this._Container = container;
 
         this._Font = new CrtFont();
         this._Font.onchange.add(function () {
@@ -3015,8 +3017,8 @@ var Crt = (function () {
             return false;
         }
 
-        // Add crt to parent
-        parent.appendChild(this._Canvas);
+        // Add crt to container
+        this._Container.appendChild(this._Canvas);
 
         // Register keydown and keypress handlers
         window.addEventListener('keydown', function (ke) {
@@ -3033,7 +3035,7 @@ var Crt = (function () {
         this.InitBuffers(true);
 
         // Create the cursor
-        this._Cursor = new Cursor(parent, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
+        this._Cursor = new Cursor(this._Container, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
         this._Cursor.onhide.add(function () {
             _this.OnBlinkHide();
         });
@@ -4178,7 +4180,7 @@ var Crt = (function () {
         /// <param name='AY'>The vertical size</param>
         /// <returns>True if the size was found and set, False if the size was not available</returns>
         // Request the new font
-        return this._Font.Load(codePage, Math.floor(this._Parent.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        return this._Font.Load(codePage, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
     };
 
     // TODO Doesn't seem to be working
@@ -5035,6 +5037,7 @@ var Crt = (function () {
     Crt._Canvas = null;
     Crt._CanvasContext = null;
     Crt._CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
+    Crt._Container = null;
     Crt._Cursor = null;
     Crt._FlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
     Crt._Font = null;
@@ -5042,7 +5045,6 @@ var Crt = (function () {
     Crt._KeyBuf = [];
     Crt._LastChar = 0x00;
     Crt._LocalEcho = false;
-    Crt._Parent = null;
     Crt._ScreenSize = new Point(80, 25);
     Crt._ScrollBack = null;
     Crt._ScrollBackPosition = -1;
