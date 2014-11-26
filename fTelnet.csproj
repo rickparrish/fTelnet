@@ -24,6 +24,7 @@
     <Content Include="release\ftelnet.css" />
     <Content Include="release\index.html" />
     <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
+    <Content Include="source\randm\crt\font\CrtFonts.txt" />
     <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
     <Content Include="source\randm\crt\font\PNG\437-12x23.png" />
     <Content Include="source\randm\crt\font\PNG\437-6x8.png" />
@@ -130,6 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="release\demos\" />
+    <Folder Include="release\fonts\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>

@@ -37,7 +37,7 @@ class fTelnet {
     private static _BareLFtoCRLF: boolean = false;
     private static _BitsPerSecond: number = 57600;
     private static _Blink: boolean = true;
-    private static _CodePage: string = '437';
+    private static _CodePage: string = 'CP437';
     private static _ConnectionType: string = 'telnet';
     private static _Enter: string = '\r';
     private static _Hostname: string = 'bbs.ftelnet.ca';
@@ -503,6 +503,7 @@ class fTelnet {
     private static OnCrtScreenSizeChanged(): void {
         var NewWidth: number = Crt.ScreenCols * Crt.Font.Width;
 
+        // TODO -10 is 5px of left and right padding -- would be good if this wasn't hardcoded since it can be customized in the .css
         if (this._FocusWarningBar != null) { this._FocusWarningBar.style.width = NewWidth - 10 + 'px'; }
         if (this._ButtonBar != null) { this._ButtonBar.style.width = NewWidth - 10 + 'px'; }
         if (this._ScrollbackBar != null) { this._ScrollbackBar.style.width = NewWidth - 10 + 'px'; }
