@@ -5361,18 +5361,13 @@ var CrtFont = (function () {
     CrtFont.prototype.Load = function (font, maxWidth, maxHeight) {
         var _this = this;
         // Find the biggest instance of the given font
-        var FontName = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
-        if (FontName === null) {
+        var BestFit = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
+        if (BestFit === null) {
             console.log('fTelnet Error: Font CP=' + font + ' does not exist');
             return false;
         } else {
-            var NameSize = FontName.split('_');
-            var WidthHeight = NameSize[1].split('x');
-            var Width = parseInt(WidthHeight[0], 10);
-            var Height = parseInt(WidthHeight[1], 10);
-
             // Check if we're requesting the same font we already have
-            if ((this._Png != null) && (this._Name === NameSize[0]) && (this._Size.x === Width) && (this._Size.y === Height)) {
+            if ((this._Png != null) && (this._Name === font) && (this._Size.x === BestFit.x) && (this._Size.y === BestFit.y)) {
                 return true;
             }
 
@@ -5381,7 +5376,7 @@ var CrtFont = (function () {
 
             this._Loading += 1;
             this._NewName = font;
-            this._NewSize = new Point(Width, Height);
+            this._NewSize = new Point(BestFit.x, BestFit.y);
 
             // Override colour for Atari clients
             if (font.indexOf('Atari') === 0) {
@@ -5396,7 +5391,7 @@ var CrtFont = (function () {
             this._Png.onerror = function () {
                 _this.OnPngError();
             };
-            this._Png.src = CrtFonts.GetLocalUrl(font, Width, Height);
+            this._Png.src = CrtFonts.GetLocalUrl(font, this._NewSize.x, this._NewSize.y);
 
             return true;
         }
@@ -5413,12 +5408,12 @@ var CrtFont = (function () {
     CrtFont.prototype.OnPngError = function () {
         var _this = this;
         this._Png = new Image();
-        this._Png.crossOrigin = "Anonymous";
+        this._Png.crossOrigin = 'Anonymous';
         this._Png.onload = function () {
             _this.OnPngLoad();
         };
         this._Png.onerror = function () {
-            alert("fTelnet Error: Unable to load requested font");
+            alert('fTelnet Error: Unable to load requested font');
         };
         this._Png.src = CrtFonts.GetRemoteUrl(this._NewName, this._NewSize.x, this._NewSize.y);
     };
@@ -5483,33 +5478,22 @@ var CrtFonts = (function () {
     function CrtFonts() {
     }
     CrtFonts.GetBestFit = function (font, maxWidth, maxHeight) {
-        // Find keys for the given font
-        var MatchingFonts = [];
-        for (var i = 0; i < this._Fonts.length; i++) {
-            if (this._Fonts[i].indexOf(font + '_') === 0) {
-                MatchingFonts.push(this._Fonts[i]);
-            }
-        }
-
         // Check how many matches we found
-        if (MatchingFonts.length === 0) {
+        if (typeof this._Fonts[font] === 'undefined') {
             // None, it's not a valid font
             return null;
-        } else if (MatchingFonts.length === 1) {
+        } else if (this._Fonts[font].length === 1) {
             // One, so return it
-            return MatchingFonts[0];
+            return this._Fonts[font][0];
         } else {
-            for (var i = 0; i < MatchingFonts.length; i++) {
-                var NameSize = MatchingFonts[i].split('_');
-                var WidthHeight = NameSize[1].split('x');
-                if ((parseInt(WidthHeight[0], 10) <= maxWidth) && (parseInt(WidthHeight[1], 10) <= maxHeight)) {
-                    return MatchingFonts[i];
+            for (var i = 0; i < this._Fonts[font].length; i++) {
+                if ((this._Fonts[font][i].x <= maxWidth) && (this._Fonts[font][i].y <= maxHeight)) {
+                    return this._Fonts[font][i];
                 }
             }
 
             // If we get here, nothing matched, so return the smallest match
-            // TODO Need to handle the font list being out of order (not biggest to smallest)
-            return MatchingFonts[MatchingFonts.length - 1];
+            return this._Fonts[font][this._Fonts[font].length - 1];
         }
     };
 
@@ -5523,152 +5507,35 @@ var CrtFonts = (function () {
         var PngUrl = 'http://embed.ftelnet.ca/fTelnet/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png';
         return PngUrl;
     };
-    CrtFonts._Fonts = [
-        'Amiga-BStrict_8x8',
-        'Amiga-BStruct_8x8',
-        'Amiga-MicroKnight_8x16',
-        'Amiga-MicroKnight_8x8',
-        'Amiga-MoSoul_8x16',
-        'Amiga-MoSoul_8x8',
-        'Amiga-PotNoodle_8x11',
-        'Amiga-PotNoodle_8x16',
-        'Amiga-TopazPlus_8x11',
-        'Amiga-Topaz_8x11',
-        'Amiga-Topaz_8x16',
-        'Atari-Arabic_16x16',
-        'Atari-Arabic_8x16',
-        'Atari-Graphics_16x16',
-        'Atari-Graphics_8x16',
-        'Atari-Graphics_8x8',
-        'Atari-International_16x16',
-        'Atari-International_8x16',
-        'C128-Lower_8x16',
-        'C128-Upper_8x16',
-        'C128-Upper_8x8',
-        'C128_Lower_8x8',
-        'C64-Lower_16x16',
-        'C64-Lower_8x16',
-        'C64-Lower_8x8',
-        'C64-Upper_16x16',
-        'C64-Upper_8x16',
-        'C64-Upper_8x8',
-        'CP437_10x19',
-        'CP437_12x23',
-        'CP437_6x8',
-        'CP437_7x12',
-        'CP437_8x12',
-        'CP437_8x13',
-        'CP437_8x14',
-        'CP437_8x16',
-        'CP437_8x8',
-        'CP437_9x16',
-        'CP737_12x23',
-        'CP737_9x16',
-        'CP775_9x16',
-        'CP850_10x19',
-        'CP850_12x23',
-        'CP850_8x13',
-        'CP850_9x16',
-        'CP852_10x19',
-        'CP852_12x23',
-        'CP852_9x16',
-        'CP855_9x16',
-        'CP857_9x16',
-        'CP860_9x16',
-        'CP861_9x16',
-        'CP862_10x19',
-        'CP863_9x16',
-        'CP865_10x19',
-        'CP865_12x23',
-        'CP865_8x13',
-        'CP865_9x16',
-        'CP866_9x16',
-        'CP869_9x16',
-        'SyncTerm-0_8x14',
-        'SyncTerm-0_8x16',
-        'SyncTerm-0_8x8',
-        'SyncTerm-10_8x16',
-        'SyncTerm-11_8x14',
-        'SyncTerm-11_8x16',
-        'SyncTerm-11_8x8',
-        'SyncTerm-12_8x16',
-        'SyncTerm-13_8x16',
-        'SyncTerm-14_8x14',
-        'SyncTerm-14_8x16',
-        'SyncTerm-14_8x8',
-        'SyncTerm-15_8x14',
-        'SyncTerm-15_8x16',
-        'SyncTerm-15_8x8',
-        'SyncTerm-16_8x14',
-        'SyncTerm-16_8x16',
-        'SyncTerm-16_8x8',
-        'SyncTerm-17_8x16',
-        'SyncTerm-17_8x8',
-        'SyncTerm-18_8x14',
-        'SyncTerm-18_8x16',
-        'SyncTerm-18_8x8',
-        'SyncTerm-19_8x16',
-        'SyncTerm-19_8x8',
-        'SyncTerm-1_8x16',
-        'SyncTerm-20_8x14',
-        'SyncTerm-20_8x16',
-        'SyncTerm-20_8x8',
-        'SyncTerm-21_8x14',
-        'SyncTerm-21_8x16',
-        'SyncTerm-21_8x8',
-        'SyncTerm-22_8x16',
-        'SyncTerm-23_8x14',
-        'SyncTerm-23_8x16',
-        'SyncTerm-23_8x8',
-        'SyncTerm-24_8x14',
-        'SyncTerm-24_8x16',
-        'SyncTerm-24_8x8',
-        'SyncTerm-25_8x14',
-        'SyncTerm-25_8x16',
-        'SyncTerm-25_8x8',
-        'SyncTerm-26_8x16',
-        'SyncTerm-26_8x8',
-        'SyncTerm-27_8x16',
-        'SyncTerm-28_8x14',
-        'SyncTerm-28_8x16',
-        'SyncTerm-28_8x8',
-        'SyncTerm-29_8x14',
-        'SyncTerm-29_8x16',
-        'SyncTerm-29_8x8',
-        'SyncTerm-2_8x14',
-        'SyncTerm-2_8x16',
-        'SyncTerm-2_8x8',
-        'SyncTerm-30_8x16',
-        'SyncTerm-31_8x16',
-        'SyncTerm-32_8x16',
-        'SyncTerm-32_8x8',
-        'SyncTerm-33_8x16',
-        'SyncTerm-33_8x8',
-        'SyncTerm-34_8x16',
-        'SyncTerm-34_8x8',
-        'SyncTerm-35_8x16',
-        'SyncTerm-35_8x8',
-        'SyncTerm-36_8x16',
-        'SyncTerm-36_8x8',
-        'SyncTerm-37_8x16',
-        'SyncTerm-38_8x16',
-        'SyncTerm-39_8x16',
-        'SyncTerm-3_8x14',
-        'SyncTerm-3_8x16',
-        'SyncTerm-3_8x8',
-        'SyncTerm-40_8x16',
-        'SyncTerm-4_8x16',
-        'SyncTerm-5_8x16',
-        'SyncTerm-6_8x16',
-        'SyncTerm-7_8x14',
-        'SyncTerm-7_8x16',
-        'SyncTerm-7_8x8',
-        'SyncTerm-8_8x14',
-        'SyncTerm-8_8x16',
-        'SyncTerm-8_8x8',
-        'SyncTerm-9_8x14',
-        'SyncTerm-9_8x16',
-        'SyncTerm-9_8x8'];
+    CrtFonts._Fonts = [];
+
+    CrtFonts.__ctor = (function () {
+        var FontNames = ['Amiga-BStrict_8x8', 'Amiga-BStruct_8x8', 'Amiga-MicroKnight_8x16', 'Amiga-MicroKnight_8x8', 'Amiga-MoSoul_8x16', 'Amiga-MoSoul_8x8', 'Amiga-PotNoodle_8x11', 'Amiga-PotNoodle_8x16', 'Amiga-TopazPlus_8x11', 'Amiga-Topaz_8x11', 'Amiga-Topaz_8x16', 'Atari-Arabic_16x16', 'Atari-Arabic_8x16', 'Atari-Graphics_16x16', 'Atari-Graphics_8x16', 'Atari-Graphics_8x8', 'Atari-International_16x16', 'Atari-International_8x16', 'C128-Lower_8x16', 'C128-Upper_8x16', 'C128-Upper_8x8', 'C128_Lower_8x8', 'C64-Lower_16x16', 'C64-Lower_8x16', 'C64-Lower_8x8', 'C64-Upper_16x16', 'C64-Upper_8x16', 'C64-Upper_8x8', 'CP437_10x19', 'CP437_12x23', 'CP437_6x8', 'CP437_7x12', 'CP437_8x12', 'CP437_8x13', 'CP437_8x14', 'CP437_8x16', 'CP437_8x8', 'CP437_9x16', 'CP737_12x23', 'CP737_9x16', 'CP775_9x16', 'CP850_10x19', 'CP850_12x23', 'CP850_8x13', 'CP850_9x16', 'CP852_10x19', 'CP852_12x23', 'CP852_9x16', 'CP855_9x16', 'CP857_9x16', 'CP860_9x16', 'CP861_9x16', 'CP862_10x19', 'CP863_9x16', 'CP865_10x19', 'CP865_12x23', 'CP865_8x13', 'CP865_9x16', 'CP866_9x16', 'CP869_9x16', 'SyncTerm-0_8x14', 'SyncTerm-0_8x16', 'SyncTerm-0_8x8', 'SyncTerm-10_8x16', 'SyncTerm-11_8x14', 'SyncTerm-11_8x16', 'SyncTerm-11_8x8', 'SyncTerm-12_8x16', 'SyncTerm-13_8x16', 'SyncTerm-14_8x14', 'SyncTerm-14_8x16', 'SyncTerm-14_8x8', 'SyncTerm-15_8x14', 'SyncTerm-15_8x16', 'SyncTerm-15_8x8', 'SyncTerm-16_8x14', 'SyncTerm-16_8x16', 'SyncTerm-16_8x8', 'SyncTerm-17_8x16', 'SyncTerm-17_8x8', 'SyncTerm-18_8x14', 'SyncTerm-18_8x16', 'SyncTerm-18_8x8', 'SyncTerm-19_8x16', 'SyncTerm-19_8x8', 'SyncTerm-1_8x16', 'SyncTerm-20_8x14', 'SyncTerm-20_8x16', 'SyncTerm-20_8x8', 'SyncTerm-21_8x14', 'SyncTerm-21_8x16', 'SyncTerm-21_8x8', 'SyncTerm-22_8x16', 'SyncTerm-23_8x14', 'SyncTerm-23_8x16', 'SyncTerm-23_8x8', 'SyncTerm-24_8x14', 'SyncTerm-24_8x16', 'SyncTerm-24_8x8', 'SyncTerm-25_8x14', 'SyncTerm-25_8x16', 'SyncTerm-25_8x8', 'SyncTerm-26_8x16', 'SyncTerm-26_8x8', 'SyncTerm-27_8x16', 'SyncTerm-28_8x14', 'SyncTerm-28_8x16', 'SyncTerm-28_8x8', 'SyncTerm-29_8x14', 'SyncTerm-29_8x16', 'SyncTerm-29_8x8', 'SyncTerm-2_8x14', 'SyncTerm-2_8x16', 'SyncTerm-2_8x8', 'SyncTerm-30_8x16', 'SyncTerm-31_8x16', 'SyncTerm-32_8x16', 'SyncTerm-32_8x8', 'SyncTerm-33_8x16', 'SyncTerm-33_8x8', 'SyncTerm-34_8x16', 'SyncTerm-34_8x8', 'SyncTerm-35_8x16', 'SyncTerm-35_8x8', 'SyncTerm-36_8x16', 'SyncTerm-36_8x8', 'SyncTerm-37_8x16', 'SyncTerm-38_8x16', 'SyncTerm-39_8x16', 'SyncTerm-3_8x14', 'SyncTerm-3_8x16', 'SyncTerm-3_8x8', 'SyncTerm-40_8x16', 'SyncTerm-4_8x16', 'SyncTerm-5_8x16', 'SyncTerm-6_8x16', 'SyncTerm-7_8x14', 'SyncTerm-7_8x16', 'SyncTerm-7_8x8', 'SyncTerm-8_8x14', 'SyncTerm-8_8x16', 'SyncTerm-8_8x8', 'SyncTerm-9_8x14', 'SyncTerm-9_8x16', 'SyncTerm-9_8x8'];
+        for (var i = 0; i < FontNames.length; i++) {
+            var NameSize = FontNames[i].split('_');
+            var WidthHeight = NameSize[1].split('x');
+            var Width = parseInt(WidthHeight[0], 10);
+            var Height = parseInt(WidthHeight[1], 10);
+
+            // Check if it's a new font and add it if it is
+            if (typeof CrtFonts._Fonts[NameSize[0]] === 'undefined') {
+                CrtFonts._Fonts[NameSize[0]] = [];
+            }
+
+            // Push the new size into the array
+            CrtFonts._Fonts[NameSize[0]].push(new Point(Width, Height));
+        }
+
+        for (var key in CrtFonts._Fonts) {
+            CrtFonts._Fonts[key].sort(function (a, b) {
+                if (b.x - a.x === 0) {
+                    return b.y - a.y;
+                } else {
+                    return b.x - a.x;
+                }
+            });
+        }
+    })();
     return CrtFonts;
 })();
 /*

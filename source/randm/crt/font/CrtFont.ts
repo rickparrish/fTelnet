@@ -147,18 +147,13 @@ class CrtFont {
 
     public Load(font: string, maxWidth: number, maxHeight: number): boolean {
         // Find the biggest instance of the given font
-        var FontName: string = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
-        if (FontName === null) {
+        var BestFit: Point = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
+        if (BestFit === null) {
             console.log('fTelnet Error: Font CP=' + font + ' does not exist');
             return false;
         } else {
-            var NameSize: string[] = FontName.split('_');
-            var WidthHeight: string[] = NameSize[1].split('x');
-            var Width: number = parseInt(WidthHeight[0], 10);
-            var Height: number = parseInt(WidthHeight[1], 10);
-
             // Check if we're requesting the same font we already have
-            if ((this._Png != null) && (this._Name === NameSize[0]) && (this._Size.x === Width) && (this._Size.y === Height)) {
+            if ((this._Png != null) && (this._Name === font) && (this._Size.x === BestFit.x) && (this._Size.y === BestFit.y)) {
                 return true;
             }
 
@@ -167,7 +162,7 @@ class CrtFont {
 
             this._Loading += 1;
             this._NewName = font;
-            this._NewSize = new Point(Width, Height);
+            this._NewSize = new Point(BestFit.x, BestFit.y);
 
             // Override colour for Atari clients
             if (font.indexOf('Atari') === 0) {
@@ -178,7 +173,7 @@ class CrtFont {
             this._Png = new Image();
             this._Png.onload = (): void => { this.OnPngLoad(); };
             this._Png.onerror = (): void => { this.OnPngError(); };
-            this._Png.src = CrtFonts.GetLocalUrl(font, Width, Height);
+            this._Png.src = CrtFonts.GetLocalUrl(font, this._NewSize.x, this._NewSize.y);
 
             return true;
         }
@@ -190,10 +185,10 @@ class CrtFont {
 
     private OnPngError(): void {
         this._Png = new Image();
-        this._Png.crossOrigin = "Anonymous";
+        this._Png.crossOrigin = 'Anonymous';
         this._Png.onload = (): void => { this.OnPngLoad(); };
         this._Png.onerror = (): void => {
-            alert("fTelnet Error: Unable to load requested font");
+            alert('fTelnet Error: Unable to load requested font');
         };
         this._Png.src = CrtFonts.GetRemoteUrl(this._NewName, this._NewSize.x, this._NewSize.y);
     }
