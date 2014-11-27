@@ -24,53 +24,6 @@
     <Content Include="release\ftelnet.css" />
     <Content Include="release\index.html" />
     <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
-    <Content Include="source\randm\crt\font\CrtFonts.txt" />
-    <Content Include="source\randm\crt\font\PNG\437-10x19.png" />
-    <Content Include="source\randm\crt\font\PNG\437-12x23.png" />
-    <Content Include="source\randm\crt\font\PNG\437-6x8.png" />
-    <Content Include="source\randm\crt\font\PNG\437-7x12.png" />
-    <Content Include="source\randm\crt\font\PNG\437-8x12.png" />
-    <Content Include="source\randm\crt\font\PNG\437-8x13.png" />
-    <Content Include="source\randm\crt\font\PNG\437-8x14.png" />
-    <Content Include="source\randm\crt\font\PNG\437-8x8.png" />
-    <Content Include="source\randm\crt\font\PNG\437-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\737-12x23.png" />
-    <Content Include="source\randm\crt\font\PNG\737-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\775-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\850-10x19.png" />
-    <Content Include="source\randm\crt\font\PNG\850-12x23.png" />
-    <Content Include="source\randm\crt\font\PNG\850-8x13.png" />
-    <Content Include="source\randm\crt\font\PNG\850-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\852-10x19.png" />
-    <Content Include="source\randm\crt\font\PNG\852-12x23.png" />
-    <Content Include="source\randm\crt\font\PNG\852-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\855-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\857-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\860-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\861-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\862-10x19.png" />
-    <Content Include="source\randm\crt\font\PNG\863-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\865-10x19.png" />
-    <Content Include="source\randm\crt\font\PNG\865-12x23.png" />
-    <Content Include="source\randm\crt\font\PNG\865-8x13.png" />
-    <Content Include="source\randm\crt\font\PNG\865-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\866-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\869-9x16.png" />
-    <Content Include="source\randm\crt\font\PNG\ATASCII-Arabic-16x16.png" />
-    <Content Include="source\randm\crt\font\PNG\ATASCII-Arabic-HalfWidth-8x16.png" />
-    <Content Include="source\randm\crt\font\PNG\ATASCII-Graphics-16x16.png" />
-    <Content Include="source\randm\crt\font\PNG\ATASCII-Graphics-HalfWidth-8x16.png" />
-    <Content Include="source\randm\crt\font\PNG\ATASCII-International-16x16.png" />
-    <Content Include="source\randm\crt\font\PNG\ATASCII-International-HalfWidth-8x16.png" />
-    <Content Include="source\randm\crt\font\PNG\BStrict-8x8.png" />
-    <Content Include="source\randm\crt\font\PNG\BStruct-8x8.png" />
-    <Content Include="source\randm\crt\font\PNG\MicroKnight-8x8.png" />
-    <Content Include="source\randm\crt\font\PNG\MoSoul-8x8.png" />
-    <Content Include="source\randm\crt\font\PNG\PETSCII-Lower-16x16.png" />
-    <Content Include="source\randm\crt\font\PNG\PETSCII-Upper-16x16.png" />
-    <Content Include="source\randm\crt\font\PNG\PotNoodle-8x11.png" />
-    <Content Include="source\randm\crt\font\PNG\Topaz-8x11.png" />
-    <Content Include="source\randm\crt\font\PNG\TopazPlus-8x11.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-16x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-7x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-7x8.png" />
@@ -130,8 +83,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="release\demos\" />
     <Folder Include="release\fonts\" />
+    <Folder Include="source\randm\crt\font\PNG\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>

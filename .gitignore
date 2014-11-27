@@ -1,3 +1,8 @@
+release/keyboard/*.css.map
+release/Blob.js
+release/FileSaver.js
+release/*.js.map
+
 # User-specific files
 *.suo
 *.user

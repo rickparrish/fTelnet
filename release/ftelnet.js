@@ -1,4 +1,80 @@
-﻿/*
+﻿// From: Unknown, forgot to save the url!
+// Base64 utility methods
+// Needed for: IE9-
+(function () {
+    if ('atob' in window && 'btoa' in window) {
+        return;
+    }
+
+    var B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    function atob(input) {
+        input = String(input);
+        var position = 0, output = [], buffer = 0, bits = 0, n;
+        input = input.replace(/\s/g, '');
+        if ((input.length % 4) === 0) {
+            input = input.replace(/=+$/, '');
+        }
+        if ((input.length % 4) === 1) {
+            throw Error('InvalidCharacterError');
+        }
+        if (/[^+/0-9A-Za-z]/.test(input)) {
+            throw Error('InvalidCharacterError');
+        }
+        while (position < input.length) {
+            n = B64_ALPHABET.indexOf(input.charAt(position));
+            buffer = (buffer << 6) | n;
+            bits += 6;
+            if (bits === 24) {
+                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
+                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+                output.push(String.fromCharCode(buffer & 0xFF));
+                bits = 0;
+                buffer = 0;
+            }
+            position += 1;
+        }
+        if (bits === 12) {
+            buffer = buffer >> 4;
+            output.push(String.fromCharCode(buffer & 0xFF));
+        } else if (bits === 18) {
+            buffer = buffer >> 2;
+            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+            output.push(String.fromCharCode(buffer & 0xFF));
+        }
+        return output.join('');
+    }
+    ;
+    function btoa(input) {
+        input = String(input);
+        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
+        if (/[^\x00-\xFF]/.test(input)) {
+            throw Error('InvalidCharacterError');
+        }
+        while (position < input.length) {
+            o1 = input.charCodeAt(position++);
+            o2 = input.charCodeAt(position++);
+            o3 = input.charCodeAt(position++);
+
+            // 111111 112222 222233 333333
+            e1 = o1 >> 2;
+            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
+            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
+            e4 = o3 & 0x3f;
+            if (position === input.length + 2) {
+                e3 = 64;
+                e4 = 64;
+            } else if (position === input.length + 1) {
+                e4 = 64;
+            }
+            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
+        }
+        return out.join('');
+    }
+    ;
+    window.atob = atob;
+    window.btoa = btoa;
+}());
+/*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
@@ -799,125 +875,6 @@ var fTelnet = (function () {
 // Incorporate Blob.js and FileSaver.js (and any other 3rd party .js) into ftelnet.js
 // Add virtual keyboard and button bar button to toggle
 // Add button to toggle full screen
-// From: Unknown, forgot to save the url!
-// Base64 utility methods
-// Needed for: IE9-
-(function () {
-    if ('atob' in window && 'btoa' in window) {
-        return;
-    }
-
-    var B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    function atob(input) {
-        input = String(input);
-        var position = 0, output = [], buffer = 0, bits = 0, n;
-        input = input.replace(/\s/g, '');
-        if ((input.length % 4) === 0) {
-            input = input.replace(/=+$/, '');
-        }
-        if ((input.length % 4) === 1) {
-            throw Error('InvalidCharacterError');
-        }
-        if (/[^+/0-9A-Za-z]/.test(input)) {
-            throw Error('InvalidCharacterError');
-        }
-        while (position < input.length) {
-            n = B64_ALPHABET.indexOf(input.charAt(position));
-            buffer = (buffer << 6) | n;
-            bits += 6;
-            if (bits === 24) {
-                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
-                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
-                output.push(String.fromCharCode(buffer & 0xFF));
-                bits = 0;
-                buffer = 0;
-            }
-            position += 1;
-        }
-        if (bits === 12) {
-            buffer = buffer >> 4;
-            output.push(String.fromCharCode(buffer & 0xFF));
-        } else if (bits === 18) {
-            buffer = buffer >> 2;
-            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
-            output.push(String.fromCharCode(buffer & 0xFF));
-        }
-        return output.join('');
-    }
-    ;
-    function btoa(input) {
-        input = String(input);
-        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
-        if (/[^\x00-\xFF]/.test(input)) {
-            throw Error('InvalidCharacterError');
-        }
-        while (position < input.length) {
-            o1 = input.charCodeAt(position++);
-            o2 = input.charCodeAt(position++);
-            o3 = input.charCodeAt(position++);
-
-            // 111111 112222 222233 333333
-            e1 = o1 >> 2;
-            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
-            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
-            e4 = o3 & 0x3f;
-            if (position === input.length + 2) {
-                e3 = 64;
-                e4 = 64;
-            } else if (position === input.length + 1) {
-                e4 = 64;
-            }
-            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
-        }
-        return out.join('');
-    }
-    ;
-    window.atob = atob;
-    window.btoa = btoa;
-}());
-// From: http://javascript.info/tutorial/coordinates
-var Offset;
-(function (Offset) {
-    'use strict';
-    function getOffsetSum(elem) {
-        var top = 0, left = 0;
-
-        while (elem) {
-            top = top + elem.offsetTop;
-            left = left + elem.offsetLeft;
-            elem = elem.offsetParent;
-        }
-
-        return { y: top, x: left };
-    }
-
-    function getOffsetRect(elem) {
-        var box = elem.getBoundingClientRect();
-
-        var body = document.body;
-        var docElem = document.documentElement;
-
-        var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
-        var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
-
-        var clientTop = docElem.clientTop || body.clientTop || 0;
-        var clientLeft = docElem.clientLeft || body.clientLeft || 0;
-
-        var top = box.top + scrollTop - clientTop;
-        var left = box.left + scrollLeft - clientLeft;
-
-        return { y: Math.round(top), x: Math.round(left) };
-    }
-
-    function getOffset(elem) {
-        if (elem.getBoundingClientRect) {
-            return getOffsetRect(elem);
-        } else {
-            return getOffsetSum(elem);
-        }
-    }
-    Offset.getOffset = getOffset;
-})(Offset || (Offset = {}));
 // From: https://typescript.codeplex.com/discussions/402228
 
 var TypedEvent = (function () {
@@ -961,6 +918,49 @@ var TypedEvent = (function () {
     return TypedEvent;
 })();
 
+// From: http://javascript.info/tutorial/coordinates
+var Offset;
+(function (Offset) {
+    'use strict';
+    function getOffsetSum(elem) {
+        var top = 0, left = 0;
+
+        while (elem) {
+            top = top + elem.offsetTop;
+            left = left + elem.offsetLeft;
+            elem = elem.offsetParent;
+        }
+
+        return { y: top, x: left };
+    }
+
+    function getOffsetRect(elem) {
+        var box = elem.getBoundingClientRect();
+
+        var body = document.body;
+        var docElem = document.documentElement;
+
+        var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+        var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+
+        var clientTop = docElem.clientTop || body.clientTop || 0;
+        var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+
+        var top = box.top + scrollTop - clientTop;
+        var left = box.left + scrollLeft - clientLeft;
+
+        return { y: Math.round(top), x: Math.round(left) };
+    }
+
+    function getOffset(elem) {
+        if (elem.getBoundingClientRect) {
+            return getOffsetRect(elem);
+        } else {
+            return getOffsetSum(elem);
+        }
+    }
+    Offset.getOffset = getOffset;
+})(Offset || (Offset = {}));
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -2220,6 +2220,27 @@ it under the terms of the GNU Affero General Public License as
 published by the Free Software Foundation, either version 3 of the
 License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY, without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var ProgressBarStyle;
+(function (ProgressBarStyle) {
+    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
+    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
+    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
+})(ProgressBarStyle || (ProgressBarStyle = {}));
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
@@ -2956,27 +2977,6 @@ var CrtProgressBar = (function (_super) {
 
     return CrtProgressBar;
 })(CrtControl);
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var ProgressBarStyle;
-(function (ProgressBarStyle) {
-    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
-    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
-    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
-})(ProgressBarStyle || (ProgressBarStyle = {}));
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -5573,90 +5573,6 @@ it under the terms of the GNU Affero General Public License as
 published by the Free Software Foundation, either version 3 of the
 License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var StringUtils = (function () {
-    function StringUtils() {
-    }
-    StringUtils.AddCommas = function (value) {
-        var Result = '';
-
-        var Position = 1;
-        for (var i = value.toString().length - 1; i >= 0; i--) {
-            if ((Position > 3) && (Position % 3 === 1)) {
-                Result = ',' + Result;
-            }
-            Result = value.toString().charAt(i) + Result;
-            Position++;
-        }
-
-        return Result;
-    };
-
-    StringUtils.FormatPercent = function (value, fractionDigits) {
-        return (value * 100).toFixed(fractionDigits) + '%';
-    };
-
-    StringUtils.NewString = function (ch, length) {
-        if (ch.length === 0) {
-            return '';
-        }
-
-        var Result = '';
-        for (var i = 0; i < length; i++) {
-            Result += ch.charAt(0);
-        }
-        return Result;
-    };
-
-    StringUtils.PadLeft = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text = ch.charAt(0) + text;
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.PadRight = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text += ch.charAt(0);
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.Trim = function (text) {
-        return this.TrimLeft(this.TrimRight(text));
-    };
-
-    StringUtils.TrimLeft = function (text) {
-        return text.replace(/^\s+/g, '');
-    };
-
-    StringUtils.TrimRight = function (text) {
-        return text.replace(/\s+$/g, '');
-    };
-    return StringUtils;
-})();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
@@ -7479,4 +7395,88 @@ var YModemSendState;
     YModemSendState[YModemSendState["SendingData"] = 3] = "SendingData";
     YModemSendState[YModemSendState["WaitingForFileAck"] = 4] = "WaitingForFileAck";
 })(YModemSendState || (YModemSendState = {}));
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var StringUtils = (function () {
+    function StringUtils() {
+    }
+    StringUtils.AddCommas = function (value) {
+        var Result = '';
+
+        var Position = 1;
+        for (var i = value.toString().length - 1; i >= 0; i--) {
+            if ((Position > 3) && (Position % 3 === 1)) {
+                Result = ',' + Result;
+            }
+            Result = value.toString().charAt(i) + Result;
+            Position++;
+        }
+
+        return Result;
+    };
+
+    StringUtils.FormatPercent = function (value, fractionDigits) {
+        return (value * 100).toFixed(fractionDigits) + '%';
+    };
+
+    StringUtils.NewString = function (ch, length) {
+        if (ch.length === 0) {
+            return '';
+        }
+
+        var Result = '';
+        for (var i = 0; i < length; i++) {
+            Result += ch.charAt(0);
+        }
+        return Result;
+    };
+
+    StringUtils.PadLeft = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text = ch.charAt(0) + text;
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.PadRight = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text += ch.charAt(0);
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.Trim = function (text) {
+        return this.TrimLeft(this.TrimRight(text));
+    };
+
+    StringUtils.TrimLeft = function (text) {
+        return text.replace(/^\s+/g, '');
+    };
+
+    StringUtils.TrimRight = function (text) {
+        return text.replace(/\s+$/g, '');
+    };
+    return StringUtils;
+})();
 //# sourceMappingURL=ftelnet.js.map
