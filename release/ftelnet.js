@@ -1,80 +1,4 @@
-﻿// From: Unknown, forgot to save the url!
-// Base64 utility methods
-// Needed for: IE9-
-(function () {
-    if ('atob' in window && 'btoa' in window) {
-        return;
-    }
-
-    var B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    function atob(input) {
-        input = String(input);
-        var position = 0, output = [], buffer = 0, bits = 0, n;
-        input = input.replace(/\s/g, '');
-        if ((input.length % 4) === 0) {
-            input = input.replace(/=+$/, '');
-        }
-        if ((input.length % 4) === 1) {
-            throw Error('InvalidCharacterError');
-        }
-        if (/[^+/0-9A-Za-z]/.test(input)) {
-            throw Error('InvalidCharacterError');
-        }
-        while (position < input.length) {
-            n = B64_ALPHABET.indexOf(input.charAt(position));
-            buffer = (buffer << 6) | n;
-            bits += 6;
-            if (bits === 24) {
-                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
-                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
-                output.push(String.fromCharCode(buffer & 0xFF));
-                bits = 0;
-                buffer = 0;
-            }
-            position += 1;
-        }
-        if (bits === 12) {
-            buffer = buffer >> 4;
-            output.push(String.fromCharCode(buffer & 0xFF));
-        } else if (bits === 18) {
-            buffer = buffer >> 2;
-            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
-            output.push(String.fromCharCode(buffer & 0xFF));
-        }
-        return output.join('');
-    }
-    ;
-    function btoa(input) {
-        input = String(input);
-        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
-        if (/[^\x00-\xFF]/.test(input)) {
-            throw Error('InvalidCharacterError');
-        }
-        while (position < input.length) {
-            o1 = input.charCodeAt(position++);
-            o2 = input.charCodeAt(position++);
-            o3 = input.charCodeAt(position++);
-
-            // 111111 112222 222233 333333
-            e1 = o1 >> 2;
-            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
-            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
-            e4 = o3 & 0x3f;
-            if (position === input.length + 2) {
-                e3 = 64;
-                e4 = 64;
-            } else if (position === input.length + 1) {
-                e4 = 64;
-            }
-            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
-        }
-        return out.join('');
-    }
-    ;
-    window.atob = atob;
-    window.btoa = btoa;
-}());
-/*
+﻿/*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
 This file is part of fTelnet.
@@ -120,7 +44,21 @@ var fTelnet = (function () {
             }
         }
 
-        // Create the focus bar (needs to be before crt so it appears above the client area)
+        // Create the button bar
+        this._ButtonBar = document.createElement('div');
+        this._ButtonBar.id = 'fTelnetButtons';
+        this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' + '<a href="#" onclick="fTelnet.Download();">Download</a> | ' + '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' + '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a> | ' + '<a href="#" onclick="fTelnet.FullScreenToggle();">Full&nbsp;Screen<a/>';
+        this._Container.appendChild(this._ButtonBar);
+
+        // Create the scrollback bar
+        this._ScrollbackBar = document.createElement('div');
+        this._ScrollbackBar.id = 'fTelnetScrollback';
+        this._ScrollbackBar.innerHTML = '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false);">Page Up</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' + '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a>';
+        this._ScrollbackBar.style.display = 'none';
+        this._Container.appendChild(this._ScrollbackBar);
+
+        // TODO Also have a span to hold the current line number
+        // Create the focus bar
         this._FocusWarningBar = document.createElement('div');
         this._FocusWarningBar.id = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO GIVE fTelnet FOCUS ***';
@@ -162,6 +100,18 @@ var fTelnet = (function () {
                 return false;
             }
 
+            // Create the status bar
+            this._StatusBar = document.createElement('div');
+            this._StatusBar.id = 'fTelnetStatusBar';
+            this._StatusBar.innerHTML = 'Not connected';
+            this._Container.appendChild(this._StatusBar);
+
+            // Create the virtual keyboard
+            VirtualKeyboard.Init(this._Container);
+
+            // Size the scrollback and button divs
+            this.OnCrtScreenSizeChanged();
+
             // Create the ansi cursor position handler
             Ansi.onesc5n.add(function () {
                 _this.OnAnsiESC5n();
@@ -176,35 +126,12 @@ var fTelnet = (function () {
                 _this.OnAnsiESCQ(font);
             });
 
-            // Create the scrollback bar
-            this._ScrollbackBar = document.createElement('div');
-            this._ScrollbackBar.id = 'fTelnetScrollback';
-            this._ScrollbackBar.innerHTML = '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false);">Page Up</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a>';
-            this._ScrollbackBar.style.display = 'none';
-            this._Container.appendChild(this._ScrollbackBar);
-
-            // TODO Also have a span to hold the current line number
-            // Create the button bar
-            this._ButtonBar = document.createElement('div');
-            this._ButtonBar.id = 'fTelnetButtons';
-            this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' + '<a href="#" onclick="fTelnet.Disconnect(true);">Disconnect</a> | ' + '<a href="#" onclick="fTelnet.Download();">Download</a> | ' + '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' + '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a>';
-            this._Container.appendChild(this._ButtonBar);
-
-            // Create the status bar
-            this._StatusBar = document.createElement('div');
-            this._StatusBar.id = 'fTelnetStatusBar';
-            this._StatusBar.innerHTML = 'Not connected';
-            this._Container.appendChild(this._StatusBar);
-
-            // Create the virtual keyboard
-            this._Container.appendChild(this.CreateKeyboard());
-
-            // Size the scrollback and button divs
-            this.OnCrtScreenSizeChanged();
-
             Ansi.Write(atob(this._SplashScreen));
         } else {
             this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
+            this._ButtonBar.style.display = 'none';
+            this._ScrollbackBar.style.display = 'none';
+            this._FocusWarningBar.style.display = 'none';
             return false;
         }
 
@@ -329,134 +256,6 @@ var fTelnet = (function () {
         configurable: true
     });
 
-    fTelnet.CreateKeyboard = function () {
-        var Keys = [
-            [
-                [27, 'Esc', '', 'esc'],
-                [112, 'F1', '', ''],
-                [113, 'F2', '', ''],
-                [114, 'F3', '', ''],
-                [115, 'F4', '', ''],
-                [116, 'F5', '', ''],
-                [117, 'F6', '', ''],
-                [118, 'F7', '', ''],
-                [119, 'F8', '', ''],
-                [120, 'F9', '', ''],
-                [121, 'F10', '', ''],
-                [122, 'F11', '', ''],
-                [123, 'F12', '', ''],
-                [145, 'Scr', 'Lk', 'spid'],
-                [145, 'Prt', 'Scr', 'spid'],
-                [145, 'Ins', '', 'spid'],
-                [145, 'Del', '', 'spid']
-            ],
-            [
-                [192, '~', '`', ''],
-                [49, '!', '1', ''],
-                [50, '@', '2', ''],
-                [51, '#', '3', ''],
-                [52, '$', '4', ''],
-                [53, '%', '5', ''],
-                [54, '^', '6', ''],
-                [55, '&', '7', ''],
-                [56, '*', '8', ''],
-                [57, '(', '9', ''],
-                [48, ')', '0', ''],
-                [173, '_', '-', ''],
-                [61, '+', '=', ''],
-                [8, 'Backspace', '', 'backspace'],
-                [36, 'Home', '', '']
-            ],
-            [
-                [9, 'Tab', '', 'tab'],
-                [81, 'Q', '', ''],
-                [87, 'W', '', ''],
-                [69, 'E', '', ''],
-                [82, 'R', '', ''],
-                [84, 'T', '', ''],
-                [89, 'Y', '', ''],
-                [85, 'U', '', ''],
-                [73, 'I', '', ''],
-                [79, 'O', '', ''],
-                [80, 'P', '', ''],
-                [219, '{', '[', ''],
-                [221, '}', ']', ''],
-                [220, '|', '\\', 'backslash'],
-                [33, 'Page', 'Up', '']
-            ],
-            [
-                [20, 'Caps Lock', '', 'capslock'],
-                [65, 'A', '', ''],
-                [83, 'S', '', ''],
-                [68, 'D', '', ''],
-                [70, 'F', '', ''],
-                [71, 'G', '', ''],
-                [72, 'H', '', ''],
-                [74, 'J', '', ''],
-                [75, 'K', '', ''],
-                [76, 'L', '', ''],
-                [59, ':', ';', ''],
-                [222, '"', '\'', ''],
-                [13, 'Enter', '', 'enter'],
-                [37, 'Page', 'Down', '']
-            ],
-            [
-                [16, 'Shift', '', 'lshift'],
-                [90, 'Z', '', ''],
-                [88, 'X', '', ''],
-                [67, 'C', '', ''],
-                [86, 'V', '', ''],
-                [66, 'B', '', ''],
-                [78, 'N', '', ''],
-                [77, 'M', '', ''],
-                [188, '&lt;', ',', ''],
-                [190, '&gt;', '.', ''],
-                [191, '?', '/', ''],
-                [16, 'Shift', '', 'rshift'],
-                [38, '', '', 'arrow-up'],
-                [35, 'End', '', '']
-            ],
-            [
-                [17, 'Ctrl', '', 'ctrl'],
-                [91, '', '', 'win'],
-                [18, 'Alt', '', 'alt'],
-                [32, '&nbsp;', '', 'spacebar'],
-                [18, 'Alt', '', 'alt'],
-                [93, '', '', 'appmenu'],
-                [17, 'Ctrl', '', 'ctrl'],
-                [37, '', '', 'arrow-left'],
-                [40, '', '', 'arrow-down'],
-                [39, '', '', 'arrow-right']
-            ]
-        ];
-
-        var Html = '';
-        for (var Row = 0; Row < Keys.length; Row++) {
-            Html += '<div class="row';
-            if (Row === 0) {
-                // First row needs a second class
-                Html += ' function';
-            }
-            Html += '">';
-            for (var i = 0; i < Keys[Row].length; i++) {
-                Html += '<div ';
-                if (Keys[Row][i][3] !== '') {
-                    Html += 'class="' + Keys[Row][i][3] + '" ';
-                }
-                Html += 'data-keycode="' + Keys[Row][i][0] + '">';
-                Html += Keys[Row][i][1] + '<br />' + Keys[Row][i][2];
-                Html += '</div>';
-            }
-            Html += '</div>';
-        }
-
-        this._Keyboard = document.createElement('div');
-        this._Keyboard.id = 'fTelnetKeyboard';
-        this._Keyboard.innerHTML = Html;
-
-        return this._Keyboard;
-    };
-
     fTelnet.Disconnect = function (prompt) {
         if (this._Connection === null) {
             return;
@@ -537,6 +336,30 @@ var fTelnet = (function () {
         configurable: true
     });
 
+
+    fTelnet.FullScreenToggle = function () {
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            if (this._Container.requestFullscreen) {
+                this._Container.requestFullscreen();
+            } else if (this._Container.msRequestFullscreen) {
+                this._Container.msRequestFullscreen();
+            } else if (this._Container.mozRequestFullScreen) {
+                this._Container.mozRequestFullScreen();
+            } else if (this._Container.webkitRequestFullscreen) {
+                this._Container.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    };
 
     Object.defineProperty(fTelnet, "Hostname", {
         get: function () {
@@ -845,7 +668,6 @@ var fTelnet = (function () {
     fTelnet._FocusWarningBar = null;
     fTelnet._HasFocus = true;
     fTelnet._InitMessageBar = null;
-    fTelnet._Keyboard = null;
     fTelnet._LastTimer = 0;
     fTelnet._ScrollbackBar = null;
     fTelnet._StatusBar = null;
@@ -873,51 +695,82 @@ var fTelnet = (function () {
 /// <reference path='source/fTelnet.ts' />
 // TODO List:
 // Incorporate Blob.js and FileSaver.js (and any other 3rd party .js) into ftelnet.js
-// Add virtual keyboard and button bar button to toggle
-// Add button to toggle full screen
-// From: https://typescript.codeplex.com/discussions/402228
-
-var TypedEvent = (function () {
-    function TypedEvent() {
-        // Private member vars
-        this._listeners = [];
+// From: Unknown, forgot to save the url!
+// Base64 utility methods
+// Needed for: IE9-
+(function () {
+    if ('atob' in window && 'btoa' in window) {
+        return;
     }
-    TypedEvent.prototype.add = function (listener) {
-        /// <summary>Registers a new listener for the event.</summary>
-        /// <param name="listener">The callback function to register.</param>
-        this._listeners.push(listener);
-    };
-    TypedEvent.prototype.remove = function (listener) {
-        /// <summary>Unregisters a listener from the event.</summary>
-        /// <param name="listener">The callback function that was registered. If missing then all listeners will be removed.</param>
-        if (typeof listener === 'function') {
-            for (var i = 0, l = this._listeners.length; i < l; l++) {
-                if (this._listeners[i] === listener) {
-                    this._listeners.splice(i, 1);
-                    break;
-                }
+
+    var B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    function atob(input) {
+        input = String(input);
+        var position = 0, output = [], buffer = 0, bits = 0, n;
+        input = input.replace(/\s/g, '');
+        if ((input.length % 4) === 0) {
+            input = input.replace(/=+$/, '');
+        }
+        if ((input.length % 4) === 1) {
+            throw Error('InvalidCharacterError');
+        }
+        if (/[^+/0-9A-Za-z]/.test(input)) {
+            throw Error('InvalidCharacterError');
+        }
+        while (position < input.length) {
+            n = B64_ALPHABET.indexOf(input.charAt(position));
+            buffer = (buffer << 6) | n;
+            bits += 6;
+            if (bits === 24) {
+                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
+                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+                output.push(String.fromCharCode(buffer & 0xFF));
+                bits = 0;
+                buffer = 0;
             }
-        } else {
-            this._listeners = [];
+            position += 1;
         }
-    };
+        if (bits === 12) {
+            buffer = buffer >> 4;
+            output.push(String.fromCharCode(buffer & 0xFF));
+        } else if (bits === 18) {
+            buffer = buffer >> 2;
+            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+            output.push(String.fromCharCode(buffer & 0xFF));
+        }
+        return output.join('');
+    }
+    ;
+    function btoa(input) {
+        input = String(input);
+        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
+        if (/[^\x00-\xFF]/.test(input)) {
+            throw Error('InvalidCharacterError');
+        }
+        while (position < input.length) {
+            o1 = input.charCodeAt(position++);
+            o2 = input.charCodeAt(position++);
+            o3 = input.charCodeAt(position++);
 
-    TypedEvent.prototype.trigger = function () {
-        var a = [];
-        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-            a[_i] = arguments[_i + 0];
+            // 111111 112222 222233 333333
+            e1 = o1 >> 2;
+            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
+            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
+            e4 = o3 & 0x3f;
+            if (position === input.length + 2) {
+                e3 = 64;
+                e4 = 64;
+            } else if (position === input.length + 1) {
+                e4 = 64;
+            }
+            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
         }
-        /// <summary>Invokes all of the listeners for this event.</summary>
-        /// <param name="args">Optional set of arguments to pass to listners.</param>
-        var context = {};
-        var listeners = this._listeners.slice(0);
-        for (var i = 0, l = listeners.length; i < l; i++) {
-            listeners[i].apply(context, a || []);
-        }
-    };
-    return TypedEvent;
-})();
-
+        return out.join('');
+    }
+    ;
+    window.atob = atob;
+    window.btoa = btoa;
+}());
 // From: http://javascript.info/tutorial/coordinates
 var Offset;
 (function (Offset) {
@@ -961,6 +814,49 @@ var Offset;
     }
     Offset.getOffset = getOffset;
 })(Offset || (Offset = {}));
+// From: https://typescript.codeplex.com/discussions/402228
+
+var TypedEvent = (function () {
+    function TypedEvent() {
+        // Private member vars
+        this._listeners = [];
+    }
+    TypedEvent.prototype.add = function (listener) {
+        /// <summary>Registers a new listener for the event.</summary>
+        /// <param name="listener">The callback function to register.</param>
+        this._listeners.push(listener);
+    };
+    TypedEvent.prototype.remove = function (listener) {
+        /// <summary>Unregisters a listener from the event.</summary>
+        /// <param name="listener">The callback function that was registered. If missing then all listeners will be removed.</param>
+        if (typeof listener === 'function') {
+            for (var i = 0, l = this._listeners.length; i < l; l++) {
+                if (this._listeners[i] === listener) {
+                    this._listeners.splice(i, 1);
+                    break;
+                }
+            }
+        } else {
+            this._listeners = [];
+        }
+    };
+
+    TypedEvent.prototype.trigger = function () {
+        var a = [];
+        for (var _i = 0; _i < (arguments.length - 0); _i++) {
+            a[_i] = arguments[_i + 0];
+        }
+        /// <summary>Invokes all of the listeners for this event.</summary>
+        /// <param name="args">Optional set of arguments to pass to listners.</param>
+        var context = {};
+        var listeners = this._listeners.slice(0);
+        for (var i = 0, l = listeners.length; i < l; i++) {
+            listeners[i].apply(context, a || []);
+        }
+    };
+    return TypedEvent;
+})();
+
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -1207,8 +1103,11 @@ var Keyboard;
     Keyboard[Keyboard["NUM_LOCK"] = 1002] = "NUM_LOCK";
     Keyboard[Keyboard["PAGE_DOWN"] = 34] = "PAGE_DOWN";
     Keyboard[Keyboard["PAGE_UP"] = 33] = "PAGE_UP";
+    Keyboard[Keyboard["PRINT_SCREEN"] = 1006] = "PRINT_SCREEN";
     Keyboard[Keyboard["RIGHT"] = 39] = "RIGHT";
     Keyboard[Keyboard["SHIFT"] = 16] = "SHIFT";
+    Keyboard[Keyboard["SHIFTLEFT"] = 1004] = "SHIFTLEFT";
+    Keyboard[Keyboard["SHIFTRIGHT"] = 1005] = "SHIFTRIGHT";
     Keyboard[Keyboard["SPACE"] = 32] = "SPACE";
     Keyboard[Keyboard["TAB"] = 9] = "TAB";
     Keyboard[Keyboard["WINDOWS"] = 1003] = "WINDOWS";
@@ -2220,27 +2119,6 @@ it under the terms of the GNU Affero General Public License as
 published by the Free Software Foundation, either version 3 of the
 License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var ProgressBarStyle;
-(function (ProgressBarStyle) {
-    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
-    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
-    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
-})(ProgressBarStyle || (ProgressBarStyle = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
@@ -2977,6 +2855,27 @@ var CrtProgressBar = (function (_super) {
 
     return CrtProgressBar;
 })(CrtControl);
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY, without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var ProgressBarStyle;
+(function (ProgressBarStyle) {
+    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
+    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
+    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
+})(ProgressBarStyle || (ProgressBarStyle = {}));
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -5573,6 +5472,90 @@ it under the terms of the GNU Affero General Public License as
 published by the Free Software Foundation, either version 3 of the
 License, or any later version.
 fTelnet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
+along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var StringUtils = (function () {
+    function StringUtils() {
+    }
+    StringUtils.AddCommas = function (value) {
+        var Result = '';
+
+        var Position = 1;
+        for (var i = value.toString().length - 1; i >= 0; i--) {
+            if ((Position > 3) && (Position % 3 === 1)) {
+                Result = ',' + Result;
+            }
+            Result = value.toString().charAt(i) + Result;
+            Position++;
+        }
+
+        return Result;
+    };
+
+    StringUtils.FormatPercent = function (value, fractionDigits) {
+        return (value * 100).toFixed(fractionDigits) + '%';
+    };
+
+    StringUtils.NewString = function (ch, length) {
+        if (ch.length === 0) {
+            return '';
+        }
+
+        var Result = '';
+        for (var i = 0; i < length; i++) {
+            Result += ch.charAt(0);
+        }
+        return Result;
+    };
+
+    StringUtils.PadLeft = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text = ch.charAt(0) + text;
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.PadRight = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text += ch.charAt(0);
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.Trim = function (text) {
+        return this.TrimLeft(this.TrimRight(text));
+    };
+
+    StringUtils.TrimLeft = function (text) {
+        return text.replace(/^\s+/g, '');
+    };
+
+    StringUtils.TrimRight = function (text) {
+        return text.replace(/\s+$/g, '');
+    };
+    return StringUtils;
+})();
+/*
+fTelnet: An HTML5 WebSocket client
+Copyright (C) 2009-2013  Rick Parrish, R&M Software
+This file is part of fTelnet.
+fTelnet is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+fTelnet is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
@@ -6516,6 +6499,296 @@ var TelnetConnection = (function (_super) {
     };
     return TelnetConnection;
 })(WebSocketConnection);
+var VirtualKeyboard = (function () {
+    function VirtualKeyboard() {
+    }
+    VirtualKeyboard.Init = function (container) {
+        var _this = this;
+        container.appendChild(this.CreateDivElement());
+
+        // Handle click events for all keys
+        var Keys = document.getElementsByClassName('fTelnetKeyboardKey');
+        for (var i = 0; i < Keys.length; i++) {
+            if (Keys[i].addEventListener) {
+                var KeyCode = Keys[i].getAttribute('data-keycode');
+                if (this._Keys[KeyCode][2] > 0) {
+                    // Regular character
+                    Keys[i].addEventListener('click', function (e) {
+                        _this.OnCharCode(e);
+                    }, false);
+                } else {
+                    // Special character
+                    Keys[i].addEventListener('click', function (e) {
+                        _this.OnKeyCode(e);
+                    }, false);
+                }
+            }
+        }
+    };
+
+    VirtualKeyboard.CreateDivElement = function () {
+        var Rows = [
+            [
+                [27, 'Esc', 0, 0],
+                [112, 'F1', 0, 0],
+                [113, 'F2', 0, 0],
+                [114, 'F3', 0, 0],
+                [115, 'F4', 0, 0],
+                [116, 'F5', 0, 0],
+                [117, 'F6', 0, 0],
+                [118, 'F7', 0, 0],
+                [119, 'F8', 0, 0],
+                [120, 'F9', 0, 0],
+                [121, 'F10', 0, 0],
+                [122, 'F11', 0, 0],
+                [123, 'F12', 0, 0],
+                [145, 'Scr<br />Lk', 0, 0],
+                [1006, 'Prt<br />Scr', 0, 0],
+                [45, 'Ins', 0, 0],
+                [46, 'Del', 0, 0]
+            ],
+            [
+                [192, '~<br />`', 126, 96],
+                [49, '!<br />1', 33, 49],
+                [50, '@<br />2', 64, 50],
+                [51, '#<br />3', 35, 51],
+                [52, '$<br />4', 36, 52],
+                [53, '%<br />5', 37, 53],
+                [54, '^<br />6', 94, 54],
+                [55, '&<br />7', 38, 55],
+                [56, '*<br />8', 42, 56],
+                [57, '(<br />9', 40, 57],
+                [48, ')<br />0', 41, 48],
+                [173, '_<br />-', 95, 45],
+                [61, '+<br />=', 43, 61],
+                [8, 'Backspace', 0, 0],
+                [36, 'Home', 0, 0]
+            ],
+            [
+                [9, 'Tab', 0, 0],
+                [81, 'Q', 81, 113],
+                [87, 'W', 87, 119],
+                [69, 'E', 69, 101],
+                [82, 'R', 82, 114],
+                [84, 'T', 84, 116],
+                [89, 'Y', 89, 121],
+                [85, 'U', 85, 117],
+                [73, 'I', 73, 105],
+                [79, 'O', 79, 111],
+                [80, 'P', 80, 112],
+                [219, '{<br />[', 123, 91],
+                [221, '}<br />]', 125, 93],
+                [220, '|<br />\\', 124, 92],
+                [33, 'Page<br />Up', 0, 0]
+            ],
+            [
+                [20, 'Caps Lock', 0, 0],
+                [65, 'A', 65, 97],
+                [83, 'S', 83, 115],
+                [68, 'D', 68, 100],
+                [70, 'F', 70, 102],
+                [71, 'G', 71, 103],
+                [72, 'H', 72, 104],
+                [74, 'J', 74, 106],
+                [75, 'K', 75, 107],
+                [76, 'L', 76, 108],
+                [59, ':<br />;', 58, 59],
+                [222, '"<br />\'', 34, 39],
+                [13, 'Enter', 0, 0],
+                [34, 'Page<br />Down', 0, 0]
+            ],
+            [
+                [1004, 'Shift', 0, 0],
+                [90, 'Z', 90, 122],
+                [88, 'X', 88, 120],
+                [67, 'C', 67, 99],
+                [86, 'V', 86, 118],
+                [66, 'B', 66, 98],
+                [78, 'N', 78, 110],
+                [77, 'M', 77, 109],
+                [188, '&lt;<br />,', 60, 44],
+                [190, '&gt;<br />.', 62, 46],
+                [191, '?<br />/', 63, 47],
+                [1005, 'Shift', 0, 0],
+                [38, '', 0, 0],
+                [35, 'End', 0, 0]
+            ],
+            [
+                [17, 'Ctrl', 0, 0],
+                [91, '', 0, 0],
+                [18, 'Alt', 0, 0],
+                [32, '&nbsp;', 0, 0],
+                [18, 'Alt', 0, 0],
+                [93, '', 0, 0],
+                [17, 'Ctrl', 0, 0],
+                [37, '', 0, 0],
+                [40, '', 0, 0],
+                [39, '', 0, 0]
+            ]
+        ];
+
+        var Html = '';
+        for (var Row = 0; Row < Rows.length; Row++) {
+            Html += '<div class="fTelnetKeyboardRow';
+            if (Row === 0) {
+                // First row needs a second class
+                Html += ' fTelnetKeyboardRowFunction';
+            }
+            Html += '">';
+
+            for (var i = 0; i < Rows[Row].length; i++) {
+                Html += '<div class="fTelnetKeyboardKey';
+                if (typeof this._ClassKeys[Rows[Row][i][0]] !== 'undefined') {
+                    Html += ' fTelnetKeyboardKey' + this._ClassKeys[Rows[Row][i][0]];
+                }
+                Html += '" data-keycode="' + Rows[Row][i][0] + '">';
+                Html += Rows[Row][i][1];
+                Html += '</div>';
+
+                this._Keys[Rows[Row][i][0]] = Rows[Row][i];
+            }
+
+            Html += '</div>';
+        }
+
+        this._Div = document.createElement('div');
+        this._Div.id = 'fTelnetKeyboard';
+        this._Div.innerHTML = Html;
+
+        return this._Div;
+    };
+
+    VirtualKeyboard.HighlightKey = function (className, lit) {
+        var Keys = document.getElementsByClassName(className);
+        for (var i = 0; i < Keys.length; i++) {
+            if (lit) {
+                Keys[i].style.color = '#00ff00';
+            } else {
+                Keys[i].removeAttribute('style');
+            }
+        }
+    };
+
+    VirtualKeyboard.OnCharCode = function (e) {
+        var KeyCode = parseInt(e.target.getAttribute('data-keycode'), 10);
+        var CharCode = 0;
+
+        if ((KeyCode >= 65) && (KeyCode <= 90)) {
+            // Alphanumeric takes shift AND capslock into account
+            CharCode = parseInt((this._ShiftPressed !== this._CapsLockEnabled) ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
+        } else {
+            // Other keys just take shift into account
+            CharCode = parseInt(this._ShiftPressed ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
+        }
+
+        // Determine if ctrl, alt or shift were held down
+        var NeedReDraw = false;
+        var RegularKey = true;
+        if (this._AltPressed) {
+            NeedReDraw = true;
+            RegularKey = false;
+        }
+        if (this._CtrlPressed) {
+            NeedReDraw = true;
+            RegularKey = false;
+        }
+        if (this._ShiftPressed) {
+            NeedReDraw = true;
+        }
+
+        // Always dispatch onKeyDown, and then only OnTextEvent for regular keypresses
+        Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+        if (RegularKey) {
+            Crt.PushKeyPress(CharCode, 0, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+        }
+
+        // Reset flags and redraw, if necessary
+        if (NeedReDraw) {
+            this._AltPressed = false;
+            this._CtrlPressed = false;
+            this._ShiftPressed = false;
+            this.ReDrawSpecialKeys();
+        }
+    };
+
+    VirtualKeyboard.OnKeyCode = function (e) {
+        var KeyCode = parseInt(e.target.getAttribute('data-keycode'), 10);
+
+        var NeedReset = false;
+        switch (KeyCode) {
+            case 18 /* ALTERNATE */:
+                this._AltPressed = !this._AltPressed;
+                this.ReDrawSpecialKeys();
+                break;
+            case 20 /* CAPS_LOCK */:
+                this._CapsLockEnabled = !this._CapsLockEnabled;
+                this.ReDrawSpecialKeys();
+                break;
+            case 17 /* CONTROL */:
+                this._CtrlPressed = !this._CtrlPressed;
+                this.ReDrawSpecialKeys();
+                break;
+            case 1004 /* SHIFTLEFT */:
+            case 1005 /* SHIFTRIGHT */:
+                this._ShiftPressed = !this._ShiftPressed;
+                this.ReDrawSpecialKeys();
+                break;
+            default:
+                NeedReset = true;
+                break;
+        }
+
+        Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+
+        if (NeedReset) {
+            this._AltPressed = false;
+            this._CtrlPressed = false;
+            this._ShiftPressed = false;
+            this.ReDrawSpecialKeys();
+        }
+    };
+
+    VirtualKeyboard.ReDrawSpecialKeys = function () {
+        this.HighlightKey('fTelnetKeyboardKeyCapsLock', this._CapsLockEnabled);
+        this.HighlightKey('fTelnetKeyboardKeyShiftLeft', this._ShiftPressed);
+        this.HighlightKey('fTelnetKeyboardKeyShiftRight', this._ShiftPressed);
+        this.HighlightKey('fTelnetKeyboardKeyCtrl', this._CtrlPressed);
+        this.HighlightKey('fTelnetKeyboardKeyAlt', this._AltPressed);
+    };
+    VirtualKeyboard._Div = null;
+
+    VirtualKeyboard._AltPressed = false;
+    VirtualKeyboard._CapsLockEnabled = false;
+    VirtualKeyboard._CtrlPressed = false;
+    VirtualKeyboard._ShiftPressed = false;
+
+    VirtualKeyboard._ClassKeys = {
+        '27': 'Escape',
+        '145': 'SPID',
+        '1006': 'SPID',
+        '45': 'SPID',
+        '46': 'SPID',
+        '8': 'Backspace',
+        '9': 'Tab',
+        '220': 'Backslash',
+        '20': 'CapsLock',
+        '13': 'Enter',
+        '1004': 'ShiftLeft',
+        '1005': 'ShiftRight',
+        '38': 'ArrowUp',
+        '17': 'Ctrl',
+        '91': 'Win',
+        '18': 'Alt',
+        '32': 'Spacebar',
+        '93': 'AppMenu',
+        '37': 'ArrowLeft',
+        '40': 'ArrowDown',
+        '39': 'ArrowRight'
+    };
+
+    VirtualKeyboard._Keys = [];
+    return VirtualKeyboard;
+})();
 /*
 fTelnet: An HTML5 WebSocket client
 Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -7395,88 +7668,4 @@ var YModemSendState;
     YModemSendState[YModemSendState["SendingData"] = 3] = "SendingData";
     YModemSendState[YModemSendState["WaitingForFileAck"] = 4] = "WaitingForFileAck";
 })(YModemSendState || (YModemSendState = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var StringUtils = (function () {
-    function StringUtils() {
-    }
-    StringUtils.AddCommas = function (value) {
-        var Result = '';
-
-        var Position = 1;
-        for (var i = value.toString().length - 1; i >= 0; i--) {
-            if ((Position > 3) && (Position % 3 === 1)) {
-                Result = ',' + Result;
-            }
-            Result = value.toString().charAt(i) + Result;
-            Position++;
-        }
-
-        return Result;
-    };
-
-    StringUtils.FormatPercent = function (value, fractionDigits) {
-        return (value * 100).toFixed(fractionDigits) + '%';
-    };
-
-    StringUtils.NewString = function (ch, length) {
-        if (ch.length === 0) {
-            return '';
-        }
-
-        var Result = '';
-        for (var i = 0; i < length; i++) {
-            Result += ch.charAt(0);
-        }
-        return Result;
-    };
-
-    StringUtils.PadLeft = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text = ch.charAt(0) + text;
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.PadRight = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text += ch.charAt(0);
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.Trim = function (text) {
-        return this.TrimLeft(this.TrimRight(text));
-    };
-
-    StringUtils.TrimLeft = function (text) {
-        return text.replace(/^\s+/g, '');
-    };
-
-    StringUtils.TrimRight = function (text) {
-        return text.replace(/\s+$/g, '');
-    };
-    return StringUtils;
-})();
 //# sourceMappingURL=ftelnet.js.map

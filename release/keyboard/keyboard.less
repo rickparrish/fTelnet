@@ -50,12 +50,12 @@
         color: inherit;
     }
 
-    .row {
+    .fTelnetKeyboardRow {
         > :first-child {
             margin-left: 0 !important;
         }
 
-        div {
+        .fTelnetKeyboardKey {
             background-color: #444;
             border-radius: 2px;
             cursor: pointer;
@@ -70,113 +70,113 @@
             width: @KeyWidth;
         }
 
-            div:hover {
+            .fTelnetKeyboardKey:hover {
                 background-color: #eee;
                 color: #333;
                 font-weight: bold;
                 z-index: 1000;
             }
 
-        .appmenu {
+        .fTelnetKeyboardKeyAppMenu {
             background-image: url("img/appmenu-key.png");
             background-position: @ImagePositionLeft @ImagePositionTop;
             background-repeat: no-repeat;
         }
 
-        .arrow-down {
+        .fTelnetKeyboardKeyArrowDown {
             background-image: url("img/down-key.png");
             background-position: @ImagePositionLeft @ImagePositionTop;
             background-repeat: no-repeat;
         }
 
-        .arrow-left {
+        .fTelnetKeyboardKeyArrowLeft {
             background-image: url("img/left-key.png");
             background-position: @ImagePositionLeft @ImagePositionTop;
             background-repeat: no-repeat;
         }
 
-        .arrow-right {
+        .fTelnetKeyboardKeyArrowRight {
             background-image: url("img/right-key.png");
             background-position: @ImagePositionLeft @ImagePositionTop;
             background-repeat: no-repeat;
         }
 
-        .arrow-up {
+        .fTelnetKeyboardKeyArrowUp {
             background-image: url("img/up-key.png");
             background-position: @ImagePositionLeft @ImagePositionTop;
             background-repeat: no-repeat;
         }
 
-        .backslash {
+        .fTelnetKeyboardKeyBackslash {
             width: @BackslashWidth;
         }
 
-        .backspace {
+        .fTelnetKeyboardKeyBackspace {
             background-image: url("img/backspace-key.png");
             background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
             background-repeat: no-repeat;
             width: @BackspaceWidth;
         }
 
-        .capslock {
+        .fTelnetKeyboardKeyCapsLock {
             width: @CapsLockWidth;
         }
 
-        .ctrl {
+        .fTelnetKeyboardKeyCtrl {
             width: @CtrlWidth;
         }
 
-        .enter {
+        .fTelnetKeyboardKeyEnter {
             background-image: url("img/enter-key.png");
             background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
             background-repeat: no-repeat;
             width: @EnterWidth;
         }
 
-        .lshift {
+        .fTelnetKeyboardKeyShiftLeft {
             background-image: url("img/shift-key.png");
             background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
             background-repeat: no-repeat;
             width: @LeftShiftWidth;
         }
 
-        .rshift {
+        .fTelnetKeyboardKeyShiftRight {
             background-image: url("img/shift-key.png");
             background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
             background-repeat: no-repeat;
             width: @RightShiftWidth;
         }
 
-        .spacebar {
+        .fTelnetKeyboardKeySpacebar {
             width: @SpaceBarWidth;
         }
 
-        .tab {
+        .fTelnetKeyboardKeyTab {
             background-image: url("img/tab-key.png");
             background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
             background-repeat: no-repeat;
             width: @TabWidth;
         }
 
-        .win {
+        .fTelnetKeyboardKeyWin {
             background-image: url("img/windows-key.png");
             background-position: center center;
             background-repeat: no-repeat;
         }
     }
 
-    .function {
-        div {
+    .fTelnetKeyboardRowFunction {
+        .fTelnetKeyboardKey {
             height: @FunctionHeight;
             margin-top: 0;
             width: @FunctionWidth;
         }
 
-        .esc {
+        .fTelnetKeyboardKeyEscape {
             width: @EscWidth;
         }
 
-        .spid {
+        .fTelnetKeyboardKeySPID {
             width: @SPIDWidth;
         }
     }

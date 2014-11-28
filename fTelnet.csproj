@@ -37,6 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="source\3rdparty\Document.d.ts" />
+    <TypeScriptCompile Include="source\3rdparty\HTMLElement.d.ts" />
     <TypeScriptCompile Include="source\3rdparty\TypedEvent.ts" />
     <TypeScriptCompile Include="source\3rdparty\FileSaver.d.ts" />
     <TypeScriptCompile Include="source\3rdparty\Offset.ts">
@@ -61,6 +63,7 @@
     <TypeScriptCompile Include="source\randm\crt\cursor\Cursor.ts" />
     <TypeScriptCompile Include="source\randm\crt\font\CrtFont.ts" />
     <TypeScriptCompile Include="source\randm\crt\font\CrtFonts.ts" />
+    <TypeScriptCompile Include="source\randm\virtualkeyboard\VirtualKeyboard.ts" />
     <TypeScriptCompile Include="source\randm\crt\KeyPressEvent.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetNegotiationState.ts" />

@@ -25,7 +25,6 @@ class fTelnet {
     private static _FocusWarningBar: HTMLDivElement = null;
     private static _HasFocus: boolean = true;
     private static _InitMessageBar: HTMLDivElement = null;
-    private static _Keyboard: HTMLDivElement = null;
     private static _LastTimer: number = 0;
     private static _ScrollbackBar: HTMLDivElement = null;
     private static _StatusBar: HTMLDivElement = null;
@@ -75,7 +74,30 @@ class fTelnet {
             }
         }
 
-        // Create the focus bar (needs to be before crt so it appears above the client area)
+        // Create the button bar
+        this._ButtonBar = document.createElement('div');
+        this._ButtonBar.id = 'fTelnetButtons';
+        this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' +
+        // '<a href="#" onclick="fTelnet.Disconnect(true);">Disconnect</a> | ' +
+        '<a href="#" onclick="fTelnet.Download();">Download</a> | ' +
+        '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' +
+        '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a> | ' +
+        '<a href="#" onclick="fTelnet.FullScreenToggle();">Full&nbsp;Screen<a/>';
+        this._Container.appendChild(this._ButtonBar);
+
+        // Create the scrollback bar
+        this._ScrollbackBar = document.createElement('div');
+        this._ScrollbackBar.id = 'fTelnetScrollback';
+        this._ScrollbackBar.innerHTML = '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' +
+        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a> | ' +
+        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false);">Page Up</a> | ' +
+        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' +
+        '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a>';
+        this._ScrollbackBar.style.display = 'none';
+        this._Container.appendChild(this._ScrollbackBar);
+        // TODO Also have a span to hold the current line number
+
+        // Create the focus bar
         this._FocusWarningBar = document.createElement('div');
         this._FocusWarningBar.id = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO GIVE fTelnet FOCUS ***';
@@ -113,34 +135,6 @@ class fTelnet {
                 return false;
             }
 
-            // Create the ansi cursor position handler
-            Ansi.onesc5n.add((): void => { this.OnAnsiESC5n(); });
-            Ansi.onesc6n.add((): void => { this.OnAnsiESC6n(); });
-            Ansi.onesc255n.add((): void => { this.OnAnsiESC255n(); });
-            Ansi.onescQ.add((font: string): void => { this.OnAnsiESCQ(font); });
-
-            // Create the scrollback bar
-            this._ScrollbackBar = document.createElement('div');
-            this._ScrollbackBar.id = 'fTelnetScrollback';
-            this._ScrollbackBar.innerHTML = '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false);">Page Up</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a>';
-            this._ScrollbackBar.style.display = 'none';
-            this._Container.appendChild(this._ScrollbackBar);
-            // TODO Also have a span to hold the current line number
-
-            // Create the button bar
-            this._ButtonBar = document.createElement('div');
-            this._ButtonBar.id = 'fTelnetButtons';
-            this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' +
-            '<a href="#" onclick="fTelnet.Disconnect(true);">Disconnect</a> | ' +
-            '<a href="#" onclick="fTelnet.Download();">Download</a> | ' +
-            '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' +
-            '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a>';
-            this._Container.appendChild(this._ButtonBar);
-
             // Create the status bar
             this._StatusBar = document.createElement('div');
             this._StatusBar.id = 'fTelnetStatusBar';
@@ -148,14 +142,23 @@ class fTelnet {
             this._Container.appendChild(this._StatusBar);
 
             // Create the virtual keyboard
-            this._Container.appendChild(this.CreateKeyboard());
+            VirtualKeyboard.Init(this._Container);
 
             // Size the scrollback and button divs
             this.OnCrtScreenSizeChanged();
 
+            // Create the ansi cursor position handler
+            Ansi.onesc5n.add((): void => { this.OnAnsiESC5n(); });
+            Ansi.onesc6n.add((): void => { this.OnAnsiESC6n(); });
+            Ansi.onesc255n.add((): void => { this.OnAnsiESC255n(); });
+            Ansi.onescQ.add((font: string): void => { this.OnAnsiESCQ(font); });
+
             Ansi.Write(atob(this._SplashScreen));
         } else {
             this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
+            this._ButtonBar.style.display = 'none';
+            this._ScrollbackBar.style.display = 'none';
+            this._FocusWarningBar.style.display = 'none';
             return false;
         }
 
@@ -242,134 +245,6 @@ class fTelnet {
         return this._Connection.connected;
     }
 
-    private static CreateKeyboard(): HTMLDivElement {
-        var Keys: any[] = [
-            [
-                [27, 'Esc', '', 'esc'],
-                [112, 'F1', '', ''],
-                [113, 'F2', '', ''],
-                [114, 'F3', '', ''],
-                [115, 'F4', '', ''],
-                [116, 'F5', '', ''],
-                [117, 'F6', '', ''],
-                [118, 'F7', '', ''],
-                [119, 'F8', '', ''],
-                [120, 'F9', '', ''],
-                [121, 'F10', '', ''],
-                [122, 'F11', '', ''],
-                [123, 'F12', '', ''],
-                [145, 'Scr', 'Lk', 'spid'],
-                [145, 'Prt', 'Scr', 'spid'],
-                [145, 'Ins', '', 'spid'],
-                [145, 'Del', '', 'spid']
-            ],
-            [
-                [192, '~', '`', ''],
-                [49, '!', '1', ''],
-                [50, '@', '2', ''],
-                [51, '#', '3', ''],
-                [52, '$', '4', ''],
-                [53, '%', '5', ''],
-                [54, '^', '6', ''],
-                [55, '&', '7', ''],
-                [56, '*', '8', ''],
-                [57, '(', '9', ''],
-                [48, ')', '0', ''],
-                [173, '_', '-', ''],
-                [61, '+', '=', ''],
-                [8, 'Backspace', '', 'backspace'],
-                [36, 'Home', '', '']
-            ],
-            [
-                [9, 'Tab', '', 'tab'],
-                [81, 'Q', '', ''],
-                [87, 'W', '', ''],
-                [69, 'E', '', ''],
-                [82, 'R', '', ''],
-                [84, 'T', '', ''],
-                [89, 'Y', '', ''],
-                [85, 'U', '', ''],
-                [73, 'I', '', ''],
-                [79, 'O', '', ''],
-                [80, 'P', '', ''],
-                [219, '{', '[', ''],
-                [221, '}', ']', ''],
-                [220, '|', '\\', 'backslash'],
-                [33, 'Page', 'Up', '']
-            ],
-            [
-                [20, 'Caps Lock', '', 'capslock'],
-                [65, 'A', '', ''],
-                [83, 'S', '', ''],
-                [68, 'D', '', ''],
-                [70, 'F', '', ''],
-                [71, 'G', '', ''],
-                [72, 'H', '', ''],
-                [74, 'J', '', ''],
-                [75, 'K', '', ''],
-                [76, 'L', '', ''],
-                [59, ':', ';', ''],
-                [222, '"', '\'', ''],
-                [13, 'Enter', '', 'enter'],
-                [37, 'Page', 'Down', '']
-            ],
-            [
-                [16, 'Shift', '', 'lshift'],
-                [90, 'Z', '', ''],
-                [88, 'X', '', ''],
-                [67, 'C', '', ''],
-                [86, 'V', '', ''],
-                [66, 'B', '', ''],
-                [78, 'N', '', ''],
-                [77, 'M', '', ''],
-                [188, '&lt;', ',', ''],
-                [190, '&gt;', '.', ''],
-                [191, '?', '/', ''],
-                [16, 'Shift', '', 'rshift'],
-                [38, '', '', 'arrow-up'],
-                [35, 'End', '', '']
-            ],
-            [
-                [17, 'Ctrl', '', 'ctrl'],
-                [91, '', '', 'win'],
-                [18, 'Alt', '', 'alt'],
-                [32, '&nbsp;', '', 'spacebar'],
-                [18, 'Alt', '', 'alt'],
-                [93, '', '', 'appmenu'],
-                [17, 'Ctrl', '', 'ctrl'],
-                [37, '', '', 'arrow-left'],
-                [40, '', '', 'arrow-down'],
-                [39, '', '', 'arrow-right']
-            ]
-        ];
-
-        var Html: string = '';
-        for (var Row: number = 0; Row < Keys.length; Row++) {
-            Html += '<div class="row';
-            if (Row === 0) {
-                // First row needs a second class
-                Html += ' function';
-            }
-            Html += '">';
-            for (var i: number = 0; i < Keys[Row].length; i++) {
-                Html += '<div ';
-                if (Keys[Row][i][3] !== '') {
-                    Html += 'class="' + Keys[Row][i][3] + '" ';
-                }
-                Html += 'data-keycode="' + Keys[Row][i][0] + '">';
-                Html += Keys[Row][i][1] + '<br />' + Keys[Row][i][2];
-                Html += '</div>';
-            }
-            Html += '</div>';
-        }
-
-        this._Keyboard = document.createElement('div');
-        this._Keyboard.id = 'fTelnetKeyboard';
-        this._Keyboard.innerHTML = Html;
-
-        return this._Keyboard;
-    }
-
     public static Disconnect(prompt: boolean): void {
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
@@ -430,6 +305,30 @@ class fTelnet {
 
     public static set Font(value: string) {
         this._Font = value;
+    }
+
+    public static FullScreenToggle(): void {
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            if (this._Container.requestFullscreen) {
+                this._Container.requestFullscreen();
+            } else if (this._Container.msRequestFullscreen) {
+                this._Container.msRequestFullscreen();
+            } else if (this._Container.mozRequestFullScreen) {
+                this._Container.mozRequestFullScreen();
+            } else if (this._Container.webkitRequestFullscreen) {
+                this._Container.webkitRequestFullscreen((<any>Element).ALLOW_KEYBOARD_INPUT);
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
     }
 
     public static get Hostname(): string {
