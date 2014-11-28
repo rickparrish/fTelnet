@@ -1,37 +1,504 @@
-﻿/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Blob.js
+ * A Blob implementation.
+ * 2013-12-27
+ * 
+ * By Eli Grey, http://eligrey.com
+ * By Devin Samarin, https://github.com/eboyjr
+ * License: X11/MIT
+ *   See LICENSE.md
+ */
+
+/*global self, unescape */
+/*jslint bitwise: true, regexp: true, confusion: true, es5: true, vars: true, white: true,
+  plusplus: true */
+
+/*! @source http://purl.eligrey.com/github/Blob.js/blob/master/Blob.js */
+
+if (!(typeof Blob === "function" || typeof Blob === "object") || typeof URL === "undefined")
+    if ((typeof Blob === "function" || typeof Blob === "object") && typeof webkitURL !== "undefined") self.URL = webkitURL;
+    else var Blob = (function (view) {
+        "use strict";
+
+        var BlobBuilder = view.BlobBuilder || view.WebKitBlobBuilder || view.MozBlobBuilder || view.MSBlobBuilder || (function (view) {
+            var
+                  get_class = function (object) {
+                      return Object.prototype.toString.call(object).match(/^\[object\s(.*)\]$/)[1];
+                  }
+                , FakeBlobBuilder = function BlobBuilder() {
+                    this.data = [];
+                }
+                , FakeBlob = function Blob(data, type, encoding) {
+                    this.data = data;
+                    this.size = data.length;
+                    this.type = type;
+                    this.encoding = encoding;
+                }
+                , FBB_proto = FakeBlobBuilder.prototype
+                , FB_proto = FakeBlob.prototype
+                , FileReaderSync = view.FileReaderSync
+                , FileException = function (type) {
+                    this.code = this[this.name = type];
+                }
+                , file_ex_codes = (
+                      "NOT_FOUND_ERR SECURITY_ERR ABORT_ERR NOT_READABLE_ERR ENCODING_ERR "
+                    + "NO_MODIFICATION_ALLOWED_ERR INVALID_STATE_ERR SYNTAX_ERR"
+                ).split(" ")
+                , file_ex_code = file_ex_codes.length
+                , real_URL = view.URL || view.webkitURL || view
+                , real_create_object_URL = real_URL.createObjectURL
+                , real_revoke_object_URL = real_URL.revokeObjectURL
+                , URL = real_URL
+                , btoa = view.btoa
+                , atob = view.atob
+
+                , ArrayBuffer = view.ArrayBuffer
+                , Uint8Array = view.Uint8Array
+            ;
+            FakeBlob.fake = FB_proto.fake = true;
+            while (file_ex_code--) {
+                FileException.prototype[file_ex_codes[file_ex_code]] = file_ex_code + 1;
+            }
+            if (!real_URL.createObjectURL) {
+                URL = view.URL = {};
+            }
+            URL.createObjectURL = function (blob) {
+                var
+                      type = blob.type
+                    , data_URI_header
+                ;
+                if (type === null) {
+                    type = "application/octet-stream";
+                }
+                if (blob instanceof FakeBlob) {
+                    data_URI_header = "data:" + type;
+                    if (blob.encoding === "base64") {
+                        return data_URI_header + ";base64," + blob.data;
+                    } else if (blob.encoding === "URI") {
+                        return data_URI_header + "," + decodeURIComponent(blob.data);
+                    } if (btoa) {
+                        return data_URI_header + ";base64," + btoa(blob.data);
+                    } else {
+                        return data_URI_header + "," + encodeURIComponent(blob.data);
+                    }
+                } else if (real_create_object_URL) {
+                    return real_create_object_URL.call(real_URL, blob);
+                }
+            };
+            URL.revokeObjectURL = function (object_URL) {
+                if (object_URL.substring(0, 5) !== "data:" && real_revoke_object_URL) {
+                    real_revoke_object_URL.call(real_URL, object_URL);
+                }
+            };
+            FBB_proto.append = function (data/*, endings*/) {
+                var bb = this.data;
+                // decode data to a binary string
+                if (Uint8Array && (data instanceof ArrayBuffer || data instanceof Uint8Array)) {
+                    var
+                          str = ""
+                        , buf = new Uint8Array(data)
+                        , i = 0
+                        , buf_len = buf.length
+                    ;
+                    for (; i < buf_len; i++) {
+                        str += String.fromCharCode(buf[i]);
+                    }
+                    bb.push(str);
+                } else if (get_class(data) === "Blob" || get_class(data) === "File") {
+                    if (FileReaderSync) {
+                        var fr = new FileReaderSync;
+                        bb.push(fr.readAsBinaryString(data));
+                    } else {
+                        // async FileReader won't work as BlobBuilder is sync
+                        throw new FileException("NOT_READABLE_ERR");
+                    }
+                } else if (data instanceof FakeBlob) {
+                    if (data.encoding === "base64" && atob) {
+                        bb.push(atob(data.data));
+                    } else if (data.encoding === "URI") {
+                        bb.push(decodeURIComponent(data.data));
+                    } else if (data.encoding === "raw") {
+                        bb.push(data.data);
+                    }
+                } else {
+                    if (typeof data !== "string") {
+                        data += ""; // convert unsupported types to strings
+                    }
+                    // decode UTF-16 to binary string
+                    bb.push(unescape(encodeURIComponent(data)));
+                }
+            };
+            FBB_proto.getBlob = function (type) {
+                if (!arguments.length) {
+                    type = null;
+                }
+                return new FakeBlob(this.data.join(""), type, "raw");
+            };
+            FBB_proto.toString = function () {
+                return "[object BlobBuilder]";
+            };
+            FB_proto.slice = function (start, end, type) {
+                var args = arguments.length;
+                if (args < 3) {
+                    type = null;
+                }
+                return new FakeBlob(
+                      this.data.slice(start, args > 1 ? end : this.data.length)
+                    , type
+                    , this.encoding
+                );
+            };
+            FB_proto.toString = function () {
+                return "[object Blob]";
+            };
+            return FakeBlobBuilder;
+        }(view));
+
+        return function Blob(blobParts, options) {
+            var type = options ? (options.type || "") : "";
+            var builder = new BlobBuilder();
+            if (blobParts) {
+                for (var i = 0, len = blobParts.length; i < len; i++) {
+                    builder.append(blobParts[i]);
+                }
+            }
+            return builder.getBlob(type);
+        };
+    }(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content || this));
+/*! FileSaver.js
+ *  A saveAs() FileSaver implementation.
+ *  2014-01-24
+ *
+ *  By Eli Grey, http://eligrey.com
+ *  License: X11/MIT
+ *    See LICENSE.md
+ */
+
+/*global self */
+/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+
+var saveAs = saveAs
+  // IE 10+ (native saveAs)
+  || (typeof navigator !== "undefined" &&
+      navigator.msSaveOrOpenBlob && navigator.msSaveOrOpenBlob.bind(navigator))
+  // Everyone else
+  || (function (view) {
+      "use strict";
+      // IE <10 is explicitly unsupported
+      if (typeof navigator !== "undefined" &&
+          /MSIE [1-9]\./.test(navigator.userAgent)) {
+          return;
+      }
+      var
+            doc = view.document
+            // only get URL when necessary in case BlobBuilder.js hasn't overridden it yet
+          , get_URL = function () {
+              return view.URL || view.webkitURL || view;
+          }
+          , URL = view.URL || view.webkitURL || view
+          , save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+          , can_use_save_link = !view.externalHost && "download" in save_link
+          , click = function (node) {
+              var event = doc.createEvent("MouseEvents");
+              event.initMouseEvent(
+                  "click", true, false, view, 0, 0, 0, 0, 0
+                  , false, false, false, false, 0, null
+              );
+              node.dispatchEvent(event);
+          }
+          , webkit_req_fs = view.webkitRequestFileSystem
+          , req_fs = view.requestFileSystem || webkit_req_fs || view.mozRequestFileSystem
+          , throw_outside = function (ex) {
+              (view.setImmediate || view.setTimeout)(function () {
+                  throw ex;
+              }, 0);
+          }
+          , force_saveable_type = "application/octet-stream"
+          , fs_min_size = 0
+          , deletion_queue = []
+          , process_deletion_queue = function () {
+              var i = deletion_queue.length;
+              while (i--) {
+                  var file = deletion_queue[i];
+                  if (typeof file === "string") { // file is an object URL
+                      URL.revokeObjectURL(file);
+                  } else { // file is a File
+                      file.remove();
+                  }
+              }
+              deletion_queue.length = 0; // clear queue
+          }
+          , dispatch = function (filesaver, event_types, event) {
+              event_types = [].concat(event_types);
+              var i = event_types.length;
+              while (i--) {
+                  var listener = filesaver["on" + event_types[i]];
+                  if (typeof listener === "function") {
+                      try {
+                          listener.call(filesaver, event || filesaver);
+                      } catch (ex) {
+                          throw_outside(ex);
+                      }
+                  }
+              }
+          }
+          , FileSaver = function (blob, name) {
+              // First try a.download, then web filesystem, then object URLs
+              var
+                    filesaver = this
+                  , type = blob.type
+                  , blob_changed = false
+                  , object_url
+                  , target_view
+                  , get_object_url = function () {
+                      var object_url = get_URL().createObjectURL(blob);
+                      deletion_queue.push(object_url);
+                      return object_url;
+                  }
+                  , dispatch_all = function () {
+                      dispatch(filesaver, "writestart progress write writeend".split(" "));
+                  }
+                  // on any filesys errors revert to saving with object URLs
+                  , fs_error = function () {
+                      // don't create more object URLs than needed
+                      if (blob_changed || !object_url) {
+                          object_url = get_object_url(blob);
+                      }
+                      if (target_view) {
+                          target_view.location.href = object_url;
+                      } else {
+                          window.open(object_url, "_blank");
+                      }
+                      filesaver.readyState = filesaver.DONE;
+                      dispatch_all();
+                  }
+                  , abortable = function (func) {
+                      return function () {
+                          if (filesaver.readyState !== filesaver.DONE) {
+                              return func.apply(this, arguments);
+                          }
+                      };
+                  }
+                  , create_if_not_found = { create: true, exclusive: false }
+                  , slice
+              ;
+              filesaver.readyState = filesaver.INIT;
+              if (!name) {
+                  name = "download";
+              }
+              if (can_use_save_link) {
+                  object_url = get_object_url(blob);
+                  // FF for Android has a nasty garbage collection mechanism
+                  // that turns all objects that are not pure javascript into 'deadObject'
+                  // this means `doc` and `save_link` are unusable and need to be recreated
+                  // `view` is usable though:
+                  doc = view.document;
+                  save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a");
+                  save_link.href = object_url;
+                  save_link.download = name;
+                  var event = doc.createEvent("MouseEvents");
+                  event.initMouseEvent(
+                      "click", true, false, view, 0, 0, 0, 0, 0
+                      , false, false, false, false, 0, null
+                  );
+                  save_link.dispatchEvent(event);
+                  filesaver.readyState = filesaver.DONE;
+                  dispatch_all();
+                  return;
+              }
+              // Object and web filesystem URLs have a problem saving in Google Chrome when
+              // viewed in a tab, so I force save with application/octet-stream
+              // http://code.google.com/p/chromium/issues/detail?id=91158
+              if (view.chrome && type && type !== force_saveable_type) {
+                  slice = blob.slice || blob.webkitSlice;
+                  blob = slice.call(blob, 0, blob.size, force_saveable_type);
+                  blob_changed = true;
+              }
+              // Since I can't be sure that the guessed media type will trigger a download
+              // in WebKit, I append .download to the filename.
+              // https://bugs.webkit.org/show_bug.cgi?id=65440
+              if (webkit_req_fs && name !== "download") {
+                  name += ".download";
+              }
+              if (type === force_saveable_type || webkit_req_fs) {
+                  target_view = view;
+              }
+              if (!req_fs) {
+                  fs_error();
+                  return;
+              }
+              fs_min_size += blob.size;
+              req_fs(view.TEMPORARY, fs_min_size, abortable(function (fs) {
+                  fs.root.getDirectory("saved", create_if_not_found, abortable(function (dir) {
+                      var save = function () {
+                          dir.getFile(name, create_if_not_found, abortable(function (file) {
+                              file.createWriter(abortable(function (writer) {
+                                  writer.onwriteend = function (event) {
+                                      target_view.location.href = file.toURL();
+                                      deletion_queue.push(file);
+                                      filesaver.readyState = filesaver.DONE;
+                                      dispatch(filesaver, "writeend", event);
+                                  };
+                                  writer.onerror = function () {
+                                      var error = writer.error;
+                                      if (error.code !== error.ABORT_ERR) {
+                                          fs_error();
+                                      }
+                                  };
+                                  "writestart progress write abort".split(" ").forEach(function (event) {
+                                      writer["on" + event] = filesaver["on" + event];
+                                  });
+                                  writer.write(blob);
+                                  filesaver.abort = function () {
+                                      writer.abort();
+                                      filesaver.readyState = filesaver.DONE;
+                                  };
+                                  filesaver.readyState = filesaver.WRITING;
+                              }), fs_error);
+                          }), fs_error);
+                      };
+                      dir.getFile(name, { create: false }, abortable(function (file) {
+                          // delete file if it already exists
+                          file.remove();
+                          save();
+                      }), abortable(function (ex) {
+                          if (ex.code === ex.NOT_FOUND_ERR) {
+                              save();
+                          } else {
+                              fs_error();
+                          }
+                      }));
+                  }), fs_error);
+              }), fs_error);
+          }
+          , FS_proto = FileSaver.prototype
+          , saveAs = function (blob, name) {
+              return new FileSaver(blob, name);
+          }
+      ;
+      FS_proto.abort = function () {
+          var filesaver = this;
+          filesaver.readyState = filesaver.DONE;
+          dispatch(filesaver, "abort");
+      };
+      FS_proto.readyState = FS_proto.INIT = 0;
+      FS_proto.WRITING = 1;
+      FS_proto.DONE = 2;
+
+      FS_proto.error =
+      FS_proto.onwritestart =
+      FS_proto.onprogress =
+      FS_proto.onwrite =
+      FS_proto.onabort =
+      FS_proto.onerror =
+      FS_proto.onwriteend =
+          null;
+
+      view.addEventListener("unload", process_deletion_queue, false);
+      saveAs.unload = function () {
+          process_deletion_queue();
+          view.removeEventListener("unload", process_deletion_queue, false);
+      };
+      return saveAs;
+  }(
+	   typeof self !== "undefined" && self
+	|| typeof window !== "undefined" && window
+	|| this.content
+));
+// `self` is undefined in Firefox for Android content script context
+// while `this` is nsIContentFrameMessageManager
+// with an attribute `content` that corresponds to the window
+
+if (typeof module !== "undefined") module.exports = saveAs;
+﻿(function () {
+    if ('atob' in window && 'btoa' in window) {
+        return;
+    }
+
+    var B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    function atob(input) {
+        input = String(input);
+        var position = 0, output = [], buffer = 0, bits = 0, n;
+        input = input.replace(/\s/g, '');
+        if ((input.length % 4) === 0) {
+            input = input.replace(/=+$/, '');
+        }
+        if ((input.length % 4) === 1) {
+            throw Error('InvalidCharacterError');
+        }
+        if (/[^+/0-9A-Za-z]/.test(input)) {
+            throw Error('InvalidCharacterError');
+        }
+        while (position < input.length) {
+            n = B64_ALPHABET.indexOf(input.charAt(position));
+            buffer = (buffer << 6) | n;
+            bits += 6;
+            if (bits === 24) {
+                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
+                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+                output.push(String.fromCharCode(buffer & 0xFF));
+                bits = 0;
+                buffer = 0;
+            }
+            position += 1;
+        }
+        if (bits === 12) {
+            buffer = buffer >> 4;
+            output.push(String.fromCharCode(buffer & 0xFF));
+        } else if (bits === 18) {
+            buffer = buffer >> 2;
+            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
+            output.push(String.fromCharCode(buffer & 0xFF));
+        }
+        return output.join('');
+    }
+    ;
+    function btoa(input) {
+        input = String(input);
+        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
+        if (/[^\x00-\xFF]/.test(input)) {
+            throw Error('InvalidCharacterError');
+        }
+        while (position < input.length) {
+            o1 = input.charCodeAt(position++);
+            o2 = input.charCodeAt(position++);
+            o3 = input.charCodeAt(position++);
+
+            e1 = o1 >> 2;
+            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
+            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
+            e4 = o3 & 0x3f;
+            if (position === input.length + 2) {
+                e3 = 64;
+                e4 = 64;
+            } else if (position === input.length + 1) {
+                e4 = 64;
+            }
+            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
+        }
+        return out.join('');
+    }
+    ;
+    window.atob = atob;
+    window.btoa = btoa;
+}());
 var fTelnet = (function () {
     function fTelnet() {
     }
     fTelnet.Init = function () {
         var _this = this;
-        // Ensure we have our container
         if (document.getElementById('fTelnetContainer') === null) {
             alert('fTelnet Error: Element with id="fTelnetContainer" was not found');
             return false;
         }
         this._Container = document.getElementById('fTelnetContainer');
 
-        // Add init message
         this._InitMessageBar = document.createElement('div');
         this._InitMessageBar.id = 'fTelnetInitMessage';
         this._InitMessageBar.innerHTML = 'Initializing fTelnet...';
         this._Container.appendChild(this._InitMessageBar);
 
-        // IE less than 9.0 will throw script errors and not even load
         if (navigator.appName === 'Microsoft Internet Explorer') {
             var Version = -1;
             var RE = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})');
@@ -44,28 +511,23 @@ var fTelnet = (function () {
             }
         }
 
-        // Create the button bar
         this._ButtonBar = document.createElement('div');
         this._ButtonBar.id = 'fTelnetButtons';
         this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' + '<a href="#" onclick="fTelnet.Download();">Download</a> | ' + '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' + '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a> | ' + '<a href="#" onclick="fTelnet.FullScreenToggle();">Full&nbsp;Screen<a/>';
         this._Container.appendChild(this._ButtonBar);
 
-        // Create the scrollback bar
         this._ScrollbackBar = document.createElement('div');
         this._ScrollbackBar.id = 'fTelnetScrollback';
         this._ScrollbackBar.innerHTML = '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false);">Page Up</a> | ' + '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' + '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a>';
         this._ScrollbackBar.style.display = 'none';
         this._Container.appendChild(this._ScrollbackBar);
 
-        // TODO Also have a span to hold the current line number
-        // Create the focus bar
         this._FocusWarningBar = document.createElement('div');
         this._FocusWarningBar.id = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO GIVE fTelnet FOCUS ***';
         this._FocusWarningBar.style.display = 'none';
         this._Container.appendChild(this._FocusWarningBar);
 
-        // Seup the crt window
         if (Crt.Init(this._Container)) {
             this._InitMessageBar.style.display = 'none';
 
@@ -81,7 +543,6 @@ var fTelnet = (function () {
             Crt.SetFont(this._Font);
             Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
 
-            // Test websocket support
             if (!('WebSocket' in window)) {
                 Crt.WriteLn();
                 Crt.WriteLn('Sorry, but your browser doesn\'t support the WebSocket protocol!');
@@ -100,19 +561,15 @@ var fTelnet = (function () {
                 return false;
             }
 
-            // Create the status bar
             this._StatusBar = document.createElement('div');
             this._StatusBar.id = 'fTelnetStatusBar';
             this._StatusBar.innerHTML = 'Not connected';
             this._Container.appendChild(this._StatusBar);
 
-            // Create the virtual keyboard
             VirtualKeyboard.Init(this._Container);
 
-            // Size the scrollback and button divs
             this.OnCrtScreenSizeChanged();
 
-            // Create the ansi cursor position handler
             Ansi.onesc5n.add(function () {
                 _this.OnAnsiESC5n();
             });
@@ -135,12 +592,10 @@ var fTelnet = (function () {
             return false;
         }
 
-        // Create our main timer
         this._Timer = setInterval(function () {
             _this.OnTimer();
         }, 50);
 
-        // Add our upload control
         var fTelnetUpload = document.createElement('input');
         fTelnetUpload.type = 'file';
         fTelnetUpload.id = 'fTelnetUpload';
@@ -231,11 +686,9 @@ var fTelnet = (function () {
             _this.OnConnectionSecurityError();
         });
 
-        // Reset display
         Crt.NormVideo();
         Crt.ClrScr();
 
-        // Make connection
         if (this._ProxyHostname === '') {
             this._StatusBar.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port;
             this._Connection.connect(this._Hostname, this._Port);
@@ -286,16 +739,13 @@ var fTelnet = (function () {
             return;
         }
 
-        // Transfer the file
         this._YModemReceive = new YModemReceive(this._Connection);
 
-        // Setup listeners for during transfer
         clearInterval(this._Timer);
         this._YModemReceive.ontransfercomplete.add(function () {
             _this.OnDownloadComplete();
         });
 
-        // Download the file
         this._YModemReceive.Download();
     };
 
@@ -440,7 +890,6 @@ var fTelnet = (function () {
     fTelnet.OnCrtScreenSizeChanged = function () {
         var NewWidth = Crt.ScreenCols * Crt.Font.Width;
 
-        // TODO -10 is 5px of left and right padding -- would be good if this wasn't hardcoded since it can be customized in the .css
         if (this._FocusWarningBar != null) {
             this._FocusWarningBar.style.width = NewWidth - 10 + 'px';
         }
@@ -454,7 +903,6 @@ var fTelnet = (function () {
             this._StatusBar.style.width = NewWidth - 10 + 'px';
         }
 
-        // Pick virtual keyboard width
         var ScriptUrl = document.getElementById('fTelnetScript').src;
         var CssUrl = ScriptUrl.replace('/ftelnet.js', '/keyboard/keyboard-{size}.min.css');
         var KeyboardSizes = [960, 800, 720, 640, 560, 480];
@@ -468,7 +916,6 @@ var fTelnet = (function () {
 
     fTelnet.OnDownloadComplete = function () {
         var _this = this;
-        // Restart listeners for keyboard and connection data
         this._Timer = setInterval(function () {
             _this.OnTimer();
         }, 50);
@@ -476,7 +923,6 @@ var fTelnet = (function () {
 
     fTelnet.OnTimer = function () {
         if ((this._Connection !== null) && (this._Connection.connected)) {
-            // Check for focus change
             if (document.hasFocus() && !this._HasFocus) {
                 this._HasFocus = true;
                 this._FocusWarningBar.style.display = 'none';
@@ -485,19 +931,16 @@ var fTelnet = (function () {
                 this._FocusWarningBar.style.display = 'block';
             }
 
-            // Determine how long it took between frames
             var MSecElapsed = new Date().getTime() - this._LastTimer;
             if (MSecElapsed < 1) {
                 MSecElapsed = 1;
             }
 
-            // Determine how many bytes we need to read to achieve the requested BitsPerSecond rate
             var BytesToRead = Math.floor(this._BitsPerSecond / 8 / (1000 / MSecElapsed));
             if (BytesToRead < 1) {
                 BytesToRead = 1;
             }
 
-            // Read the number of bytes we want
             var Data = this._Connection.readString(BytesToRead);
             if (Data.length > 0) {
                 Ansi.Write(Data);
@@ -506,10 +949,8 @@ var fTelnet = (function () {
             while (Crt.KeyPressed()) {
                 var KPE = Crt.ReadKey();
 
-                // Check for upload/download
                 if (KPE !== null) {
                     if (KPE.keyString.length > 0) {
-                        // Handle translating Enter key
                         if (KPE.keyString === '\r\n') {
                             this._Connection.writeString(this._Enter);
                         } else {
@@ -524,7 +965,6 @@ var fTelnet = (function () {
 
     fTelnet.OnUploadComplete = function () {
         var _this = this;
-        // Restart listeners for keyboard and connection data
         this._Timer = setInterval(function () {
             _this.OnTimer();
         }, 50);
@@ -541,10 +981,8 @@ var fTelnet = (function () {
 
         var fTelentUpload = document.getElementById('fTelnetUpload');
 
-        // Get the YModemSend class ready to go
         this._YModemSend = new YModemSend(this._Connection);
 
-        // Setup the listeners
         clearInterval(this._Timer);
         this._YModemSend.ontransfercomplete.add(function () {
             _this.OnUploadComplete();
@@ -647,7 +1085,6 @@ var fTelnet = (function () {
         var _this = this;
         var reader = new FileReader();
 
-        // Closure to capture the file information.
         reader.onload = function () {
             var FR = new FileRecord(file.name, file.size);
             var Buffer = reader.result;
@@ -659,7 +1096,6 @@ var fTelnet = (function () {
             _this._YModemSend.Upload(FR, fileCount);
         };
 
-        // Read in the image file as a data URL.
         reader.readAsArrayBuffer(file);
     };
     fTelnet._ButtonBar = null;
@@ -692,86 +1128,41 @@ var fTelnet = (function () {
     fTelnet._SplashScreen = 'G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==';
     return fTelnet;
 })();
-/// <reference path='source/fTelnet.ts' />
-// TODO List:
-// Incorporate Blob.js and FileSaver.js (and any other 3rd party .js) into ftelnet.js
-// From: Unknown, forgot to save the url!
-// Base64 utility methods
-// Needed for: IE9-
-(function () {
-    if ('atob' in window && 'btoa' in window) {
-        return;
-    }
 
-    var B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    function atob(input) {
-        input = String(input);
-        var position = 0, output = [], buffer = 0, bits = 0, n;
-        input = input.replace(/\s/g, '');
-        if ((input.length % 4) === 0) {
-            input = input.replace(/=+$/, '');
-        }
-        if ((input.length % 4) === 1) {
-            throw Error('InvalidCharacterError');
-        }
-        if (/[^+/0-9A-Za-z]/.test(input)) {
-            throw Error('InvalidCharacterError');
-        }
-        while (position < input.length) {
-            n = B64_ALPHABET.indexOf(input.charAt(position));
-            buffer = (buffer << 6) | n;
-            bits += 6;
-            if (bits === 24) {
-                output.push(String.fromCharCode((buffer >> 16) & 0xFF));
-                output.push(String.fromCharCode((buffer >> 8) & 0xFF));
-                output.push(String.fromCharCode(buffer & 0xFF));
-                bits = 0;
-                buffer = 0;
-            }
-            position += 1;
-        }
-        if (bits === 12) {
-            buffer = buffer >> 4;
-            output.push(String.fromCharCode(buffer & 0xFF));
-        } else if (bits === 18) {
-            buffer = buffer >> 2;
-            output.push(String.fromCharCode((buffer >> 8) & 0xFF));
-            output.push(String.fromCharCode(buffer & 0xFF));
-        }
-        return output.join('');
+var TypedEvent = (function () {
+    function TypedEvent() {
+        this._listeners = [];
     }
-    ;
-    function btoa(input) {
-        input = String(input);
-        var position = 0, out = [], o1, o2, o3, e1, e2, e3, e4;
-        if (/[^\x00-\xFF]/.test(input)) {
-            throw Error('InvalidCharacterError');
+    TypedEvent.prototype.add = function (listener) {
+        this._listeners.push(listener);
+    };
+    TypedEvent.prototype.remove = function (listener) {
+        if (typeof listener === 'function') {
+            for (var i = 0, l = this._listeners.length; i < l; l++) {
+                if (this._listeners[i] === listener) {
+                    this._listeners.splice(i, 1);
+                    break;
+                }
+            }
+        } else {
+            this._listeners = [];
         }
-        while (position < input.length) {
-            o1 = input.charCodeAt(position++);
-            o2 = input.charCodeAt(position++);
-            o3 = input.charCodeAt(position++);
+    };
 
-            // 111111 112222 222233 333333
-            e1 = o1 >> 2;
-            e2 = ((o1 & 0x3) << 4) | (o2 >> 4);
-            e3 = ((o2 & 0xf) << 2) | (o3 >> 6);
-            e4 = o3 & 0x3f;
-            if (position === input.length + 2) {
-                e3 = 64;
-                e4 = 64;
-            } else if (position === input.length + 1) {
-                e4 = 64;
-            }
-            out.push(B64_ALPHABET.charAt(e1), B64_ALPHABET.charAt(e2), B64_ALPHABET.charAt(e3), B64_ALPHABET.charAt(e4));
+    TypedEvent.prototype.trigger = function () {
+        var a = [];
+        for (var _i = 0; _i < (arguments.length - 0); _i++) {
+            a[_i] = arguments[_i + 0];
         }
-        return out.join('');
-    }
-    ;
-    window.atob = atob;
-    window.btoa = btoa;
-}());
-// From: http://javascript.info/tutorial/coordinates
+        var context = {};
+        var listeners = this._listeners.slice(0);
+        for (var i = 0, l = listeners.length; i < l; i++) {
+            listeners[i].apply(context, a || []);
+        }
+    };
+    return TypedEvent;
+})();
+
 var Offset;
 (function (Offset) {
     'use strict';
@@ -814,67 +1205,8 @@ var Offset;
     }
     Offset.getOffset = getOffset;
 })(Offset || (Offset = {}));
-// From: https://typescript.codeplex.com/discussions/402228
-
-var TypedEvent = (function () {
-    function TypedEvent() {
-        // Private member vars
-        this._listeners = [];
-    }
-    TypedEvent.prototype.add = function (listener) {
-        /// <summary>Registers a new listener for the event.</summary>
-        /// <param name="listener">The callback function to register.</param>
-        this._listeners.push(listener);
-    };
-    TypedEvent.prototype.remove = function (listener) {
-        /// <summary>Unregisters a listener from the event.</summary>
-        /// <param name="listener">The callback function that was registered. If missing then all listeners will be removed.</param>
-        if (typeof listener === 'function') {
-            for (var i = 0, l = this._listeners.length; i < l; l++) {
-                if (this._listeners[i] === listener) {
-                    this._listeners.splice(i, 1);
-                    break;
-                }
-            }
-        } else {
-            this._listeners = [];
-        }
-    };
-
-    TypedEvent.prototype.trigger = function () {
-        var a = [];
-        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-            a[_i] = arguments[_i + 0];
-        }
-        /// <summary>Invokes all of the listeners for this event.</summary>
-        /// <param name="args">Optional set of arguments to pass to listners.</param>
-        var context = {};
-        var listeners = this._listeners.slice(0);
-        for (var i = 0, l = listeners.length; i < l; i++) {
-            listeners[i].apply(context, a || []);
-        }
-    };
-    return TypedEvent;
-})();
-
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var ByteArray = (function () {
     function ByteArray() {
-        // Private variables
         this._Bytes = [];
         this._Length = 0;
         this._Position = 0;
@@ -967,7 +1299,6 @@ var ByteArray = (function () {
             Result += String.fromCharCode(this._Bytes[this._Position++]);
         }
 
-        // Reset if we've read all the data there is to read
         if (this.bytesAvailable === 0) {
             this.clear();
         }
@@ -1057,21 +1388,6 @@ var ByteArray = (function () {
     };
     return ByteArray;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var Keyboard;
 (function (Keyboard) {
     Keyboard[Keyboard["ALTERNATE"] = 18] = "ALTERNATE";
@@ -1113,21 +1429,6 @@ var Keyboard;
     Keyboard[Keyboard["WINDOWS"] = 1003] = "WINDOWS";
     Keyboard[Keyboard["UP"] = 38] = "UP";
 })(Keyboard || (Keyboard = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var Point = (function () {
     function Point(x, y) {
         this.x = x;
@@ -1135,27 +1436,9 @@ var Point = (function () {
     }
     return Point;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var Ansi = (function () {
     function Ansi() {
     }
-    // Source for most commands:
-    // http://cvs.synchro.net/cgi-bin/viewcvs.cgi/*checkout*/src/conio/cterm.txt?content-type=text%2Fplain&revision=HEAD
-    // Commands not found in above document noted with NOT IN CTERM.TXT
     Ansi.AnsiCommand = function (finalByte) {
         var Colour = 0;
         var x = 0;
@@ -1224,13 +1507,6 @@ var Ansi = (function () {
                 break;
             case 'D':
                 if (this._AnsiIntermediates.length === 0) {
-                    /* CSI [ p1 ] D
-                    Cursor Left
-                    Defaults: p1 = 1
-                    Moves the cursor position left p1 columns from the current position.
-                    Attempting to move past the screen boundaries stops the cursor
-                    at the screen boundary.
-                    SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                     if (this._AnsiParams.length < 1) {
                         this._AnsiParams.push('1');
                     }
@@ -1244,7 +1520,6 @@ var Ansi = (function () {
                     x = parseInt(this._AnsiParams.shift(), 10);
                     y = parseInt(this._AnsiParams.shift(), 10);
                     if ((x === 0) && (y >= 0) && (y <= 40)) {
-                        // TODO Should pick based on available screen space, not on biggest to smallest
                         Crt.SetFont('SyncTerm-' + y.toString(10));
                     } else {
                         console.log('Unhandled ESC sequence: Secondary Font Selection (set font ' + x + ' to ' + y + ')');
@@ -1389,16 +1664,6 @@ var Ansi = (function () {
                 break;
             case 'M':
                 if (this._AnsiParams[0][0] === '=') {
-                    /* CSI = [p1] M
-                    NON-STANDARD EXTENSION.
-                    Defaults:  p1 = 0
-                    Sets the current state of ANSI music parsing.
-                    0 - Only CSI | will introduce an ANSI music string.
-                    1 - Both CSI | and CSI N will introduce an ANSI music string.
-                    2 - CSI |, CSI N, and CSI M will all intriduce and ANSI music string.
-                    In this mode, Delete Line will not be available.
-                    
-                    SOURCE: CTerm only. */
                     if (this._AnsiParams.length < 1) {
                         this._AnsiParams.push('0');
                     }
@@ -1418,18 +1683,6 @@ var Ansi = (function () {
                             break;
                     }
                 } else {
-                    /* CSI [ p1 ] M
-                    Delete Line(s) / 'ANSI' Music
-                    Defaults: p1 = 1
-                    Deletes the current line and the p1 - 1 lines after it scrolling the
-                    first non-deleted line up to the current line and filling the newly
-                    empty lines at the end of the screen with the current attribute.
-                    If 'ANSI' Music is fully enabled (CSI = 2 M), performs 'ANSI' music
-                    instead.
-                    See 'ANSI' MUSIC section for more details.
-                    
-                    SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf
-                    SOURCE: BANSI.TXT */
                     if (this._AnsiParams.length < 1) {
                         this._AnsiParams.push('1');
                     }
@@ -1483,7 +1736,6 @@ var Ansi = (function () {
                             Crt.SetBlink(false);
                             break;
                         case 27:
-                            // NOTE: This should be a separate attribute than 7 but this implementation makes them equal
                             Crt.ReverseVideo();
                             break;
                         case 28:
@@ -1571,38 +1823,8 @@ var Ansi = (function () {
                 if (this._AnsiIntermediates.length === 0) {
                     console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
                 } else if (this._AnsiIntermediates[0].indexOf('*') !== -1) {
-                    /* CSI [ p1 [ ; p2 ] ] * r
-                    NON-STANDARD EXTENSION.
-                    Set the output emulation speed.
-                    If p1 or p2 are omitted, causes output speed emulation to stop
-                    p1 may be empty.
-                    Sequence is ignored if p1 is not empty, 0, or 1.
-                    The value of p2 sets the output speed emulation as follows:
-                    Value		Speed
-                    -----		-----
-                    empty, 0	Unlimited
-                    1		300
-                    2		600
-                    3		1200
-                    4		2400
-                    5		4800
-                    6		9600
-                    7		19200
-                    8		38400
-                    9		57600
-                    10		76800
-                    11		115200
-                    SOURCE: VT4xx Specification from http://www.vt100.net/ */
                     console.log('Unhandled ESC sequence: Set the output emulation speed.');
                 } else if (this._AnsiIntermediates[0].indexOf(']') !== -1) {
-                    /* CSI [ p1 [ ; p2 ] ] r
-                    NON-STANDARD EXTENSION.
-                    Set Top and Bottom Margins
-                    Defaults: p1 = 1
-                    p2 = last line on screen
-                    Selects top and bottom margins, defining the scrolling region. P1 is
-                    the line number of the first line in the scrolling region. P2 is the line
-                    number of the bottom line. */
                     console.log('Unhandled ESC sequence: Set Top and Bottom Margins');
                 } else {
                     console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -1617,22 +1839,8 @@ var Ansi = (function () {
                 break;
             case 's':
                 if (this._AnsiIntermediates.length === 0) {
-                    /* CSI s
-                    NON-STANDARD EXTENSION
-                    Save Current Position
-                    Saves the current cursor position for later restoring with CSI u
-                    although this is non-standard, it's so widely used in the BBS world
-                    that any terminal program MUST implement it.
-                    SOURCE: ANSI.SYS */
                     this._AnsiXY = new Point(Crt.WhereX(), Crt.WhereY());
                 } else {
-                    /* CSI ? [ p1 [ pX ... ] ] s
-                    NON-STANDARD EXTENSION
-                    Save Mode Setting
-                    Saves the current mode states as specified by CSI l and CSI h.  If
-                    p1 is omitted, saves all such states.  If pX is included, saves only
-                    the specified states (arguments to CSI l/h).
-                    SOURCE: SyncTERM only */
                     console.log('Unhandled ESC sequence: Save Mode Setting');
                 }
                 break;
@@ -1648,21 +1856,8 @@ var Ansi = (function () {
                 break;
             case 'u':
                 if (this._AnsiIntermediates.length === 0) {
-                    /* CSI u
-                    NON-STANDARD EXTENSION
-                    Restore Cursor Position
-                    Move the cursor to the last position saved by CSI s.  If no position has
-                    been saved, the cursor is not moved.
-                    SOURCE: ANSI.SYS */
                     Crt.GotoXY(this._AnsiXY.x, this._AnsiXY.y);
                 } else {
-                    /* CSI ? [ p1 [ pX ... ] ]  u
-                    NON-STANDARD EXTENSION
-                    Restore Mode Setting
-                    Saves the current mode states as specified by CSI l and CSI h.  If
-                    p1 is omitted, saves all such states.  If pX is included, restores
-                    all the specified states (arguments to CSI l/h)
-                    SOURCE: SyncTERM only */
                     console.log('Unhandled ESC sequence: Restore Mode Setting');
                 }
                 break;
@@ -1814,7 +2009,6 @@ var Ansi = (function () {
     };
 
     Ansi.Write = function (text) {
-        // Check for Atari/C64 mode, which doesn't use ANSI
         if (Crt.Atari || Crt.C64) {
             Crt.Write(text);
         } else {
@@ -1840,82 +2034,62 @@ var Ansi = (function () {
                     }
                 } else if (this._AnsiParserState === 2 /* Bracket */) {
                     if ((text.charAt(i) >= '0') && (text.charAt(i) <= '?')) {
-                        // It's a parameter byte
                         this._AnsiBuffer += text.charAt(i);
                         this._AnsiParserState = 3 /* ParameterByte */;
                     } else if ((text.charAt(i) >= ' ') && (text.charAt(i) <= '/')) {
-                        // It's an intermediate byte
                         this._AnsiBuffer += text.charAt(i);
                         this._AnsiParserState = 4 /* IntermediateByte */;
                     } else if ((text.charAt(i) >= '@') && (text.charAt(i) <= '~')) {
-                        // Final byte, output whatever we have buffered
                         Crt.Write(Buffer);
                         Buffer = '';
 
-                        // Handle the command
                         this.AnsiCommand(text.charAt(i));
 
-                        // Reset the parser state
                         this._AnsiParserState = 0 /* None */;
                     } else {
-                        // Invalid sequence
                         Buffer += text.charAt(i);
                         this._AnsiParserState = 0 /* None */;
                     }
                 } else if (this._AnsiParserState === 3 /* ParameterByte */) {
                     if ((text.charAt(i)) === ';') {
-                        // Start of new parameter
                         this._AnsiParams.push((this._AnsiBuffer === '') ? '0' : this._AnsiBuffer);
                         this._AnsiBuffer = '';
                     } else if ((text.charAt(i) >= '0') && (text.charAt(i) <= '?')) {
-                        // Additional parameter byte
                         this._AnsiBuffer += text.charAt(i);
                     } else if ((text.charAt(i) >= ' ') && (text.charAt(i) <= '/')) {
-                        // Intermediate byte, push buffer to new parameter
                         this._AnsiParams.push((this._AnsiBuffer === '') ? '0' : this._AnsiBuffer);
                         this._AnsiBuffer = '';
 
                         this._AnsiIntermediates.push(text.charAt(i));
                         this._AnsiParserState = 4 /* IntermediateByte */;
                     } else if ((text.charAt(i) >= '@') && (text.charAt(i) <= '~')) {
-                        // Final byte, push buffer to new parameter
                         this._AnsiParams.push((this._AnsiBuffer === '') ? '0' : this._AnsiBuffer);
                         this._AnsiBuffer = '';
 
-                        // Output whatever we have buffered
                         Crt.Write(Buffer);
                         Buffer = '';
 
-                        // Handle the command
                         this.AnsiCommand(text.charAt(i));
 
-                        // Reset the parser state
                         this._AnsiParserState = 0 /* None */;
                     } else {
-                        // Invalid command
                         Buffer += text.charAt(i);
                         this._AnsiParserState = 0 /* None */;
                     }
                 } else if (this._AnsiParserState === 4 /* IntermediateByte */) {
                     if ((text.charAt(i) >= '0') && (text.charAt(i) <= '?')) {
-                        // Parameter byte, which is illegal at this point
                         Buffer += text.charAt(i);
                         this._AnsiParserState = 0 /* None */;
                     } else if ((text.charAt(i) >= ' ') && (text.charAt(i) <= '/')) {
-                        // Additional intermediate byte
                         this._AnsiIntermediates.push(text.charAt(i));
                     } else if ((text.charAt(i) >= '@') && (text.charAt(i) <= '~')) {
-                        // Final byte byte, output whatever we have buffered
                         Crt.Write(Buffer);
                         Buffer = '';
 
-                        // Handle the command
                         this.AnsiCommand(text.charAt(i));
 
-                        // Reset the parser state
                         this._AnsiParserState = 0 /* None */;
                     } else {
-                        // Invalid command
                         Buffer += text.charAt(i);
                         this._AnsiParserState = 0 /* None */;
                     }
@@ -1949,66 +2123,18 @@ var Ansi = (function () {
     Ansi._AnsiXY = new Point(1, 1);
     return Ansi;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/// <summary>
-/// The possible states the ANSI parser may find itself in
-/// </summary>
 var AnsiParserState;
 (function (AnsiParserState) {
-    /// <summary>
-    /// The default data state
-    /// </summary>
     AnsiParserState[AnsiParserState["None"] = 0] = "None";
 
-    /// <summary>
-    /// The last received character was an ESC
-    /// </summary>
     AnsiParserState[AnsiParserState["Escape"] = 1] = "Escape";
 
-    /// <summary>
-    /// The last received character was a [
-    /// </summary>
     AnsiParserState[AnsiParserState["Bracket"] = 2] = "Bracket";
 
-    /// <summary>
-    /// The last received character was a parameter byte (0 to ?)
-    /// </summary>
     AnsiParserState[AnsiParserState["ParameterByte"] = 3] = "ParameterByte";
 
-    /// <summary>
-    /// The last received character was a intermediate byte (space to /)
-    /// </summary>
     AnsiParserState[AnsiParserState["IntermediateByte"] = 4] = "IntermediateByte";
 })(AnsiParserState || (AnsiParserState = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var CharInfo = (function () {
     function CharInfo(ch, attr, blink, underline, reverse) {
         if (typeof blink === 'undefined') {
@@ -2029,72 +2155,20 @@ var CharInfo = (function () {
     }
     return CharInfo;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var BorderStyle;
 (function (BorderStyle) {
-    /// <summary>
-    /// Single lines all around
-    /// </summary>
     BorderStyle[BorderStyle["Single"] = 0] = "Single";
 
-    /// <summary>
-    /// Double lines all around
-    /// </summary>
     BorderStyle[BorderStyle["Double"] = 1] = "Double";
 
-    /// <summary>
-    /// Single lines horizontally, double lines vertically
-    /// </summary>
-    /// <see>DoubleV</see>
     BorderStyle[BorderStyle["SingleH"] = 2] = "SingleH";
 
-    /// <summary>
-    /// Single lines vertically, double lines horizontally
-    /// </summary>
-    /// <see>DoubleH</see>
     BorderStyle[BorderStyle["SingleV"] = 3] = "SingleV";
 
-    /// <summary>
-    /// Double lines horizontally, single lines vertically
-    /// </summary>
-    /// <see>SingleV</see>
     BorderStyle[BorderStyle["DoubleH"] = 4] = "DoubleH";
 
-    /// <summary>
-    /// Double lines vertically, single lines horizontally
-    /// </summary>
-    /// <see>SingleH</see>
     BorderStyle[BorderStyle["DoubleV"] = 5] = "DoubleV";
 })(BorderStyle || (BorderStyle = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var ContentAlignment;
 (function (ContentAlignment) {
     ContentAlignment[ContentAlignment["BottomLeft"] = 0] = "BottomLeft";
@@ -2110,21 +2184,12 @@ var ContentAlignment;
     ContentAlignment[ContentAlignment["Center"] = 10] = "Center";
     ContentAlignment[ContentAlignment["Right"] = 11] = "Right";
 })(ContentAlignment || (ContentAlignment = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
+var ProgressBarStyle;
+(function (ProgressBarStyle) {
+    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
+    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
+    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
+})(ProgressBarStyle || (ProgressBarStyle = {}));
 var CrtControl = (function () {
     function CrtControl(parent, left, top, width, height) {
         this._BackColour = Crt.BLACK;
@@ -2221,7 +2286,6 @@ var CrtControl = (function () {
 
 
     CrtControl.prototype.Paint = function (force) {
-        // Override in base class
     };
 
     Object.defineProperty(CrtControl.prototype, "Parent", {
@@ -2332,21 +2396,6 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var CrtLabel = (function (_super) {
     __extends(CrtLabel, _super);
     function CrtLabel(parent, left, top, width, text, textAlign, foreColour, backColour) {
@@ -2355,7 +2404,6 @@ var CrtLabel = (function (_super) {
         this._Text = text;
         this._TextAlign = textAlign;
 
-        // Do these second because they force a paint and will cause an exception if they happen before the text is assigned
         this.ForeColour = foreColour;
         this.BackColour = backColour;
 
@@ -2365,10 +2413,8 @@ var CrtLabel = (function (_super) {
         switch (this._TextAlign) {
             case 10 /* Center */:
                 if (this._Text.length >= this.Width) {
-                    // Text is greater than available space so chop it off with PadRight()
                     Crt.FastWrite(this._Text.substring(0, this.Width), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
                 } else {
-                    // Text needs to be centered
                     var i = 0;
                     var LeftSpaces = '';
                     for (i = 0; i < Math.floor((this.Width - this._Text.length) / 2); i++) {
@@ -2419,21 +2465,6 @@ var CrtLabel = (function (_super) {
 
     return CrtLabel;
 })(CrtControl);
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var CrtPanel = (function (_super) {
     __extends(CrtPanel, _super);
     function CrtPanel(parent, left, top, width, height, border, foreColour, backColour, text, textAlign) {
@@ -2443,7 +2474,6 @@ var CrtPanel = (function (_super) {
         this._Text = text;
         this._TextAlign = textAlign;
 
-        // Do these second because they force a paint and will cause an exception if they happen before the text is assigned
         this.ForeColour = foreColour;
         this.BackColour = backColour;
 
@@ -2465,7 +2495,6 @@ var CrtPanel = (function (_super) {
 
 
     CrtPanel.prototype.Paint = function (force) {
-        // Characters for the box
         var TopLeft;
         var TopRight;
         var BottomLeft;
@@ -2510,17 +2539,14 @@ var CrtPanel = (function (_super) {
                 break;
         }
 
-        // Draw top row
         Crt.FastWrite(TopLeft + StringUtils.NewString(TopBottom, this.Width - 2) + TopRight, this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
 
         for (var Line = this.ScreenTop + 1; Line < this.ScreenTop + this.Height - 1; Line++) {
             Crt.FastWrite(LeftRight + StringUtils.NewString(' ', this.Width - 2) + LeftRight, this.ScreenLeft, Line, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
         }
 
-        // Draw bottom row
         Crt.FastWrite(BottomLeft + StringUtils.NewString(TopBottom, this.Width - 2) + BottomRight, this.ScreenLeft, this.ScreenTop + this.Height - 1, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
 
-        // Draw window title
         if (StringUtils.Trim(this._Text).length > 0) {
             var TitleX = 0;
             var TitleY = 0;
@@ -2560,7 +2586,6 @@ var CrtPanel = (function (_super) {
                     break;
             }
 
-            // Draw title
             Crt.FastWrite(WindowTitle, TitleX, TitleY, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
         }
     };
@@ -2594,21 +2619,6 @@ var CrtPanel = (function (_super) {
 
     return CrtPanel;
 })(CrtControl);
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var CrtProgressBar = (function (_super) {
     __extends(CrtProgressBar, _super);
     function CrtProgressBar(parent, left, top, width, style) {
@@ -2620,10 +2630,8 @@ var CrtProgressBar = (function (_super) {
         this._Style = style;
 
         this.BackColour = Crt.BLUE;
-        this._BarForeColour = Crt.YELLOW; // TODO This causes blinking orange background behind percent text since Crt unit
+        this._BarForeColour = Crt.YELLOW;
 
-        // doesn't support high backgrounds unless you disable blink (so this note is to
-        // remind me to allow high backgrounds AND blink, like fTelnet)
         this._BlankForeColour = Crt.LIGHTGRAY;
         this._LastMarqueeUpdate = new Date().getTime();
         this._MarqueeAnimationSpeed = 25;
@@ -2694,20 +2702,12 @@ var CrtProgressBar = (function (_super) {
     });
 
 
-    /// <summary>
-    /// Re-Draw the bar and percent text.
-    /// </summary>
-    /// <param name='AForce'>When true, the bar and percent will always be Paintn.
-    ///   When false, the bar and percent will only be Paintn as necessary, which reduces the number of unnecessary
-    ///   Paints(especially when a large maximum is used)</param>
     CrtProgressBar.prototype.Paint = function (force) {
         if (this._Style === 0 /* Marquee */) {
             if (force) {
-                // Erase the old bar
                 Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), this.Width), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
             }
 
-            // Draw the new bar
             if (this._Value > 0) {
                 if (this._Value > this.Width) {
                     Crt.FastWrite(String.fromCharCode(176), this.ScreenLeft + this.Width - (15 - Math.floor(this._Value - this.Width)), this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
@@ -2719,9 +2719,7 @@ var CrtProgressBar = (function (_super) {
                 }
             }
         } else {
-            // Check if we're forcing an update (probably due to a change in Left, Top, Width, etc)
             if (force) {
-                // Yep, so reset the 'Last' variables
                 this._LastBarWidth = 9999;
                 this._LastPercentText = '';
             }
@@ -2730,20 +2728,16 @@ var CrtProgressBar = (function (_super) {
             var Percent = this._Value / this._Maximum;
             var NewBarWidth = Math.floor(Percent * this.Width);
             if (NewBarWidth !== this._LastBarWidth) {
-                // Check if the bar shrank (if so, we need to delete the old bar)
                 if (NewBarWidth < this._LastBarWidth) {
-                    // Erase the old bar
                     Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), this.Width), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
                 }
 
-                // Draw the new bar
                 Crt.FastWrite(StringUtils.NewString(String.fromCharCode(this._Style), NewBarWidth), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this._BarForeColour + (this.BackColour << 4)));
 
                 this._LastBarWidth = NewBarWidth;
                 PaintPercentText = true;
             }
 
-            // Draw the percentage
             if (this._PercentVisible) {
                 var NewPercentText = StringUtils.FormatPercent(Percent, this._PercentPrecision);
                 if ((NewPercentText !== this._LastPercentText) || (PaintPercentText)) {
@@ -2751,11 +2745,8 @@ var CrtProgressBar = (function (_super) {
 
                     var ProgressStart = Math.round((this.Width - NewPercentText.length) / 2);
                     if (ProgressStart >= NewBarWidth) {
-                        // Bar hasn't reached the percent text, so draw in the bar's empty color
                         Crt.FastWrite(NewPercentText, this.ScreenLeft + ProgressStart, this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
                     } else if (ProgressStart + NewPercentText.length <= NewBarWidth) {
-                        // Bar has passed the percent text, so draw in the bar's foreground colour
-                        // (or still use background for Blocks)
                         Crt.FastWrite(NewPercentText, this.ScreenLeft + ProgressStart, this.ScreenTop, new CharInfo(' ', this.BackColour + (this._BarForeColour << 4)));
                     } else {
                         for (var i = 0; i < NewPercentText.length; i++) {
@@ -2831,7 +2822,6 @@ var CrtProgressBar = (function (_super) {
             if (value !== this._Value) {
                 if (this._Style === 0 /* Marquee */) {
                     if ((new Date()).getTime() - this._LastMarqueeUpdate >= this._MarqueeAnimationSpeed) {
-                        // Keep value between 0 and Maximum + 15
                         if (value < 0) {
                             value = 0;
                         }
@@ -2843,7 +2833,6 @@ var CrtProgressBar = (function (_super) {
                         this._LastMarqueeUpdate = (new Date()).getTime();
                     }
                 } else {
-                    // Keep value between 0 and Maximum
                     this._Value = Math.max(0, Math.min(value, this._Maximum));
                     this.Paint(false);
                 }
@@ -2855,43 +2844,6 @@ var CrtProgressBar = (function (_super) {
 
     return CrtProgressBar;
 })(CrtControl);
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var ProgressBarStyle;
-(function (ProgressBarStyle) {
-    ProgressBarStyle[ProgressBarStyle["Blocks"] = 254] = "Blocks";
-    ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
-    ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
-})(ProgressBarStyle || (ProgressBarStyle = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/// <reference path='CharInfo.ts' />
 var Crt = (function () {
     function Crt() {
     }
@@ -2904,37 +2856,31 @@ var Crt = (function () {
             _this.OnFontChanged();
         });
 
-        // Create the canvas
         this._Canvas = document.createElement('canvas');
         this._Canvas.id = 'fTelnetCanvas';
         this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
         this._Canvas.height = this._Font.Height * this._ScreenSize.y;
 
-        // Check for Canvas support
         if (!this._Canvas.getContext) {
             console.log('fTelnet Error: Canvas not supported');
             return false;
         }
 
-        // Add crt to container
         this._Container.appendChild(this._Canvas);
 
-        // Register keydown and keypress handlers
         window.addEventListener('keydown', function (ke) {
             _this.OnKeyDown(ke);
-        }, false); // For special keys
+        }, false);
         window.addEventListener('keypress', function (ke) {
             _this.OnKeyPress(ke);
-        }, false); // For regular keys
+        }, false);
         window.addEventListener('resize', function () {
             _this.OnResize();
         }, false);
 
-        // Reset the screen buffer
         this.InitBuffers(true);
 
-        // Create the cursor
         this._Cursor = new Cursor(this._Container, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
         this._Cursor.onhide.add(function () {
             _this.OnBlinkHide();
@@ -2943,11 +2889,9 @@ var Crt = (function () {
             _this.OnBlinkShow();
         });
 
-        // Update the WindMin/WindMax records
         this._WindMin = 0;
         this._WindMax = (this._ScreenSize.x - 1) | ((this._ScreenSize.y - 1) << 8);
 
-        // Create the context
         this._CanvasContext = this._Canvas.getContext('2d');
         this._CanvasContext.font = '12pt monospace';
         this._CanvasContext.textBaseline = 'top';
@@ -2969,11 +2913,6 @@ var Crt = (function () {
 
 
     Crt.Beep = function () {
-        /*TODO
-        var Duration = 44100 * 0.3; // 0.3 = 300ms
-        var Frequency = 440; // 440hz
-        
-        */
     };
 
     Object.defineProperty(Crt, "Blink", {
@@ -3021,108 +2960,37 @@ var Crt = (function () {
     });
 
     Crt.ClrBol = function () {
-        /// <summary>
-        /// Clears all characters from the cursor position to the start of the line
-        /// without moving the cursor.
-        /// </summary>
-        /// <remarks>
-        /// All character positions are set to blanks with the currently defined text
-        /// attributes. Thus, if TextBackground is not black, the current cursor
-        /// position to the left edge becomes the background color.
-        ///
-        /// ClrBol is window-relative.
-        /// </remarks>
         this.FastWrite(StringUtils.NewString(' ', this.WhereX()), this.WindMinX + 1, this.WhereYA(), this._CharInfo);
     };
 
     Crt.ClrBos = function () {
-        /// <summary>
-        /// Clears the active window from the cursor's current line to the start of the window
-        /// </summary>
-        /// <remarks>
-        /// Sets all character positions from the cursor's current line to the start of the window
-        /// to blanks with the currently defined text attributes. Thus, if TextBackground is not
-        /// black, the entire screen becomes the background color. This also applies to characters
-        /// cleared by ClrEol, InsLine, and DelLine, and to empty lines created by scrolling.
-        ///
-        /// ClrBos is window-relative.
-        /// </remarks>
-        // Clear rows before current row
         this.ScrollUpWindow(this.WhereY() - 1);
         this.ScrollDownWindow(this.WhereY() - 1);
 
-        // Clear start of current row
         this.ClrBol();
     };
 
     Crt.ClrEol = function () {
-        /// <summary>
-        /// Clears all characters from the cursor position to the end of the line
-        /// without moving the cursor.
-        /// </summary>
-        /// <remarks>
-        /// All character positions are set to blanks with the currently defined text
-        /// attributes. Thus, if TextBackground is not black, the current cursor
-        /// position to the right edge becomes the background color.
-        ///
-        /// ClrEol is window-relative.
-        /// </remarks>
         this.FastWrite(StringUtils.NewString(' ', (this.WindMaxX + 1) - this.WhereX() + 1), this.WhereXA(), this.WhereYA(), this._CharInfo);
     };
 
     Crt.ClrEos = function () {
-        /// <summary>
-        /// Clears the active window from the cursor's current line to the end of the window
-        /// </summary>
-        /// <remarks>
-        /// Sets all character positions from the cursor's current line to the end of the window
-        /// to blanks with the currently defined text attributes. Thus, if TextBackground is not
-        /// black, the entire screen becomes the background color. This also applies to characters
-        /// cleared by ClrEol, InsLine, and DelLine, and to empty lines created by scrolling.
-        ///
-        /// ClrEos is window-relative.
-        /// </remarks>
-        // Clear rows after current row
         this.ScrollDownWindow(this.WindRows - this.WhereY());
         this.ScrollUpWindow(this.WindRows - this.WhereY());
 
-        // Clear rest of current row
         this.ClrEol();
     };
 
     Crt.ClrLine = function () {
-        /// <summary>
-        /// Clears all characters from the cursor position's current line
-        /// without moving the cursor.
-        /// </summary>
-        /// <remarks>
-        /// All character positions are set to blanks with the currently defined text
-        /// attributes. Thus, if TextBackground is not black, the current cursor
-        /// position's line becomes the background color.
-        ///
-        /// ClrLine is window-relative.
-        /// </remarks>
         this.FastWrite(StringUtils.NewString(' ', this.WindCols), this.WindMinX + 1, this.WhereYA(), this._CharInfo);
     };
 
     Crt.ClrScr = function () {
-        /// <summary>
-        /// Clears the active windows and returns the cursor to the upper-left corner.
-        /// </summary>
-        /// <remarks>
-        /// Sets all character positions to blanks with the currently defined text
-        /// attributes. Thus, if TextBackground is not black, the entire screen becomes
-        /// the background color. This also applies to characters cleared by ClrEol,
-        /// InsLine, and DelLine, and to empty lines created by scrolling.
-        ///
-        /// ClrScr is window-relative.
-        /// </remarks>
         this.ScrollUpWindow(this.WindRows);
         this.GotoXY(1, 1);
     };
 
     Crt.Conceal = function () {
-        // Set the foreground to the background
         this.TextColor((this.TextAttr & 0xF0) >> 4);
     };
 
@@ -3149,17 +3017,6 @@ var Crt = (function () {
     };
 
     Crt.DelLine = function (count) {
-        /// <summary>
-        /// Deletes the line containing the cursor.
-        /// </summary>
-        /// <remarks>
-        /// The line containing the cursor is deleted, and all lines below are moved one
-        /// line up (using the BIOS scroll routine). A new line is added at the bottom.
-        ///
-        /// All character positions are set to blanks with the currently defined text
-        /// attributes. Thus, if TextBackground is not black, the new line becomes the
-        /// background color.
-        /// </remarks>
         if (typeof count === 'undefined') {
             count = 1;
         }
@@ -3174,7 +3031,6 @@ var Crt = (function () {
             var X;
             var Y;
 
-            // Make copy of current scrollback buffer in temp scrollback buffer
             this._ScrollBackTemp = [];
             for (Y = 0; Y < this._ScrollBack.length; Y++) {
                 NewRow = [];
@@ -3192,23 +3048,11 @@ var Crt = (function () {
                 this._ScrollBackTemp.push(NewRow);
             }
 
-            // Set our position in the scrollback
             this._ScrollBackPosition = this._ScrollBackTemp.length;
         }
     };
 
     Crt.FastWrite = function (text, x, y, charInfo, updateBuffer) {
-        /// <summary>
-        /// Writes a string of text at the desired X/Y coordinate with the given text attribute.
-        ///
-        /// FastWrite is not window-relative, and it does not wrap text that goes beyond the right edge of the screen.
-        /// </summary>
-        /// <param name='AText' type='String'>The text to write</param>
-        /// <param name='AX' type='Number' integer='true'>The 1-based column to start the text</param>
-        /// <param name='AY' type='Number' integer='true'>The 1-based row to start the text</param>
-        /// <param name='ACharInfo' type='CharInfo'>The text attribute to colour the text</param>
-        /// <param name='AUpdateBuffer' type='Boolean' optional='true'>Whether to update the internal buffer or not
-        ///   (default is true)< / param>
         if (typeof updateBuffer === 'undefined') {
             updateBuffer = true;
         }
@@ -3258,16 +3102,6 @@ var Crt = (function () {
     };
 
     Crt.GotoXY = function (x, y) {
-        /// <summary>
-        /// Moves the cursor to the given coordinates within the virtual screen.
-        /// </summary>
-        /// <remarks>
-        /// The upper-left corner of the virtual screen corresponds to (1, 1).
-        ///
-        /// GotoXY is window-relative.
-        /// </remarks>
-        /// <param name='AX'>The 1-based column to move to</param>
-        /// <param name='AY'>The 1-based row to move to</param>
         if ((x >= 1) && (y >= 1) && ((x - 1 + this.WindMinX) <= this.WindMaxX) && ((y - 1 + this.WindMinY) <= this.WindMaxY)) {
             this._Cursor.Position = new Point(x, y);
         }
@@ -3278,18 +3112,9 @@ var Crt = (function () {
     };
 
     Crt.HighVideo = function () {
-        /// <summary>
-        /// Selects high-intensity characters.
-        /// </summary>
-        /// <remarks>
-        /// There is a Byte variable in Crt TextAttr that is used to hold the current
-        /// video attribute. HighVideo sets the high intensity bit of TextAttr's
-        /// fore-ground color, thus mapping colors 0-7 onto colors 8-15.
-        /// </remarks>
         this.TextAttr |= 0x08;
     };
 
-    // TODO Have to do this here because the static constructor doesn't seem to like the X and Y variables
     Crt.InitBuffers = function (initScrollBack) {
         this._Buffer = [];
         for (var Y = 1; Y <= this._ScreenSize.y; Y++) {
@@ -3319,19 +3144,6 @@ var Crt = (function () {
     };
 
     Crt.InsLine = function (count) {
-        /// <summary>
-        /// Inserts an empty line at the cursor position.
-        /// </summary>
-        /// <remarks>
-        /// All lines below the inserted line are moved down one line, and the bottom
-        /// line scrolls off the screen (using the BIOS scroll routine).
-        ///
-        /// All character positions are set to blanks with the currently defined text
-        /// attributes. Thus, if TextBackground is not black, the new line becomes the
-        /// background color.
-        ///
-        /// InsLine is window-relative.
-        /// </remarks>
         if (typeof count === 'undefined') {
             count = 1;
         }
@@ -3351,26 +3163,10 @@ var Crt = (function () {
     });
 
     Crt.LowVideo = function () {
-        /// <summary>
-        /// Selects low intensity characters.
-        /// </summary>
-        /// <remarks>
-        /// There is a Byte variable in Crt--TextAttr--that holds the current video
-        /// attribute. LowVideo clears the high-intensity bit of TextAttr's foreground
-        /// color, thus mapping colors 8 to 15 onto colors 0 to 7.
-        /// </remarks>
         this.TextAttr &= 0xF7;
     };
 
     Crt.NormVideo = function () {
-        /// <summary>
-        /// Selects the original text attribute read from the cursor location at startup.
-        /// </summary>
-        /// <remarks>
-        /// There is a Byte variable in Crt--TextAttr--that holds the current video
-        /// attribute. NormVideo restores TextAttr to the value it had when the program
-        /// was started.
-        /// </remarks>
         if (this._C64) {
             this._CharInfo.Attr = this.PETSCII_WHITE;
         } else {
@@ -3382,7 +3178,6 @@ var Crt = (function () {
     };
 
     Crt.OnBlinkHide = function () {
-        // Only hide the text if blink is enabled
         if (this._Blink) {
             this._BlinkHidden = true;
 
@@ -3399,7 +3194,6 @@ var Crt = (function () {
     };
 
     Crt.OnBlinkShow = function () {
-        // Show the text if blink is enabled, or we need a reset (which happens when blink is diabled while in the hidden state)
         if (this._Blink || this._BlinkHidden) {
             this._BlinkHidden = false;
 
@@ -3414,19 +3208,15 @@ var Crt = (function () {
             }
         }
 
-        // Reposition the cursor
         this._Cursor.WindowOffset = Offset.getOffset(this._Canvas);
     };
 
     Crt.OnFontChanged = function () {
-        // Resize the cursor
         this._Cursor.Size = this._Font.Size;
 
-        // Update the canvas
         this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
 
-        // Restore the screen contents
         if (this._Buffer !== null) {
             for (var Y = 1; Y <= this._ScreenSize.y; Y++) {
                 for (var X = 1; X <= this._ScreenSize.x; X++) {
@@ -3439,7 +3229,6 @@ var Crt = (function () {
     };
 
     Crt.OnKeyDown = function (ke) {
-        // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) {
             return;
         }
@@ -3465,7 +3254,6 @@ var Crt = (function () {
                     }
                 }
             } else if (ke.keyCode === 27 /* ESCAPE */) {
-                // Restore the screen contents
                 if (this._Buffer !== null) {
                     for (Y = 1; Y <= this._ScreenSize.y; Y++) {
                         for (X = 1; X <= this._ScreenSize.x; X++) {
@@ -3627,7 +3415,6 @@ var Crt = (function () {
             }
         } else {
             if (ke.ctrlKey) {
-                // Handle control + letter keys
                 if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
                     keyString = String.fromCharCode(ke.keyCode - 64);
                 } else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
@@ -3728,7 +3515,6 @@ var Crt = (function () {
     };
 
     Crt.OnKeyPress = function (ke) {
-        // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) {
             return;
         }
@@ -3743,7 +3529,6 @@ var Crt = (function () {
             return;
         }
 
-        // Opera doesn't give us the charCode, so try which in that case
         var which = (ke.charCode !== null) ? ke.charCode : ke.which;
         if (this._Atari) {
             if ((which >= 33) && (which <= 122)) {
@@ -3773,7 +3558,6 @@ var Crt = (function () {
     };
 
     Crt.OnResize = function () {
-        // See if we can switch to a different font size
         Crt.SetFont(this._Font.Name);
     };
 
@@ -3833,9 +3617,6 @@ var Crt = (function () {
     };
 
     Crt.ReverseVideo = function () {
-        /// <summary>
-        /// Reverses the foreground and background text attributes
-        /// </summary>
         this.TextAttr = ((this.TextAttr & 0xF0) >> 4) | ((this.TextAttr & 0x0F) << 4);
     };
 
@@ -3871,29 +3652,15 @@ var Crt = (function () {
     });
 
     Crt.ScrollDownCustom = function (left, top, right, bottom, count, charInfo, updateBuffer) {
-        /// <summary>
-        /// Scrolls the given window down the given number of lines (leaving blank lines at the top),
-        /// filling the void with the given character with the given text attribute
-        /// </summary>
-        /// <param name='AX1'>The 1-based left column of the window</param>
-        /// <param name='AY1'>The 1-based top row of the window</param>
-        /// <param name='AX2'>The 1-based right column of the window</param>
-        /// <param name='AY2'>The 1-based bottom row of the window</param>
-        /// <param name='ALines'>The number of lines to scroll</param>
-        /// <param name='ACh'>The character to fill the void with</param>
-        /// <param name='ACharInfo'>The text attribute to fill the void with</param>
-        // Handle optional parameters
         if (typeof updateBuffer === 'undefined') {
             updateBuffer = true;
         }
 
-        // Validate the ALines parameter
         var MaxLines = bottom - top + 1;
         if (count > MaxLines) {
             count = MaxLines;
         }
 
-        // Scroll -- TODO Hasn't been tested yet
         var Left = (left - 1) * this._Font.Width;
         var Top = (top - 1) * this._Font.Height;
         var Width = (right - left + 1) * this._Font.Width;
@@ -3905,7 +3672,6 @@ var Crt = (function () {
             this._CanvasContext.putImageData(Buf, Left, Top);
         }
 
-        // Blank -- TODO Hasn't been tested yet
         this._CanvasContext.fillStyle = CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4];
         Left = (left - 1) * this._Font.Width;
         Top = (top - 1) * this._Font.Height;
@@ -3914,7 +3680,6 @@ var Crt = (function () {
         this._CanvasContext.fillRect(Left, Top, Width, Height);
 
         if (updateBuffer) {
-            // Now to adjust the buffer
             var X = 0;
             var Y = 0;
 
@@ -3941,46 +3706,24 @@ var Crt = (function () {
     };
 
     Crt.ScrollDownScreen = function (count) {
-        /// <summary>
-        /// Scrolls the screen down the given number of lines (leaving blanks at the top)
-        /// </summary>
-        /// <param name='ALines'>The number of lines to scroll</param>
         this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, count, this._CharInfo);
     };
 
     Crt.ScrollDownWindow = function (count) {
-        /// <summary>
-        /// Scrolls the current window down the given number of lines (leaving blanks at the top)
-        /// </summary>
-        /// <param name='ALines'>The number of lines to scroll</param>
         this.ScrollDownCustom(this.WindMinX + 1, this.WindMinY + 1, this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
     };
 
     Crt.ScrollUpCustom = function (left, top, right, bottom, count, charInfo, updateBuffer) {
-        /// <summary>
-        /// Scrolls the given window up the given number of lines (leaving blank lines at the bottom),
-        /// filling the void with the given character with the given text attribute
-        /// </summary>
-        /// <param name='AX1'>The 1-based left column of the window</param>
-        /// <param name='AY1'>The 1-based top row of the window</param>
-        /// <param name='AX2'>The 1-based right column of the window</param>
-        /// <param name='AY2'>The 1-based bottom row of the window</param>
-        /// <param name='ALines'>The number of lines to scroll</param>
-        /// <param name='ACh'>The character to fill the void with</param>
-        /// <param name='ACharInfo'>The text attribute to fill the void with</param>
-        // Handle optional parameters
         if (typeof updateBuffer === 'undefined') {
             updateBuffer = true;
         }
 
-        // Validate the ALines parameter
         var MaxLines = bottom - top + 1;
         if (count > MaxLines) {
             count = MaxLines;
         }
 
         if ((!this._InScrollBack) || (this._InScrollBack && !updateBuffer)) {
-            // Scroll
             var Left = (left - 1) * this._Font.Width;
             var Top = (top - 1 + count) * this._Font.Height;
             var Width = (right - left + 1) * this._Font.Width;
@@ -3992,7 +3735,6 @@ var Crt = (function () {
                 this._CanvasContext.putImageData(Buf, Left, Top);
             }
 
-            // Blank
             this._CanvasContext.fillStyle = CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4];
             Left = (left - 1) * this._Font.Width;
             Top = (bottom - count) * this._Font.Height;
@@ -4002,7 +3744,6 @@ var Crt = (function () {
         }
 
         if (updateBuffer) {
-            // Now to adjust the buffer
             var NewRow;
             var X;
             var Y;
@@ -4015,7 +3756,6 @@ var Crt = (function () {
                 this._ScrollBack.push(NewRow);
             }
 
-            // Trim the scrollback to 1000 lines, if necessary
             var ScrollBackLength = this._ScrollBack.length;
             while (ScrollBackLength > (this._ScrollBackSize - 2)) {
                 this._ScrollBack.shift();
@@ -4045,18 +3785,10 @@ var Crt = (function () {
     };
 
     Crt.ScrollUpScreen = function (count) {
-        /// <summary>
-        /// Scrolls the screen up the given number of lines (leaving blanks at the bottom)
-        /// </summary>
-        /// <param name='ALines'>The number of lines to scroll</param>
         this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, count, this._CharInfo);
     };
 
     Crt.ScrollUpWindow = function (count) {
-        /// <summary>
-        /// Scrolls the current window up the given number of lines (leaving blanks at the bottom)
-        /// </summary>
-        /// <param name='ALines'>The number of lines to scroll</param>
         this.ScrollUpCustom(this.WindMinX + 1, this.WindMinY + 1, this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
     };
 
@@ -4073,24 +3805,14 @@ var Crt = (function () {
     };
 
     Crt.SetFont = function (font) {
-        /// <summary>
-        /// Try to set the console font size to characters with the given X and Y size
-        /// </summary>
-        /// <param name='AX'>The horizontal size</param>
-        /// <param name='AY'>The vertical size</param>
-        /// <returns>True if the size was found and set, False if the size was not available</returns>
-        // Request the new font
         return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
     };
 
-    // TODO Doesn't seem to be working
     Crt.SetScreenSize = function (columns, rows) {
-        // Check if we're in scrollback
         if (this._InScrollBack) {
             return;
         }
 
-        // Check if the requested size is already in use
         if ((columns === this._ScreenSize.x) && (rows === this._ScreenSize.y)) {
             return;
         }
@@ -4098,7 +3820,6 @@ var Crt = (function () {
         var X = 0;
         var Y = 0;
 
-        // Save the old details
         var OldBuffer;
         if (this._Buffer !== null) {
             OldBuffer = [];
@@ -4111,19 +3832,14 @@ var Crt = (function () {
         }
         var OldScreenSize = new Point(this._ScreenSize.x, this._ScreenSize.y);
 
-        // Set the new console screen size
         this._ScreenSize.x = columns;
         this._ScreenSize.y = rows;
 
-        // Update the WindMin/WindMax records
         this._WindMin = 0;
         this._WindMax = (this._ScreenSize.x - 1) | ((this._ScreenSize.y - 1) << 8);
 
-        // Reset the screen buffer
         this.InitBuffers(false);
 
-        // Restore the screen contents
-        // TODO If new screen is smaller than old screen, restore bottom portion not top portion
         if (OldBuffer !== null) {
             for (Y = 1; Y <= Math.min(this._ScreenSize.y, OldScreenSize.y); Y++) {
                 for (X = 1; X <= Math.min(this._ScreenSize.x, OldScreenSize.x); X++) {
@@ -4132,7 +3848,6 @@ var Crt = (function () {
             }
         }
 
-        // Let the program know about the update
         this.onscreensizechange.trigger();
     };
 
@@ -4142,15 +3857,6 @@ var Crt = (function () {
 
     Object.defineProperty(Crt, "TextAttr", {
         get: function () {
-            /// <summary>
-            /// Stores currently selected text attributes
-            /// </summary>
-            /// <remarks>
-            /// The text attributes are normally set through calls to TextColor and
-            /// TextBackground.
-            ///
-            /// However, you can also set them by directly storing a value in TextAttr.
-            /// </remarks>
             return this._CharInfo.Attr;
         },
         set: function (value) {
@@ -4162,94 +3868,31 @@ var Crt = (function () {
 
 
     Crt.TextBackground = function (colour) {
-        /// <summary>
-        /// Selects the background color.
-        /// </summary>
-        /// <remarks>
-        /// Color is an integer expression in the range 0..7, corresponding to one of
-        /// the first eight text color constants. There is a byte variable in
-        /// Crt--TextAttr--that is used to hold the current video attribute.
-        /// TextBackground sets bits 4-6 of TextAttr to Color.
-        ///
-        /// The background of all characters subsequently written will be in the
-        /// specified color.
-        /// </remarks>
-        /// <param name='AColor'>The colour to set the background to</param>
         this.TextAttr = (this.TextAttr & 0x0F) | ((colour & 0x0F) << 4);
     };
 
     Crt.TextColor = function (colour) {
-        /// <summary>
-        /// Selects the foreground character color.
-        /// </summary>
-        /// <remarks>
-        /// Color is an integer expression in the range 0..15, corresponding to one of
-        /// the text color constants defined in Crt.
-        ///
-        /// There is a byte-type variable Crt--TextAttr--that is used to hold the
-        /// current video attribute. TextColor sets bits 0-3 to Color. If Color is
-        /// greater than 15, the blink bit (bit 7) is also set; otherwise, it is
-        /// cleared.
-        ///
-        /// You can make characters blink by adding 128 to the color value. The Blink
-        /// constant is defined for that purpose; in fact, for compatibility with Turbo
-        /// Pascal 3.0, any Color value above 15 causes the characters to blink. The
-        /// foreground of all characters subsequently written will be in the specified
-        /// color.
-        /// </remarks>
-        /// <param name='AColor'>The colour to set the foreground to</param>
         this.TextAttr = (this.TextAttr & 0xF0) | (colour & 0x0F);
     };
 
     Crt.WhereX = function () {
-        /// <summary>
-        /// Returns the CP's X coordinate of the current cursor location.
-        /// </summary>
-        /// <remarks>
-        /// WhereX is window-specific.
-        /// </remarks>
-        /// <returns>The 1-based column of the window the cursor is currently in</returns>
         return this._Cursor.Position.x;
     };
 
     Crt.WhereXA = function () {
-        /// <summary>
-        /// Returns the CP's X coordinate of the current cursor location.
-        /// </summary>
-        /// <remarks>
-        /// WhereXA is not window-specific.
-        /// </remarks>
-        /// <returns>The 1-based column of the screen the cursor is currently in</returns>
         return this.WhereX() + this.WindMinX;
     };
 
-    /// <summary>
-    /// Returns the CP's Y coordinate of the current cursor location.
-    /// </summary>
-    /// <remarks>
-    /// WhereY is window-specific.
-    /// </remarks>
-    /// <returns>The 1-based row of the window the cursor is currently in</returns>
     Crt.WhereY = function () {
         return this._Cursor.Position.y;
     };
 
     Crt.WhereYA = function () {
-        /// <summary>
-        /// Returns the CP's Y coordinate of the current cursor location.
-        /// </summary>
-        /// <remarks>
-        /// WhereYA is now window-specific.
-        /// </remarks>
-        /// <returns>The 1-based row of the screen the cursor is currently in</returns>
         return this.WhereY() + this.WindMinY;
     };
 
     Object.defineProperty(Crt, "WindCols", {
         get: function () {
-            /// <summary>
-            /// The number of columns found in the currently defined window
-            /// </summary>
             return this.WindMaxX - this.WindMinX + 1;
         },
         enumerable: true,
@@ -4258,9 +3901,6 @@ var Crt = (function () {
 
     Object.defineProperty(Crt, "WindMax", {
         get: function () {
-            /// <summary>
-            /// The 0-based lower right coordinate of the current window
-            /// </summary>
             return this._WindMax;
         },
         enumerable: true,
@@ -4269,9 +3909,6 @@ var Crt = (function () {
 
     Object.defineProperty(Crt, "WindMaxX", {
         get: function () {
-            /// <summary>
-            /// The 0-based left column of the current window
-            /// </summary>
             return (this.WindMax & 0x00FF);
         },
         enumerable: true,
@@ -4280,9 +3917,6 @@ var Crt = (function () {
 
     Object.defineProperty(Crt, "WindMaxY", {
         get: function () {
-            /// <summary>
-            /// The 0-based right column of the current window
-            /// </summary>
             return ((this.WindMax & 0xFF00) >> 8);
         },
         enumerable: true,
@@ -4291,9 +3925,6 @@ var Crt = (function () {
 
     Object.defineProperty(Crt, "WindMin", {
         get: function () {
-            /// <summary>
-            /// The 0-based upper left coordinate of the current window
-            /// </summary>
             return this._WindMin;
         },
         enumerable: true,
@@ -4302,9 +3933,6 @@ var Crt = (function () {
 
     Object.defineProperty(Crt, "WindMinX", {
         get: function () {
-            /// <summary>
-            /// The 0-based top row of the current window
-            /// </summary>
             return (this.WindMin & 0x00FF);
         },
         enumerable: true,
@@ -4313,9 +3941,6 @@ var Crt = (function () {
 
     Object.defineProperty(Crt, "WindMinY", {
         get: function () {
-            /// <summary>
-            /// The 0-based bottom row of the current window
-            /// </summary>
             return ((this.WindMin & 0xFF00) >> 8);
         },
         enumerable: true,
@@ -4323,34 +3948,6 @@ var Crt = (function () {
     });
 
     Crt.Window = function (left, top, right, bottom) {
-        /// <summary>
-        /// Defines a text window on the screen.
-        /// </summary>
-        /// <remarks>
-        /// X1 and Y1 are the coordinates of the upper left corner of the window, and X2
-        /// and Y2 are the coordinates of the lower right corner. The upper left corner
-        /// of the screen corresponds to (1, 1). The minimum size of a text window is
-        /// one column by one line. If the coordinates are invalid in any way, the call
-        /// to Window is ignored.
-        ///
-        /// The default window is (1, 1, 80, 25) in 25-line mode, and (1, 1, 80, 43) in
-        /// 43-line mode, corresponding to the entire screen.
-        ///
-        /// All screen coordinates (except the window coordinates themselves) are
-        /// relative to the current window. For instance, GotoXY(1, 1) will always
-        /// position the cursor in the upper left corner of the current window.
-        ///
-        /// Many Crt procedures and functions are window-relative, including ClrEol,
-        /// ClrScr, DelLine, GotoXY, InsLine, WhereX, WhereY, Read, Readln, Write,
-        /// Writeln.
-        ///
-        /// WindMin and WindMax store the current window definition. A call to the
-        /// Window procedure always moves the cursor to (1, 1).
-        /// </remarks>
-        /// <param name='AX1'>The 1-based left column of the window</param>
-        /// <param name='AY1'>The 1-based top row of the window</param>
-        /// <param name='AX2'>The 1-based right column of the window</param>
-        /// <param name='AY2'>The 1-based bottom row of the window</param>
         if ((left >= 1) && (top >= 1) && (left <= right) && (top <= bottom)) {
             if ((right <= this._ScreenSize.x) && (bottom <= this._ScreenSize.y)) {
                 this._WindMin = (left - 1) + ((top - 1) << 8);
@@ -4363,9 +3960,6 @@ var Crt = (function () {
 
     Object.defineProperty(Crt, "WindRows", {
         get: function () {
-            /// <summary>
-            /// The number of rows found in the currently defined window
-            /// </summary>
             return this.WindMaxY - this.WindMinY + 1;
         },
         enumerable: true,
@@ -4373,13 +3967,6 @@ var Crt = (function () {
     });
 
     Crt.Write = function (text) {
-        /// <summary>
-        /// Writes a given line of text to the screen.
-        /// </summary>
-        /// <remarks>
-        /// Text is wrapped if it exceeds the right edge of the window
-        /// </remarks>
-        /// <param name='AText'>The text to print to the screen</param>
         if (this._Atari) {
             this.WriteATASCII(text);
         } else if (this._C64) {
@@ -4402,12 +3989,10 @@ var Crt = (function () {
             var DoGoto = false;
 
             if (text.charCodeAt(i) === 0x00) {
-                // NULL, ignore
-                i += 0; // Make JSLint happy (doesn't like empty block)
+                i += 0;
             } else if (text.charCodeAt(i) === 0x07) {
                 this.Beep();
             } else if (text.charCodeAt(i) === 0x08) {
-                // Backspace, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 if (X > 1) {
@@ -4417,30 +4002,22 @@ var Crt = (function () {
 
                 Buf = '';
             } else if (text.charCodeAt(i) === 0x09) {
-                // Tab, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 Buf = '';
 
-                // Figure out where the next tabstop is
                 if (X === this.WindCols) {
-                    // Cursor is in last position, tab goes to the first position of the next line
                     X = 1;
                     Y += 1;
                 } else {
-                    // Cursor goes to the next multiple of 8
                     X += 8 - (X % 8);
 
-                    // Make sure we didn't tab beyond the width of the window (can happen if width of window is not
-                    // divisible by 8)
                     X = Math.min(X, this.WindCols);
                 }
                 DoGoto = true;
             } else if (text.charCodeAt(i) === 0x0A) {
-                // Line feed, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 if (this._BareLFtoCRLF && (this._LastChar !== 0x0D)) {
-                    // Bare LF, so pretend we also got a CR
                     X = 1;
                 } else {
                     X += Buf.length;
@@ -4450,27 +4027,21 @@ var Crt = (function () {
 
                 Buf = '';
             } else if (text.charCodeAt(i) === 0x0C) {
-                // Clear the screen
                 this.ClrScr();
 
-                // Reset the variables
                 X = 1;
                 Y = 1;
                 Buf = '';
             } else if (text.charCodeAt(i) === 0x0D) {
-                // Carriage return, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X = 1;
                 DoGoto = true;
 
                 Buf = '';
             } else if (text.charCodeAt(i) !== 0) {
-                // Append character to buffer
                 Buf += String.fromCharCode(text.charCodeAt(i) & 0xFF);
 
-                // Check if we've passed the right edge of the window
                 if ((X + Buf.length) > this.WindCols) {
-                    // We have, need to flush buffer before moving cursor
                     this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                     Buf = '';
 
@@ -4480,12 +4051,9 @@ var Crt = (function () {
                 }
             }
 
-            // Store the last character (we use this for BareLFtoCRLF)
             this._LastChar = text.charCodeAt(i);
 
-            // Check if we've passed the bottom edge of the window
             if (Y > this.WindRows) {
-                // We have, need to scroll the window one line
                 Y = this.WindRows;
                 this.ScrollUpWindow(1);
                 DoGoto = true;
@@ -4496,7 +4064,6 @@ var Crt = (function () {
             }
         }
 
-        // Flush remaining text in buffer if we have any
         if (Buf.length > 0) {
             this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
             X += Buf.length;
@@ -4517,14 +4084,11 @@ var Crt = (function () {
             var DoGoto = false;
 
             if (text.charCodeAt(i) === 0x00) {
-                // NULL, ignore
-                i += 0; // Make JSLint happy (doesn't like empty block)
+                i += 0;
             }
             if ((text.charCodeAt(i) === 0x1B) && (!this._ATASCIIEscaped)) {
-                // Escape
                 this._ATASCIIEscaped = true;
             } else if ((text.charCodeAt(i) === 0x1C) && (!this._ATASCIIEscaped)) {
-                // Cursor up, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 Y = (Y > 1) ? Y - 1 : this.WindRows;
@@ -4532,7 +4096,6 @@ var Crt = (function () {
 
                 Buf = '';
             } else if ((text.charCodeAt(i) === 0x1D) && (!this._ATASCIIEscaped)) {
-                // Cursor down, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 Y = (Y < this.WindRows) ? Y + 1 : 1;
@@ -4540,7 +4103,6 @@ var Crt = (function () {
 
                 Buf = '';
             } else if ((text.charCodeAt(i) === 0x1E) && (!this._ATASCIIEscaped)) {
-                // Cursor left, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 X = (X > 1) ? X - 1 : this.WindCols;
@@ -4548,7 +4110,6 @@ var Crt = (function () {
 
                 Buf = '';
             } else if ((text.charCodeAt(i) === 0x1F) && (!this._ATASCIIEscaped)) {
-                // Cursor right, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 X = (X < this.WindCols) ? X + 1 : 1;
@@ -4556,15 +4117,12 @@ var Crt = (function () {
 
                 Buf = '';
             } else if ((text.charCodeAt(i) === 0x7D) && (!this._ATASCIIEscaped)) {
-                // Clear the screen
                 this.ClrScr();
 
-                // Reset the variables
                 X = 1;
                 Y = 1;
                 Buf = '';
             } else if ((text.charCodeAt(i) === 0x7E) && (!this._ATASCIIEscaped)) {
-                // Backspace, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 Buf = '';
@@ -4575,23 +4133,18 @@ var Crt = (function () {
                     this.FastWrite(' ', X, this.WhereYA(), this._CharInfo);
                 }
             } else if ((text.charCodeAt(i) === 0x7F) && (!this._ATASCIIEscaped)) {
-                // Tab, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 Buf = '';
 
-                // Figure out where the next tabstop is
                 if (X === this.WindCols) {
-                    // Cursor is in last position, tab goes to the first position of the next line
                     X = 1;
                     Y += 1;
                 } else {
-                    // Cursor goes to the next multiple of 8
                     X += 8 - (X % 8);
                 }
                 DoGoto = true;
             } else if ((text.charCodeAt(i) === 0x9B) && (!this._ATASCIIEscaped)) {
-                // Line feed, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X = 1;
                 Y += 1;
@@ -4599,7 +4152,6 @@ var Crt = (function () {
 
                 Buf = '';
             } else if ((text.charCodeAt(i) === 0x9C) && (!this._ATASCIIEscaped)) {
-                // Delete line, need to flush buffer before doing so
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X = 1;
                 Buf = '';
@@ -4607,7 +4159,6 @@ var Crt = (function () {
                 this.GotoXY(X, Y);
                 this.DelLine();
             } else if ((text.charCodeAt(i) === 0x9D) && (!this._ATASCIIEscaped)) {
-                // Insert line, need to flush buffer before doing so
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X = 1;
                 Buf = '';
@@ -4617,7 +4168,6 @@ var Crt = (function () {
             } else if ((text.charCodeAt(i) === 0xFD) && (!this._ATASCIIEscaped)) {
                 this.Beep();
             } else if ((text.charCodeAt(i) === 0xFE) && (!this._ATASCIIEscaped)) {
-                // Delete character, need to flush buffer before doing so
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 Buf = '';
@@ -4625,7 +4175,6 @@ var Crt = (function () {
                 this.GotoXY(X, Y);
                 this.DelChar();
             } else if ((text.charCodeAt(i) === 0xFF) && (!this._ATASCIIEscaped)) {
-                // Insert character, need to flush buffer before doing so
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
                 Buf = '';
@@ -4633,20 +4182,15 @@ var Crt = (function () {
                 this.GotoXY(X, Y);
                 this.InsChar();
             } else {
-                // Append character to buffer (but handle lantronix filter)
                 if ((text.charCodeAt(i) === 0x00) && (this._LastChar === 0x0D)) {
-                    // LANtronix always sends 0 after 13, so we'll ignore it
-                    Buf += ''; // Make JSLint happy
+                    Buf += '';
                 } else {
-                    // Add key to buffer
                     Buf += String.fromCharCode(text.charCodeAt(i) & 0xFF);
                 }
                 this._ATASCIIEscaped = false;
                 this._LastChar = text.charCodeAt(i);
 
-                // Check if we've passed the right edge of the window
                 if ((X + Buf.length) > this.WindCols) {
-                    // We have, need to flush buffer before moving cursor
                     this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                     Buf = '';
 
@@ -4656,9 +4200,7 @@ var Crt = (function () {
                 }
             }
 
-            // Check if we've passed the bottom edge of the window
             if (Y > this.WindRows) {
-                // We have, need to scroll the window one line
                 Y = this.WindRows;
                 this.ScrollUpWindow(1);
                 DoGoto = true;
@@ -4669,7 +4211,6 @@ var Crt = (function () {
             }
         }
 
-        // Flush remaining text in buffer if we have any
         if (Buf.length > 0) {
             this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
             X += Buf.length;
@@ -4689,7 +4230,6 @@ var Crt = (function () {
         for (var i = 0; i < text.length; i++) {
             var DoGoto = false;
 
-            // Check if this is a control code (so we need to flush buffered text first)
             if ((Buf !== '') && (this._FlushBeforeWritePETSCII.indexOf(text.charCodeAt(i)) !== -1)) {
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                 X += Buf.length;
@@ -4698,48 +4238,34 @@ var Crt = (function () {
             }
 
             if (text.charCodeAt(i) === 0x00) {
-                // NULL, ignore
-                i += 0; // Make JSLint happy (doesn't like empty block)
+                i += 0;
             } else if (text.charCodeAt(i) === 0x05) {
-                // Changes the text color to white.
                 this.TextColor(this.PETSCII_WHITE);
             } else if (text.charCodeAt(i) === 0x07) {
-                // Beep (extra, not documented)
                 this.Beep();
             } else if (text.charCodeAt(i) === 0x08) {
-                // TODO Disables changing the character set using the SHIFT + Commodore key combination.
                 console.log('PETSCII 0x08');
             } else if (text.charCodeAt(i) === 0x09) {
-                // TODO Enables changing the character set using the SHIFT + Commodore key combination.
                 console.log('PETSCII 0x09');
             } else if (text.charCodeAt(i) === 0x0A) {
-                // Ignore, 0x0D will handle linefeeding
-                i += 0; // Make JSLint happy (doesn't like empty block)
+                i += 0;
             } else if ((text.charCodeAt(i) === 0x0D) || (text.charCodeAt(i) === 0x8D)) {
-                // Carriage return; next character will go in the first column of the following text line.
-                // As opposed to traditional ASCII-based system, no LINE FEED character needs to be sent in conjunction
-                // with this Carriage return character in the PETSCII system.
                 X = 1;
                 Y += 1;
                 this._CharInfo.Reverse = false;
                 DoGoto = true;
             } else if (text.charCodeAt(i) === 0x0E) {
-                // Select the lowercase/uppercase character set.
                 this.SetFont('C64-Lower');
             } else if (text.charCodeAt(i) === 0x11) {
-                // Cursor down: Next character will be printed in subsequent column one text line further down the screen.
                 Y += 1;
                 DoGoto = true;
             } else if (text.charCodeAt(i) === 0x12) {
-                // Reverse on: Selects reverse video text.
                 this._CharInfo.Reverse = true;
             } else if (text.charCodeAt(i) === 0x13) {
-                // Home: Next character will be printed in the upper left-hand corner of the screen.
                 X = 1;
                 Y = 1;
                 DoGoto = true;
             } else if (text.charCodeAt(i) === 0x14) {
-                // Delete, or 'backspace'; erases the previous character and moves the cursor one character position to the left.
                 if ((X > 1) || (Y > 1)) {
                     if (X === 1) {
                         X = this.WindCols;
@@ -4752,10 +4278,8 @@ var Crt = (function () {
                     this.DelChar(1);
                 }
             } else if (text.charCodeAt(i) === 0x1C) {
-                // Changes the text color to red.
                 this.TextColor(this.PETSCII_RED);
             } else if (text.charCodeAt(i) === 0x1D) {
-                // Advances the cursor one character position without printing anything.
                 if (X === this.WindCols) {
                     X = 1;
                     Y += 1;
@@ -4764,66 +4288,46 @@ var Crt = (function () {
                 }
                 DoGoto = true;
             } else if (text.charCodeAt(i) === 0x1E) {
-                // Changes the text color to green.
                 this.TextColor(this.PETSCII_GREEN);
             } else if (text.charCodeAt(i) === 0x1F) {
-                // Changes the text color to blue.
                 this.TextColor(this.PETSCII_BLUE);
             } else if (text.charCodeAt(i) === 0x81) {
-                // Changes the text color to orange.
                 this.TextColor(this.PETSCII_ORANGE);
             } else if (text.charCodeAt(i) === 0x8E) {
-                // Select the uppercase/semigraphics character set.
                 this.SetFont('C64-Upper');
             } else if (text.charCodeAt(i) === 0x90) {
-                // Changes the text color to black.
                 this.TextColor(this.PETSCII_BLACK);
             } else if (text.charCodeAt(i) === 0x91) {
-                // Cursor up: Next character will be printed in subsequent column one text line further up the screen.
                 if (Y > 1) {
                     Y -= 1;
                     DoGoto = true;
                 }
             } else if (text.charCodeAt(i) === 0x92) {
-                // Reverse off: De-selects reverse video text.
                 this._CharInfo.Reverse = false;
             } else if (text.charCodeAt(i) === 0x93) {
-                // Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of
-                // the text screen.
                 this.ClrScr();
                 X = 1;
                 Y = 1;
             } else if (text.charCodeAt(i) === 0x94) {
-                // Insert: Makes room for extra characters at the current cursor position, by 'pushing' existing characters
-                // at that position further to the right.
                 this.GotoXY(X, Y);
                 this.InsChar(1);
             } else if (text.charCodeAt(i) === 0x95) {
-                // Changes the text color to brown.
                 this.TextColor(this.PETSCII_BROWN);
             } else if (text.charCodeAt(i) === 0x96) {
-                // Changes the text color to light red.
                 this.TextColor(this.PETSCII_LIGHTRED);
             } else if (text.charCodeAt(i) === 0x97) {
-                // Changes the text color to dark gray.
                 this.TextColor(this.PETSCII_DARKGRAY);
             } else if (text.charCodeAt(i) === 0x98) {
-                // Changes the text color to gray.
                 this.TextColor(this.PETSCII_GRAY);
             } else if (text.charCodeAt(i) === 0x99) {
-                // Changes the text color to light green.
                 this.TextColor(this.PETSCII_LIGHTGREEN);
             } else if (text.charCodeAt(i) === 0x9A) {
-                // Changes the text color to light blue.
                 this.TextColor(this.PETSCII_LIGHTBLUE);
             } else if (text.charCodeAt(i) === 0x9B) {
-                // Changes the text color to light gray.
                 this.TextColor(this.PETSCII_LIGHTGRAY);
             } else if (text.charCodeAt(i) === 0x9C) {
-                // Changes the text color to purple.
                 this.TextColor(this.PETSCII_PURPLE);
             } else if (text.charCodeAt(i) === 0x9D) {
-                // Moves the cursor one character position backwards, without printing or deleting anything.
                 if ((X > 1) || (Y > 1)) {
                     if (X === 1) {
                         X = this.WindCols;
@@ -4834,18 +4338,13 @@ var Crt = (function () {
                     DoGoto = true;
                 }
             } else if (text.charCodeAt(i) === 0x9E) {
-                // Changes the text color to yellow.
                 this.TextColor(this.PETSCII_YELLOW);
             } else if (text.charCodeAt(i) === 0x9F) {
-                // Changes the text color to cyan.
                 this.TextColor(this.PETSCII_CYAN);
             } else if (text.charCodeAt(i) !== 0) {
-                // Append character to buffer
                 Buf += String.fromCharCode(text.charCodeAt(i) & 0xFF);
 
-                // Check if we've passed the right edge of the window
                 if ((X + Buf.length) > this.WindCols) {
-                    // We have, need to flush buffer before moving cursor
                     this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
                     Buf = '';
 
@@ -4855,9 +4354,7 @@ var Crt = (function () {
                 }
             }
 
-            // Check if we've passed the bottom edge of the window
             if (Y > this.WindRows) {
-                // We have, need to scroll the window one line
                 Y = this.WindRows;
                 this.ScrollUpWindow(1);
                 DoGoto = true;
@@ -4868,7 +4365,6 @@ var Crt = (function () {
             }
         }
 
-        // Flush remaining text in buffer if we have any
         if (Buf.length > 0) {
             this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
             X += Buf.length;
@@ -4877,13 +4373,6 @@ var Crt = (function () {
     };
 
     Crt.WriteLn = function (text) {
-        /// <summary>
-        /// Writes a given line of text to the screen, followed by a carriage return and line feed.
-        /// </summary>
-        /// <remarks>
-        /// Text is wrapped if it exceeds the right edge of the window
-        /// </remarks>
-        /// <param name='AText'>The text to print to the screen</param>
         if (typeof text === 'undefined') {
             text = '';
         }
@@ -4954,58 +4443,24 @@ var Crt = (function () {
     Crt._WindMax = (80 - 1) | ((25 - 1) << 8);
     return Crt;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var BlinkState;
 (function (BlinkState) {
     BlinkState[BlinkState["Show"] = 0] = "Show";
     BlinkState[BlinkState["Hide"] = 1] = "Hide";
 })(BlinkState || (BlinkState = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var Cursor = (function () {
     function Cursor(parent, colour, size) {
         var _this = this;
-        // Events
         this.onhide = new TypedEvent();
         this.onshow = new TypedEvent();
         this._BlinkRate = 500;
         this._BlinkState = 1 /* Hide */;
 
-        // this._Canvas
         this._Colour = '#' + colour.toString(16);
 
-        // this._Context
         this._Position = new Point(1, 1);
         this._Size = size;
 
-        // this._Timer
         this._Visible = true;
         this._WindowOffset = new Point(0, 0);
         this._WindowOffsetAdjusted = new Point(0, 0);
@@ -5016,11 +4471,9 @@ var Cursor = (function () {
             this._Context = this._Canvas.getContext('2d');
             parent.appendChild(this._Canvas);
 
-            // Draw the initial position
             this.Update();
             this.Draw();
 
-            // Start the I/O timer
             this._Timer = setInterval(function () {
                 _this.OnTimer();
             }, this._BlinkRate);
@@ -5059,15 +4512,11 @@ var Cursor = (function () {
     };
 
     Cursor.prototype.OnTimer = function () {
-        // Flip the blink state
         this._BlinkState = (this._BlinkState === 1 /* Hide */) ? 0 /* Show */ : 1 /* Hide */;
 
-        // Update the opacity
         if (this._Visible) {
-            // Set the opacity to the desired state
             this._Canvas.style.opacity = (this._BlinkState === 1 /* Hide */) ? '0' : '1';
         } else {
-            // Set the opacity to off
             this._Canvas.style.opacity = '0';
         }
 
@@ -5124,11 +4573,9 @@ var Cursor = (function () {
 
     Object.defineProperty(Cursor.prototype, "WindowOffset", {
         set: function (value) {
-            // Store new window offset
             if ((value.x !== this._WindowOffset.x) || (value.y !== this._WindowOffset.y)) {
                 this._WindowOffset = value;
 
-                // Reset button position
                 this._Canvas.style.left = '0px';
                 this._Canvas.style.top = '0px';
                 var CursorPosition = Offset.getOffset(this._Canvas);
@@ -5144,24 +4591,8 @@ var Cursor = (function () {
     });
     return Cursor;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var CrtFont = (function () {
     function CrtFont() {
-        // Events
         this.onchange = new TypedEvent();
         this._Canvas = null;
         this._CanvasContext = null;
@@ -5184,19 +4615,15 @@ var CrtFont = (function () {
             return null;
         }
 
-        // Validate values
         if ((charCode < 0) || (charCode > 255) || (charInfo.Attr < 0) || (charInfo.Attr > 255)) {
             return null;
         }
 
         var CharMapKey = charCode + '-' + charInfo.Attr + '-' + charInfo.Reverse;
 
-        // Check if we have used this character before
         if (!this._CharMap[CharMapKey]) {
-            // Nope, so get character (in black and white)
             this._CharMap[CharMapKey] = this._CanvasContext.getImageData(charCode * this._Size.x, 0, this._Size.x, this._Size.y);
 
-            // Now colour the character
             var Back;
             var Fore;
             if (this._Name.indexOf('C64') === 0) {
@@ -5207,14 +4634,12 @@ var CrtFont = (function () {
                 Fore = CrtFont.ANSI_COLOURS[(charInfo.Attr & 0x0F)];
             }
 
-            // Reverse if necessary
             if (charInfo.Reverse) {
                 var Temp = Fore;
                 Fore = Back;
                 Back = Temp;
             }
 
-            // Get the individual RGB colours
             var BackR = Back >> 16;
             var BackG = (Back >> 8) & 0xFF;
             var BackB = Back & 0xFF;
@@ -5222,12 +4647,10 @@ var CrtFont = (function () {
             var ForeG = (Fore >> 8) & 0xFF;
             var ForeB = Fore & 0xFF;
 
-            // Colour the pixels 1 at a time
             var R = 0;
             var G = 0;
             var B = 0;
             for (var i = 0; i < this._CharMap[CharMapKey].data.length; i += 4) {
-                // Determine if it's back or fore colour to use for this pixel
                 if (this._CharMap[CharMapKey].data[i] & 0x80) {
                     R = ForeR;
                     G = ForeG;
@@ -5245,7 +4668,6 @@ var CrtFont = (function () {
             }
         }
 
-        // Return the character if we have it
         return this._CharMap[CharMapKey];
     };
 
@@ -5259,13 +4681,11 @@ var CrtFont = (function () {
 
     CrtFont.prototype.Load = function (font, maxWidth, maxHeight) {
         var _this = this;
-        // Find the biggest instance of the given font
         var BestFit = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
         if (BestFit === null) {
             console.log('fTelnet Error: Font CP=' + font + ' does not exist');
             return false;
         } else {
-            // Check if we're requesting the same font we already have
             if ((this._Png != null) && (this._Name === font) && (this._Size.x === BestFit.x) && (this._Size.y === BestFit.y)) {
                 return true;
             }
@@ -5277,7 +4697,6 @@ var CrtFont = (function () {
             this._NewName = font;
             this._NewSize = new Point(BestFit.x, BestFit.y);
 
-            // Override colour for Atari clients
             if (font.indexOf('Atari') === 0) {
                 CrtFont.ANSI_COLOURS[7] = 0x63B6E7;
                 CrtFont.ANSI_COLOURS[0] = 0x005184;
@@ -5321,15 +4740,12 @@ var CrtFont = (function () {
         this._Name = this._NewName;
         this._Size = this._NewSize;
 
-        // Reset Canvas
         this._Canvas.width = this._Png.width;
         this._Canvas.height = this._Png.height;
         this._CanvasContext.drawImage(this._Png, 0, 0);
 
-        // Reset CharMap
         this._CharMap = [];
 
-        // Raise change event
         this._Loading -= 1;
         this.onchange.trigger();
     };
@@ -5358,31 +4774,13 @@ var CrtFont = (function () {
         0xB84104, 0x6A3304, 0xFE4A57, 0x424540, 0x70746F, 0x59FE59, 0x5F53FE, 0xA4A7A2];
     return CrtFont;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var CrtFonts = (function () {
     function CrtFonts() {
     }
     CrtFonts.GetBestFit = function (font, maxWidth, maxHeight) {
-        // Check how many matches we found
         if (typeof this._Fonts[font] === 'undefined') {
-            // None, it's not a valid font
             return null;
         } else if (this._Fonts[font].length === 1) {
-            // One, so return it
             return this._Fonts[font][0];
         } else {
             for (var i = 0; i < this._Fonts[font].length; i++) {
@@ -5391,7 +4789,6 @@ var CrtFonts = (function () {
                 }
             }
 
-            // If we get here, nothing matched, so return the smallest match
             return this._Fonts[font][this._Fonts[font].length - 1];
         }
     };
@@ -5416,12 +4813,10 @@ var CrtFonts = (function () {
             var Width = parseInt(WidthHeight[0], 10);
             var Height = parseInt(WidthHeight[1], 10);
 
-            // Check if it's a new font and add it if it is
             if (typeof CrtFonts._Fonts[NameSize[0]] === 'undefined') {
                 CrtFonts._Fonts[NameSize[0]] = [];
             }
 
-            // Push the new size into the array
             CrtFonts._Fonts[NameSize[0]].push(new Point(Width, Height));
         }
 
@@ -5437,1068 +4832,6 @@ var CrtFonts = (function () {
     })();
     return CrtFonts;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var KeyPressEvent = (function () {
-    function KeyPressEvent(keyEvent, keyString) {
-        this.altKey = keyEvent.altKey;
-        this.charCode = keyEvent.charCode;
-        this.ctrlKey = keyEvent.ctrlKey;
-        this.keyCode = keyEvent.keyCode;
-        this.keyString = keyString;
-        this.shiftKey = keyEvent.shiftKey;
-    }
-    return KeyPressEvent;
-})();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var StringUtils = (function () {
-    function StringUtils() {
-    }
-    StringUtils.AddCommas = function (value) {
-        var Result = '';
-
-        var Position = 1;
-        for (var i = value.toString().length - 1; i >= 0; i--) {
-            if ((Position > 3) && (Position % 3 === 1)) {
-                Result = ',' + Result;
-            }
-            Result = value.toString().charAt(i) + Result;
-            Position++;
-        }
-
-        return Result;
-    };
-
-    StringUtils.FormatPercent = function (value, fractionDigits) {
-        return (value * 100).toFixed(fractionDigits) + '%';
-    };
-
-    StringUtils.NewString = function (ch, length) {
-        if (ch.length === 0) {
-            return '';
-        }
-
-        var Result = '';
-        for (var i = 0; i < length; i++) {
-            Result += ch.charAt(0);
-        }
-        return Result;
-    };
-
-    StringUtils.PadLeft = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text = ch.charAt(0) + text;
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.PadRight = function (text, ch, length) {
-        if (ch.length === 0) {
-            return text;
-        }
-
-        while (text.length < length) {
-            text += ch.charAt(0);
-        }
-        return text.substring(0, length);
-    };
-
-    StringUtils.Trim = function (text) {
-        return this.TrimLeft(this.TrimRight(text));
-    };
-
-    StringUtils.TrimLeft = function (text) {
-        return text.replace(/^\s+/g, '');
-    };
-
-    StringUtils.TrimRight = function (text) {
-        return text.replace(/\s+$/g, '');
-    };
-    return StringUtils;
-})();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var TelnetCommand;
-(function (TelnetCommand) {
-    /// <summary>
-    /// SE: End of subnegotiation parameters.
-    /// </summary>
-    TelnetCommand[TelnetCommand["EndSubnegotiation"] = 240] = "EndSubnegotiation";
-
-    /// <summary>
-    /// NOP: No operation.
-    /// </summary>
-    TelnetCommand[TelnetCommand["NoOperation"] = 241] = "NoOperation";
-
-    /// <summary>
-    /// Data Mark: The data stream portion of a Synch. This should always be accompanied by a TCP Urgent notification.
-    /// </summary>
-    TelnetCommand[TelnetCommand["DataMark"] = 242] = "DataMark";
-
-    /// <summary>
-    /// Break: NVT character BRK.
-    /// </summary>
-    TelnetCommand[TelnetCommand["Break"] = 243] = "Break";
-
-    /// <summary>
-    /// Interrupt Process: The function IP.
-    /// </summary>
-    TelnetCommand[TelnetCommand["InterruptProcess"] = 244] = "InterruptProcess";
-
-    /// <summary>
-    /// Abort output: The function AO.
-    /// </summary>
-    TelnetCommand[TelnetCommand["AbortOutput"] = 245] = "AbortOutput";
-
-    /// <summary>
-    /// Are You There: The function AYT.
-    /// </summary>
-    TelnetCommand[TelnetCommand["AreYouThere"] = 246] = "AreYouThere";
-
-    /// <summary>
-    /// Erase character: The function EC.
-    /// </summary>
-    TelnetCommand[TelnetCommand["EraseCharacter"] = 247] = "EraseCharacter";
-
-    /// <summary>
-    /// Erase Line: The function EL.
-    /// </summary>
-    TelnetCommand[TelnetCommand["EraseLine"] = 248] = "EraseLine";
-
-    /// <summary>
-    /// Go ahead: The GA signal
-    /// </summary>
-    TelnetCommand[TelnetCommand["GoAhead"] = 249] = "GoAhead";
-
-    /// <summary>
-    /// SB: Indicates that what follows is subnegotiation of the indicated option.
-    /// </summary>
-    TelnetCommand[TelnetCommand["Subnegotiation"] = 250] = "Subnegotiation";
-
-    /// <summary>
-    /// WILL: Indicates the desire to begin performing, or confirmation that you are now performing, the indicated option.
-    /// </summary>
-    TelnetCommand[TelnetCommand["Will"] = 251] = "Will";
-
-    /// <summary>
-    /// WON'T: Indicates the refusal to perform, or continue performing, the indicated option.
-    /// </summary>
-    TelnetCommand[TelnetCommand["Wont"] = 252] = "Wont";
-
-    /// <summary>
-    /// DO: Indicates the request that the other party perform, or confirmation that you are expecting the other party
-    /// to perform, the indicated option.
-    /// </summary>
-    TelnetCommand[TelnetCommand["Do"] = 253] = "Do";
-
-    /// <summary>
-    /// DON'T: Indicates the demand that the other party stop performing, or confirmation that you are no longer expecting
-    /// the other party to perform, the indicated option.
-    /// </summary>
-    TelnetCommand[TelnetCommand["Dont"] = 254] = "Dont";
-
-    /// <summary>
-    /// IAC: Data Byte 255
-    /// </summary>
-    TelnetCommand[TelnetCommand["IAC"] = 255] = "IAC";
-})(TelnetCommand || (TelnetCommand = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var TelnetNegotiationState;
-(function (TelnetNegotiationState) {
-    /// <summary>
-    /// The default data state
-    /// </summary>
-    TelnetNegotiationState[TelnetNegotiationState["Data"] = 0] = "Data";
-
-    /// <summary>
-    /// The last received character was an IAC
-    /// </summary>
-    TelnetNegotiationState[TelnetNegotiationState["IAC"] = 1] = "IAC";
-
-    /// <summary>
-    /// The last received character was a DO command
-    /// </summary>
-    TelnetNegotiationState[TelnetNegotiationState["Do"] = 2] = "Do";
-
-    /// <summary>
-    /// The last received character was a DONT command
-    /// </summary>
-    TelnetNegotiationState[TelnetNegotiationState["Dont"] = 3] = "Dont";
-
-    /// <summary>
-    /// The last received character was a WILL command
-    /// </summary>
-    TelnetNegotiationState[TelnetNegotiationState["Will"] = 4] = "Will";
-
-    /// <summary>
-    /// The last received character was a WONT command
-    /// </summary>
-    TelnetNegotiationState[TelnetNegotiationState["Wont"] = 5] = "Wont";
-})(TelnetNegotiationState || (TelnetNegotiationState = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var TelnetOption;
-(function (TelnetOption) {
-    /// <summary>
-    /// When enabled, data is transmitted as 8-bit binary data.
-    /// </summary>
-    /// <remarks>
-    /// Defined in RFC 856
-    ///
-    /// Default is to not transmit in binary.
-    /// </remarks>
-    TelnetOption[TelnetOption["TransmitBinary"] = 0] = "TransmitBinary";
-
-    /// <summary>
-    /// When enabled, the side performing the echoing transmits (echos) data characters it receives back to the sender
-    /// of the data characters.
-    /// </summary>
-    /// <remarks>
-    /// Defined in RFC 857
-    ///
-    /// Default is to not echo over the telnet connection.
-    /// </remarks>
-    TelnetOption[TelnetOption["Echo"] = 1] = "Echo";
-
-    // TODO
-    TelnetOption[TelnetOption["Reconnection"] = 2] = "Reconnection";
-
-    /// <summary>
-    /// When enabled, the sender need not transmit GAs.
-    /// </summary>
-    /// <remarks>
-    /// Defined in RFC 858
-    ///
-    /// Default is to not suppress go aheads.
-    /// </remarks>
-    TelnetOption[TelnetOption["SuppressGoAhead"] = 3] = "SuppressGoAhead";
-
-    TelnetOption[TelnetOption["ApproxMessageSizeNegotiation"] = 4] = "ApproxMessageSizeNegotiation";
-    TelnetOption[TelnetOption["Status"] = 5] = "Status";
-    TelnetOption[TelnetOption["TimingMark"] = 6] = "TimingMark";
-    TelnetOption[TelnetOption["RemoteControlledTransAndEcho"] = 7] = "RemoteControlledTransAndEcho";
-    TelnetOption[TelnetOption["OutputLineWidth"] = 8] = "OutputLineWidth";
-    TelnetOption[TelnetOption["OutputPageSize"] = 9] = "OutputPageSize";
-    TelnetOption[TelnetOption["OutputCarriageReturnDisposition"] = 10] = "OutputCarriageReturnDisposition";
-    TelnetOption[TelnetOption["OutputHorizontalTabStops"] = 11] = "OutputHorizontalTabStops";
-    TelnetOption[TelnetOption["OutputHorizontalTabDisposition"] = 12] = "OutputHorizontalTabDisposition";
-    TelnetOption[TelnetOption["OutputFormfeedDisposition"] = 13] = "OutputFormfeedDisposition";
-    TelnetOption[TelnetOption["OutputVerticalTabstops"] = 14] = "OutputVerticalTabstops";
-    TelnetOption[TelnetOption["OutputVerticalTabDisposition"] = 15] = "OutputVerticalTabDisposition";
-    TelnetOption[TelnetOption["OutputLinefeedDisposition"] = 16] = "OutputLinefeedDisposition";
-    TelnetOption[TelnetOption["ExtendedASCII"] = 17] = "ExtendedASCII";
-    TelnetOption[TelnetOption["Logout"] = 18] = "Logout";
-    TelnetOption[TelnetOption["ByteMacro"] = 19] = "ByteMacro";
-    TelnetOption[TelnetOption["DataEntryTerminal"] = 20] = "DataEntryTerminal";
-    TelnetOption[TelnetOption["SUPDUP"] = 21] = "SUPDUP";
-    TelnetOption[TelnetOption["SUPDUPOutput"] = 22] = "SUPDUPOutput";
-    TelnetOption[TelnetOption["SendLocation"] = 23] = "SendLocation";
-
-    /// <summary>
-    /// Allows the TERMINAL-TYPE subnegotiation command to be used if both sides agree
-    /// </summary>
-    /// <remarks>
-    /// Defined in RFC 1091
-    ///
-    /// Default is to not allow the TERMINAL-TYPE subnegotiation
-    /// </remarks>
-    TelnetOption[TelnetOption["TerminalType"] = 24] = "TerminalType";
-
-    TelnetOption[TelnetOption["EndOfRecord"] = 25] = "EndOfRecord";
-    TelnetOption[TelnetOption["TACACSUserIdentification"] = 26] = "TACACSUserIdentification";
-    TelnetOption[TelnetOption["OutputMarking"] = 27] = "OutputMarking";
-
-    /// <summary>
-    /// Allows the TTYLOC (Terminal Location Number) subnegotiation command to be used if both sides agree
-    /// </summary>
-    /// <remarks>
-    /// Defined in RFC 946
-    ///
-    /// Default is to not allow the TTYLOC subnegotiation
-    /// </remarks>
-    TelnetOption[TelnetOption["TerminalLocationNumber"] = 28] = "TerminalLocationNumber";
-
-    TelnetOption[TelnetOption["Telnet3270Regime"] = 29] = "Telnet3270Regime";
-    TelnetOption[TelnetOption["Xdot3PAD"] = 30] = "Xdot3PAD";
-
-    /// <summary>
-    /// Allows the NAWS (negotiate about window size) subnegotiation command to be used if both sides agree
-    /// </summary>
-    /// <remarks>
-    /// Defined in RFC 1073
-    ///
-    /// Default is to not allow the NAWS subnegotiation
-    /// </remarks>
-    TelnetOption[TelnetOption["WindowSize"] = 31] = "WindowSize";
-
-    TelnetOption[TelnetOption["TerminalSpeed"] = 32] = "TerminalSpeed";
-    TelnetOption[TelnetOption["RemoteFlowControl"] = 33] = "RemoteFlowControl";
-
-    /// <summary>
-    /// Linemode Telnet is a way of doing terminal character processing on the client side of a Telnet connection.
-    /// </summary>
-    /// <remarks>
-    /// Defined in RFC 1184
-    ///
-    /// Default is to not allow the LINEMODE subnegotiation
-    /// </remarks>
-    TelnetOption[TelnetOption["LineMode"] = 34] = "LineMode";
-
-    TelnetOption[TelnetOption["XDisplayLocation"] = 35] = "XDisplayLocation";
-    TelnetOption[TelnetOption["EnvironmentOption"] = 36] = "EnvironmentOption";
-    TelnetOption[TelnetOption["AuthenticationOption"] = 37] = "AuthenticationOption";
-    TelnetOption[TelnetOption["EncryptionOption"] = 38] = "EncryptionOption";
-    TelnetOption[TelnetOption["NewEnvironmentOption"] = 39] = "NewEnvironmentOption";
-    TelnetOption[TelnetOption["TN3270E"] = 40] = "TN3270E";
-    TelnetOption[TelnetOption["XAUTH"] = 41] = "XAUTH";
-    TelnetOption[TelnetOption["CHARSET"] = 42] = "CHARSET";
-    TelnetOption[TelnetOption["TelnetRemoteSerialPort"] = 43] = "TelnetRemoteSerialPort";
-    TelnetOption[TelnetOption["ComPortControlOption"] = 44] = "ComPortControlOption";
-    TelnetOption[TelnetOption["TelnetSuppressLocalEcho"] = 45] = "TelnetSuppressLocalEcho";
-    TelnetOption[TelnetOption["TelnetStartTLS"] = 46] = "TelnetStartTLS";
-    TelnetOption[TelnetOption["KERMIT"] = 47] = "KERMIT";
-    TelnetOption[TelnetOption["SENDURL"] = 48] = "SENDURL";
-    TelnetOption[TelnetOption["FORWARD_X"] = 49] = "FORWARD_X";
-})(TelnetOption || (TelnetOption = {}));
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-var WebSocketProtocol = ('https:' === document.location.protocol ? 'wss' : 'ws');
-var WebSocketSupportsTypedArrays = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
-var WebSocketSupportsBinaryType = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));
-
-var WebSocketConnection = (function () {
-    function WebSocketConnection() {
-        // Events
-        this.onclose = new TypedEvent();
-        this.onconnect = new TypedEvent();
-        this.onlocalecho = new TypedEvent();
-        this.onioerror = new TypedEvent();
-        this.onsecurityerror = new TypedEvent();
-        // Private variables
-        this._WasConnected = false;
-        // TODO Protected variables
-        this._InputBuffer = null;
-        this._OutputBuffer = null;
-        this._Protocol = 'plain';
-        this._WebSocket = null;
-        this._InputBuffer = new ByteArray();
-        this._LocalEcho = false;
-        this._OutputBuffer = new ByteArray();
-    }
-    Object.defineProperty(WebSocketConnection.prototype, "bytesAvailable", {
-        get: function () {
-            return this._InputBuffer.bytesAvailable;
-        },
-        enumerable: true,
-        configurable: true
-    });
-
-    WebSocketConnection.prototype.close = function () {
-        if (this._WebSocket) {
-            this._WebSocket.close();
-        }
-    };
-
-    WebSocketConnection.prototype.connect = function (hostname, port, proxyHostname, proxyPort, proxyPortSecure) {
-        var _this = this;
-        if (typeof proxyHostname === 'undefined') {
-            proxyHostname = '';
-        }
-        if (typeof proxyPort === 'undefined') {
-            proxyPort = 1123;
-        }
-        if (typeof proxyPortSecure === 'undefined') {
-            proxyPortSecure = 11235;
-        }
-
-        this._WasConnected = false;
-
-        var Protocols;
-        if (('websocket' in Window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) {
-            // This is likely a hixie client, which doesn't support negotiation fo multiple protocols, so we only ask for plain
-            Protocols = ['plain'];
-        } else {
-            if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
-                Protocols = ['binary', 'base64', 'plain'];
-            } else {
-                Protocols = ['base64', 'plain'];
-            }
-        }
-
-        if (proxyHostname === '') {
-            this._WebSocket = new WebSocket(WebSocketProtocol + '://' + hostname + ':' + port, Protocols);
-        } else {
-            this._WebSocket = new WebSocket(WebSocketProtocol + '://' + proxyHostname + ':' + (WebSocketProtocol === 'wss' ? proxyPortSecure : proxyPort) + '/' + hostname + '/' + port, Protocols);
-        }
-
-        // Enable binary mode, if supported
-        if (Protocols.indexOf('binary') >= 0) {
-            this._WebSocket.binaryType = 'arraybuffer';
-        }
-
-        // Set event handlers
-        this._WebSocket.onclose = function () {
-            _this.OnSocketClose();
-        };
-        this._WebSocket.onerror = function (e) {
-            _this.OnSocketError(e);
-        };
-        this._WebSocket.onmessage = function (e) {
-            _this.OnSocketMessage(e);
-        };
-        this._WebSocket.onopen = function () {
-            _this.OnSocketOpen();
-        };
-    };
-
-    Object.defineProperty(WebSocketConnection.prototype, "connected", {
-        get: function () {
-            if (this._WebSocket) {
-                return (this._WebSocket.readyState === this._WebSocket.OPEN) || (this._WebSocket.readyState === WebSocket.OPEN);
-            }
-
-            return false;
-        },
-        enumerable: true,
-        configurable: true
-    });
-
-    WebSocketConnection.prototype.flush = function () {
-        var ToSendBytes = [];
-
-        this._OutputBuffer.position = 0;
-        while (this._OutputBuffer.bytesAvailable > 0) {
-            var B = this._OutputBuffer.readUnsignedByte();
-            ToSendBytes.push(B);
-        }
-
-        this.Send(ToSendBytes);
-        this._OutputBuffer.clear();
-    };
-
-    Object.defineProperty(WebSocketConnection.prototype, "LocalEcho", {
-        set: function (value) {
-            this._LocalEcho = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-
-    WebSocketConnection.prototype.NegotiateInbound = function (data) {
-        while (data.bytesAvailable) {
-            var B = data.readUnsignedByte();
-            this._InputBuffer.writeByte(B);
-        }
-    };
-
-    WebSocketConnection.prototype.OnSocketClose = function () {
-        if (this._WasConnected) {
-            this.onclose.trigger();
-        } else {
-            this.onsecurityerror.trigger();
-        }
-        this._WasConnected = false;
-    };
-
-    WebSocketConnection.prototype.OnSocketError = function (e) {
-        this.onioerror.trigger(e);
-    };
-
-    WebSocketConnection.prototype.OnSocketOpen = function () {
-        if (this._WebSocket.protocol) {
-            this._Protocol = this._WebSocket.protocol;
-        } else {
-            this._Protocol = 'plain';
-        }
-
-        this._WasConnected = true;
-        this.onconnect.trigger();
-    };
-
-    WebSocketConnection.prototype.OnSocketMessage = function (e) {
-        // Free up some memory if we're at the end of the buffer
-        if (this._InputBuffer.bytesAvailable === 0) {
-            this._InputBuffer.clear();
-        }
-
-        // Save the old position and set the new position to the end of the buffer
-        var OldPosition = this._InputBuffer.position;
-        this._InputBuffer.position = this._InputBuffer.length;
-
-        var Data = new ByteArray();
-
-        // Write the incoming message to the input buffer
-        var i;
-        if (this._Protocol === 'binary') {
-            var u8 = new Uint8Array(e.data);
-            for (i = 0; i < u8.length; i++) {
-                Data.writeByte(u8[i]);
-            }
-        } else if (this._Protocol === 'base64') {
-            // TODO Ensure atob still works with websockify
-            Data.writeString(atob(e.data));
-        } else {
-            Data.writeString(e.data);
-        }
-        Data.position = 0;
-
-        this.NegotiateInbound(Data);
-
-        // Restore the old buffer position
-        this._InputBuffer.position = OldPosition;
-    };
-
-    // Remap all the read* functions to operate on our input buffer instead
-    WebSocketConnection.prototype.readBytes = function (bytes, offset, length) {
-        return this._InputBuffer.readBytes(bytes, offset, length);
-    };
-
-    WebSocketConnection.prototype.readString = function (length) {
-        return this._InputBuffer.readString(length);
-    };
-
-    WebSocketConnection.prototype.readUnsignedByte = function () {
-        return this._InputBuffer.readUnsignedByte();
-    };
-
-    WebSocketConnection.prototype.readUnsignedShort = function () {
-        return this._InputBuffer.readUnsignedShort();
-    };
-
-    WebSocketConnection.prototype.Send = function (data) {
-        var i = 0;
-        var ToSendString = '';
-
-        if (this._Protocol === 'binary') {
-            this._WebSocket.send(new Uint8Array(data).buffer);
-        } else if (this._Protocol === 'base64') {
-            for (i = 0; i < data.length; i++) {
-                ToSendString += String.fromCharCode(data[i]);
-            }
-            this._WebSocket.send(btoa(ToSendString));
-        } else {
-            for (i = 0; i < data.length; i++) {
-                ToSendString += String.fromCharCode(data[i]);
-            }
-            this._WebSocket.send(ToSendString);
-        }
-    };
-
-    // Remap all the write* functions to operate on our output buffer instead
-    WebSocketConnection.prototype.writeByte = function (value) {
-        this._OutputBuffer.writeByte(value);
-    };
-
-    WebSocketConnection.prototype.writeBytes = function (bytes, offset, length) {
-        this._OutputBuffer.writeBytes(bytes, offset, length);
-    };
-
-    WebSocketConnection.prototype.writeShort = function (value) {
-        this._OutputBuffer.writeShort(value);
-    };
-
-    WebSocketConnection.prototype.writeString = function (text) {
-        this._OutputBuffer.writeString(text);
-        this.flush();
-    };
-    return WebSocketConnection;
-})();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/// <reference path="../WebSocketConnection.ts" />
-var TelnetConnection = (function (_super) {
-    __extends(TelnetConnection, _super);
-    function TelnetConnection() {
-        _super.call(this);
-
-        this._NegotiatedOptions = [];
-        for (var i = 0; i < 256; i++) {
-            this._NegotiatedOptions[i] = 0;
-        }
-        this._NegotiationState = 0 /* Data */;
-        this._TerminalTypeIndex = 0;
-        this._TerminalTypes = ['ansi-bbs', 'ansi', 'cp437', 'cp437']; // cp437 twice as a cheat since you're supposed to repeat the last item before going to the first item
-    }
-    TelnetConnection.prototype.flush = function () {
-        var ToSendBytes = [];
-
-        this._OutputBuffer.position = 0;
-        while (this._OutputBuffer.bytesAvailable > 0) {
-            var B = this._OutputBuffer.readUnsignedByte();
-            ToSendBytes.push(B);
-
-            if (B === 255 /* IAC */) {
-                ToSendBytes.push(255 /* IAC */);
-            }
-        }
-
-        this.Send(ToSendBytes);
-        this._OutputBuffer.clear();
-    };
-
-    TelnetConnection.prototype.HandleAreYouThere = function () {
-        var ToSendBytes = [];
-        ToSendBytes.push('.'.charCodeAt(0));
-        this.Send(ToSendBytes);
-    };
-
-    TelnetConnection.prototype.HandleEcho = function (command) {
-        switch (command) {
-            case 253 /* Do */:
-                this.SendWill(1 /* Echo */);
-                this._LocalEcho = true;
-                this.onlocalecho.trigger(this._LocalEcho);
-                break;
-            case 254 /* Dont */:
-                this.SendWont(1 /* Echo */);
-                this._LocalEcho = false;
-                this.onlocalecho.trigger(this._LocalEcho);
-                break;
-            case 251 /* Will */:
-                this.SendDo(1 /* Echo */);
-                this._LocalEcho = false;
-                this.onlocalecho.trigger(this._LocalEcho);
-                break;
-            case 252 /* Wont */:
-                this.SendDont(1 /* Echo */);
-                this._LocalEcho = true;
-                this.onlocalecho.trigger(this._LocalEcho);
-                break;
-        }
-    };
-
-    TelnetConnection.prototype.HandleTerminalType = function () {
-        this.SendWill(24 /* TerminalType */);
-        this.SendSubnegotiate(24 /* TerminalType */);
-
-        var TerminalType = this._TerminalTypes[this._TerminalTypeIndex];
-        var ToSendBytes = [];
-        ToSendBytes.push(0); // IS
-
-        for (var i = 0; i < TerminalType.length; i++) {
-            ToSendBytes.push(TerminalType.charCodeAt(i));
-        }
-        this.Send(ToSendBytes);
-
-        this.SendSubnegotiateEnd();
-
-        // Move to next terminal type, in case we're asked for an alternate
-        if (this._TerminalTypeIndex < (this._TerminalTypes.length - 1)) {
-            this._TerminalTypeIndex += 1;
-        } else {
-            this._TerminalTypeIndex = 0;
-        }
-    };
-
-    TelnetConnection.prototype.HandleTerminalLocationNumber = function () {
-        this.SendWill(28 /* TerminalLocationNumber */);
-        this.SendSubnegotiate(28 /* TerminalLocationNumber */);
-
-        var InternetHostNumber = 0;
-        var TerminalNumber = -1;
-
-        var SixtyFourBits = [];
-        SixtyFourBits.push(0); // Format 0
-        SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
-        SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
-        SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
-        SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
-        SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
-        SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
-        SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
-        SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
-
-        var ToSendBytes = [];
-
-        for (var i = 0; i < SixtyFourBits.length; i++) {
-            ToSendBytes.push(SixtyFourBits[i]);
-            if (SixtyFourBits[i] === 255 /* IAC */) {
-                // Double up so it's not treated as an IAC
-                ToSendBytes.push(255 /* IAC */);
-            }
-        }
-        this.Send(ToSendBytes);
-
-        this.SendSubnegotiateEnd();
-    };
-
-    TelnetConnection.prototype.HandleWindowSize = function () {
-        this.SendWill(31 /* WindowSize */);
-        this.SendSubnegotiate(31 /* WindowSize */);
-
-        var Size = [];
-        Size[0] = (Crt.WindCols >> 8) & 0xff;
-        Size[1] = Crt.WindCols & 0xff;
-        Size[2] = (Crt.WindRows >> 8) & 0xff;
-        Size[3] = Crt.WindRows & 0xff;
-
-        var ToSendBytes = [];
-        for (var i = 0; i < Size.length; i++) {
-            ToSendBytes.push(Size[i]);
-            if (Size[i] === 255 /* IAC */) {
-                // Double up so it's not treated as an IAC
-                ToSendBytes.push(255 /* IAC */);
-            }
-        }
-        this.Send(ToSendBytes);
-
-        this.SendSubnegotiateEnd();
-    };
-
-    Object.defineProperty(TelnetConnection.prototype, "LocalEcho", {
-        set: function (value) {
-            this._LocalEcho = value;
-
-            if (this.connected) {
-                if (this._LocalEcho) {
-                    this.SendWill(1 /* Echo */);
-                } else {
-                    this.SendWont(1 /* Echo */);
-                }
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-
-    TelnetConnection.prototype.NegotiateInbound = function (data) {
-        while (data.bytesAvailable) {
-            var B = data.readUnsignedByte();
-
-            if (this._NegotiationState === 0 /* Data */) {
-                if (B === 255 /* IAC */) {
-                    this._NegotiationState = 1 /* IAC */;
-                } else {
-                    this._InputBuffer.writeByte(B);
-                }
-            } else if (this._NegotiationState === 1 /* IAC */) {
-                if (B === 255 /* IAC */) {
-                    this._NegotiationState = 0 /* Data */;
-                    this._InputBuffer.writeByte(B);
-                } else {
-                    switch (B) {
-                        case 241 /* NoOperation */:
-                        case 242 /* DataMark */:
-                        case 243 /* Break */:
-                        case 244 /* InterruptProcess */:
-                        case 245 /* AbortOutput */:
-                        case 247 /* EraseCharacter */:
-                        case 248 /* EraseLine */:
-                        case 249 /* GoAhead */:
-                            // We recognize, but ignore these for now
-                            this._NegotiationState = 0 /* Data */;
-                            break;
-                        case 246 /* AreYouThere */:
-                            this.HandleAreYouThere();
-                            this._NegotiationState = 0 /* Data */;
-                            break;
-                        case 253 /* Do */:
-                            this._NegotiationState = 2 /* Do */;
-                            break;
-                        case 254 /* Dont */:
-                            this._NegotiationState = 3 /* Dont */;
-                            break;
-                        case 251 /* Will */:
-                            this._NegotiationState = 4 /* Will */;
-                            break;
-                        case 252 /* Wont */:
-                            this._NegotiationState = 5 /* Wont */;
-                            break;
-                        default:
-                            this._NegotiationState = 0 /* Data */;
-                            break;
-                    }
-                }
-            } else if (this._NegotiationState === 2 /* Do */) {
-                switch (B) {
-                    case 246 /* AreYouThere */:
-                        // TWGS incorrectly sends a DO AYT and expects a response
-                        this.SendWill(246 /* AreYouThere */);
-                        this._NegotiatedOptions[246 /* AreYouThere */] = 0;
-                        break;
-                    case 0 /* TransmitBinary */:
-                        this.SendWill(B);
-                        break;
-                    case 1 /* Echo */:
-                        this.HandleEcho(253 /* Do */);
-                        break;
-                    case 3 /* SuppressGoAhead */:
-                        this.SendWill(B);
-                        break;
-                    case 24 /* TerminalType */:
-                        this.HandleTerminalType();
-                        break;
-                    case 28 /* TerminalLocationNumber */:
-                        this.HandleTerminalLocationNumber();
-                        break;
-                    case 31 /* WindowSize */:
-                        this.HandleWindowSize();
-                        break;
-                    case 34 /* LineMode */:
-                        this.SendWont(B);
-                        break;
-                    default:
-                        this.SendWont(B);
-                        break;
-                }
-                this._NegotiationState = 0 /* Data */;
-            } else if (this._NegotiationState === 3 /* Dont */) {
-                switch (B) {
-                    case 0 /* TransmitBinary */:
-                        this.SendWill(B);
-                        break;
-                    case 1 /* Echo */:
-                        this.HandleEcho(254 /* Dont */);
-                        break;
-                    case 3 /* SuppressGoAhead */:
-                        this.SendWill(B);
-                        break;
-                    case 28 /* TerminalLocationNumber */:
-                        this.SendWont(B);
-                        break;
-                    case 31 /* WindowSize */:
-                        this.SendWont(B);
-                        break;
-                    case 34 /* LineMode */:
-                        this.SendWont(B);
-                        break;
-                    default:
-                        this.SendWont(B);
-                        break;
-                }
-                this._NegotiationState = 0 /* Data */;
-            } else if (this._NegotiationState === 4 /* Will */) {
-                switch (B) {
-                    case 0 /* TransmitBinary */:
-                        this.SendDo(B);
-                        break;
-                    case 1 /* Echo */:
-                        this.HandleEcho(251 /* Will */);
-                        break;
-                    case 3 /* SuppressGoAhead */:
-                        this.SendDo(B);
-                        break;
-                    case 28 /* TerminalLocationNumber */:
-                        this.SendDont(B);
-                        break;
-                    case 31 /* WindowSize */:
-                        this.SendDont(B);
-                        break;
-                    case 34 /* LineMode */:
-                        this.SendDont(B);
-                        break;
-                    default:
-                        this.SendDont(B);
-                        break;
-                }
-                this._NegotiationState = 0 /* Data */;
-            } else if (this._NegotiationState === 5 /* Wont */) {
-                switch (B) {
-                    case 0 /* TransmitBinary */:
-                        this.SendDo(B);
-                        break;
-                    case 1 /* Echo */:
-                        this.HandleEcho(252 /* Wont */);
-                        break;
-                    case 3 /* SuppressGoAhead */:
-                        this.SendDo(B);
-                        break;
-                    case 28 /* TerminalLocationNumber */:
-                        this.SendDont(B);
-                        break;
-                    case 31 /* WindowSize */:
-                        this.SendDont(B);
-                        break;
-                    case 34 /* LineMode */:
-                        this.SendDont(B);
-                        break;
-                    default:
-                        this.SendDont(B);
-                        break;
-                }
-                this._NegotiationState = 0 /* Data */;
-            } else {
-                this._NegotiationState = 0 /* Data */;
-            }
-        }
-    };
-
-    // TODO Need NegotiateOutbound
-    TelnetConnection.prototype.OnSocketOpen = function () {
-        _super.prototype.OnSocketOpen.call(this);
-
-        if (this._LocalEcho) {
-            this.SendWill(1 /* Echo */);
-        } else {
-            this.SendWont(1 /* Echo */);
-        }
-    };
-
-    TelnetConnection.prototype.SendDo = function (option) {
-        if (this._NegotiatedOptions[option] !== 253 /* Do */) {
-            // Haven't negotiated this option
-            this._NegotiatedOptions[option] = 253 /* Do */;
-
-            var ToSendBytes = [];
-            ToSendBytes.push(255 /* IAC */);
-            ToSendBytes.push(253 /* Do */);
-            ToSendBytes.push(option);
-            this.Send(ToSendBytes);
-        }
-    };
-
-    TelnetConnection.prototype.SendDont = function (option) {
-        if (this._NegotiatedOptions[option] !== 254 /* Dont */) {
-            // Haven't negotiated this option
-            this._NegotiatedOptions[option] = 254 /* Dont */;
-
-            var ToSendBytes = [];
-            ToSendBytes.push(255 /* IAC */);
-            ToSendBytes.push(254 /* Dont */);
-            ToSendBytes.push(option);
-            this.Send(ToSendBytes);
-        }
-    };
-
-    TelnetConnection.prototype.SendSubnegotiate = function (option) {
-        var ToSendBytes = [];
-        ToSendBytes.push(255 /* IAC */);
-        ToSendBytes.push(250 /* Subnegotiation */);
-        ToSendBytes.push(option);
-        this.Send(ToSendBytes);
-    };
-
-    TelnetConnection.prototype.SendSubnegotiateEnd = function () {
-        var ToSendBytes = [];
-        ToSendBytes.push(255 /* IAC */);
-        ToSendBytes.push(240 /* EndSubnegotiation */);
-        this.Send(ToSendBytes);
-    };
-
-    TelnetConnection.prototype.SendWill = function (option) {
-        if (this._NegotiatedOptions[option] !== 251 /* Will */) {
-            // Haven't negotiated this option
-            this._NegotiatedOptions[option] = 251 /* Will */;
-
-            var ToSendBytes = [];
-            ToSendBytes.push(255 /* IAC */);
-            ToSendBytes.push(251 /* Will */);
-            ToSendBytes.push(option);
-            this.Send(ToSendBytes);
-        }
-    };
-
-    TelnetConnection.prototype.SendWont = function (option) {
-        if (this._NegotiatedOptions[option] !== 252 /* Wont */) {
-            // Haven't negotiated this option
-            this._NegotiatedOptions[option] = 252 /* Wont */;
-
-            var ToSendBytes = [];
-            ToSendBytes.push(255 /* IAC */);
-            ToSendBytes.push(252 /* Wont */);
-            ToSendBytes.push(option);
-            this.Send(ToSendBytes);
-        }
-    };
-    return TelnetConnection;
-})(WebSocketConnection);
 var VirtualKeyboard = (function () {
     function VirtualKeyboard() {
     }
@@ -6506,18 +4839,15 @@ var VirtualKeyboard = (function () {
         var _this = this;
         container.appendChild(this.CreateDivElement());
 
-        // Handle click events for all keys
         var Keys = document.getElementsByClassName('fTelnetKeyboardKey');
         for (var i = 0; i < Keys.length; i++) {
             if (Keys[i].addEventListener) {
                 var KeyCode = Keys[i].getAttribute('data-keycode');
                 if (this._Keys[KeyCode][2] > 0) {
-                    // Regular character
                     Keys[i].addEventListener('click', function (e) {
                         _this.OnCharCode(e);
                     }, false);
                 } else {
-                    // Special character
                     Keys[i].addEventListener('click', function (e) {
                         _this.OnKeyCode(e);
                     }, false);
@@ -6631,7 +4961,6 @@ var VirtualKeyboard = (function () {
         for (var Row = 0; Row < Rows.length; Row++) {
             Html += '<div class="fTelnetKeyboardRow';
             if (Row === 0) {
-                // First row needs a second class
                 Html += ' fTelnetKeyboardRowFunction';
             }
             Html += '">';
@@ -6674,14 +5003,11 @@ var VirtualKeyboard = (function () {
         var CharCode = 0;
 
         if ((KeyCode >= 65) && (KeyCode <= 90)) {
-            // Alphanumeric takes shift AND capslock into account
             CharCode = parseInt((this._ShiftPressed !== this._CapsLockEnabled) ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
         } else {
-            // Other keys just take shift into account
             CharCode = parseInt(this._ShiftPressed ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
         }
 
-        // Determine if ctrl, alt or shift were held down
         var NeedReDraw = false;
         var RegularKey = true;
         if (this._AltPressed) {
@@ -6696,13 +5022,11 @@ var VirtualKeyboard = (function () {
             NeedReDraw = true;
         }
 
-        // Always dispatch onKeyDown, and then only OnTextEvent for regular keypresses
         Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
         if (RegularKey) {
             Crt.PushKeyPress(CharCode, 0, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
         }
 
-        // Reset flags and redraw, if necessary
         if (NeedReDraw) {
             this._AltPressed = false;
             this._CtrlPressed = false;
@@ -6789,28 +5113,750 @@ var VirtualKeyboard = (function () {
     VirtualKeyboard._Keys = [];
     return VirtualKeyboard;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
+var KeyPressEvent = (function () {
+    function KeyPressEvent(keyEvent, keyString) {
+        this.altKey = keyEvent.altKey;
+        this.charCode = keyEvent.charCode;
+        this.ctrlKey = keyEvent.ctrlKey;
+        this.keyCode = keyEvent.keyCode;
+        this.keyString = keyString;
+        this.shiftKey = keyEvent.shiftKey;
+    }
+    return KeyPressEvent;
+})();
+var TelnetCommand;
+(function (TelnetCommand) {
+    TelnetCommand[TelnetCommand["EndSubnegotiation"] = 240] = "EndSubnegotiation";
+
+    TelnetCommand[TelnetCommand["NoOperation"] = 241] = "NoOperation";
+
+    TelnetCommand[TelnetCommand["DataMark"] = 242] = "DataMark";
+
+    TelnetCommand[TelnetCommand["Break"] = 243] = "Break";
+
+    TelnetCommand[TelnetCommand["InterruptProcess"] = 244] = "InterruptProcess";
+
+    TelnetCommand[TelnetCommand["AbortOutput"] = 245] = "AbortOutput";
+
+    TelnetCommand[TelnetCommand["AreYouThere"] = 246] = "AreYouThere";
+
+    TelnetCommand[TelnetCommand["EraseCharacter"] = 247] = "EraseCharacter";
+
+    TelnetCommand[TelnetCommand["EraseLine"] = 248] = "EraseLine";
+
+    TelnetCommand[TelnetCommand["GoAhead"] = 249] = "GoAhead";
+
+    TelnetCommand[TelnetCommand["Subnegotiation"] = 250] = "Subnegotiation";
+
+    TelnetCommand[TelnetCommand["Will"] = 251] = "Will";
+
+    TelnetCommand[TelnetCommand["Wont"] = 252] = "Wont";
+
+    TelnetCommand[TelnetCommand["Do"] = 253] = "Do";
+
+    TelnetCommand[TelnetCommand["Dont"] = 254] = "Dont";
+
+    TelnetCommand[TelnetCommand["IAC"] = 255] = "IAC";
+})(TelnetCommand || (TelnetCommand = {}));
+var TelnetNegotiationState;
+(function (TelnetNegotiationState) {
+    TelnetNegotiationState[TelnetNegotiationState["Data"] = 0] = "Data";
+
+    TelnetNegotiationState[TelnetNegotiationState["IAC"] = 1] = "IAC";
+
+    TelnetNegotiationState[TelnetNegotiationState["Do"] = 2] = "Do";
+
+    TelnetNegotiationState[TelnetNegotiationState["Dont"] = 3] = "Dont";
+
+    TelnetNegotiationState[TelnetNegotiationState["Will"] = 4] = "Will";
+
+    TelnetNegotiationState[TelnetNegotiationState["Wont"] = 5] = "Wont";
+})(TelnetNegotiationState || (TelnetNegotiationState = {}));
+var TelnetOption;
+(function (TelnetOption) {
+    TelnetOption[TelnetOption["TransmitBinary"] = 0] = "TransmitBinary";
+
+    TelnetOption[TelnetOption["Echo"] = 1] = "Echo";
+
+    TelnetOption[TelnetOption["Reconnection"] = 2] = "Reconnection";
+
+    TelnetOption[TelnetOption["SuppressGoAhead"] = 3] = "SuppressGoAhead";
+
+    TelnetOption[TelnetOption["ApproxMessageSizeNegotiation"] = 4] = "ApproxMessageSizeNegotiation";
+    TelnetOption[TelnetOption["Status"] = 5] = "Status";
+    TelnetOption[TelnetOption["TimingMark"] = 6] = "TimingMark";
+    TelnetOption[TelnetOption["RemoteControlledTransAndEcho"] = 7] = "RemoteControlledTransAndEcho";
+    TelnetOption[TelnetOption["OutputLineWidth"] = 8] = "OutputLineWidth";
+    TelnetOption[TelnetOption["OutputPageSize"] = 9] = "OutputPageSize";
+    TelnetOption[TelnetOption["OutputCarriageReturnDisposition"] = 10] = "OutputCarriageReturnDisposition";
+    TelnetOption[TelnetOption["OutputHorizontalTabStops"] = 11] = "OutputHorizontalTabStops";
+    TelnetOption[TelnetOption["OutputHorizontalTabDisposition"] = 12] = "OutputHorizontalTabDisposition";
+    TelnetOption[TelnetOption["OutputFormfeedDisposition"] = 13] = "OutputFormfeedDisposition";
+    TelnetOption[TelnetOption["OutputVerticalTabstops"] = 14] = "OutputVerticalTabstops";
+    TelnetOption[TelnetOption["OutputVerticalTabDisposition"] = 15] = "OutputVerticalTabDisposition";
+    TelnetOption[TelnetOption["OutputLinefeedDisposition"] = 16] = "OutputLinefeedDisposition";
+    TelnetOption[TelnetOption["ExtendedASCII"] = 17] = "ExtendedASCII";
+    TelnetOption[TelnetOption["Logout"] = 18] = "Logout";
+    TelnetOption[TelnetOption["ByteMacro"] = 19] = "ByteMacro";
+    TelnetOption[TelnetOption["DataEntryTerminal"] = 20] = "DataEntryTerminal";
+    TelnetOption[TelnetOption["SUPDUP"] = 21] = "SUPDUP";
+    TelnetOption[TelnetOption["SUPDUPOutput"] = 22] = "SUPDUPOutput";
+    TelnetOption[TelnetOption["SendLocation"] = 23] = "SendLocation";
+
+    TelnetOption[TelnetOption["TerminalType"] = 24] = "TerminalType";
+
+    TelnetOption[TelnetOption["EndOfRecord"] = 25] = "EndOfRecord";
+    TelnetOption[TelnetOption["TACACSUserIdentification"] = 26] = "TACACSUserIdentification";
+    TelnetOption[TelnetOption["OutputMarking"] = 27] = "OutputMarking";
+
+    TelnetOption[TelnetOption["TerminalLocationNumber"] = 28] = "TerminalLocationNumber";
+
+    TelnetOption[TelnetOption["Telnet3270Regime"] = 29] = "Telnet3270Regime";
+    TelnetOption[TelnetOption["Xdot3PAD"] = 30] = "Xdot3PAD";
+
+    TelnetOption[TelnetOption["WindowSize"] = 31] = "WindowSize";
+
+    TelnetOption[TelnetOption["TerminalSpeed"] = 32] = "TerminalSpeed";
+    TelnetOption[TelnetOption["RemoteFlowControl"] = 33] = "RemoteFlowControl";
+
+    TelnetOption[TelnetOption["LineMode"] = 34] = "LineMode";
+
+    TelnetOption[TelnetOption["XDisplayLocation"] = 35] = "XDisplayLocation";
+    TelnetOption[TelnetOption["EnvironmentOption"] = 36] = "EnvironmentOption";
+    TelnetOption[TelnetOption["AuthenticationOption"] = 37] = "AuthenticationOption";
+    TelnetOption[TelnetOption["EncryptionOption"] = 38] = "EncryptionOption";
+    TelnetOption[TelnetOption["NewEnvironmentOption"] = 39] = "NewEnvironmentOption";
+    TelnetOption[TelnetOption["TN3270E"] = 40] = "TN3270E";
+    TelnetOption[TelnetOption["XAUTH"] = 41] = "XAUTH";
+    TelnetOption[TelnetOption["CHARSET"] = 42] = "CHARSET";
+    TelnetOption[TelnetOption["TelnetRemoteSerialPort"] = 43] = "TelnetRemoteSerialPort";
+    TelnetOption[TelnetOption["ComPortControlOption"] = 44] = "ComPortControlOption";
+    TelnetOption[TelnetOption["TelnetSuppressLocalEcho"] = 45] = "TelnetSuppressLocalEcho";
+    TelnetOption[TelnetOption["TelnetStartTLS"] = 46] = "TelnetStartTLS";
+    TelnetOption[TelnetOption["KERMIT"] = 47] = "KERMIT";
+    TelnetOption[TelnetOption["SENDURL"] = 48] = "SENDURL";
+    TelnetOption[TelnetOption["FORWARD_X"] = 49] = "FORWARD_X";
+})(TelnetOption || (TelnetOption = {}));
+var WebSocketProtocol = ('https:' === document.location.protocol ? 'wss' : 'ws');
+var WebSocketSupportsTypedArrays = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
+var WebSocketSupportsBinaryType = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));
+
+var WebSocketConnection = (function () {
+    function WebSocketConnection() {
+        this.onclose = new TypedEvent();
+        this.onconnect = new TypedEvent();
+        this.onlocalecho = new TypedEvent();
+        this.onioerror = new TypedEvent();
+        this.onsecurityerror = new TypedEvent();
+        this._WasConnected = false;
+        this._InputBuffer = null;
+        this._OutputBuffer = null;
+        this._Protocol = 'plain';
+        this._WebSocket = null;
+        this._InputBuffer = new ByteArray();
+        this._LocalEcho = false;
+        this._OutputBuffer = new ByteArray();
+    }
+    Object.defineProperty(WebSocketConnection.prototype, "bytesAvailable", {
+        get: function () {
+            return this._InputBuffer.bytesAvailable;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+    WebSocketConnection.prototype.close = function () {
+        if (this._WebSocket) {
+            this._WebSocket.close();
+        }
+    };
+
+    WebSocketConnection.prototype.connect = function (hostname, port, proxyHostname, proxyPort, proxyPortSecure) {
+        var _this = this;
+        if (typeof proxyHostname === 'undefined') {
+            proxyHostname = '';
+        }
+        if (typeof proxyPort === 'undefined') {
+            proxyPort = 1123;
+        }
+        if (typeof proxyPortSecure === 'undefined') {
+            proxyPortSecure = 11235;
+        }
+
+        this._WasConnected = false;
+
+        var Protocols;
+        if (('websocket' in Window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) {
+            Protocols = ['plain'];
+        } else {
+            if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+                Protocols = ['binary', 'base64', 'plain'];
+            } else {
+                Protocols = ['base64', 'plain'];
+            }
+        }
+
+        if (proxyHostname === '') {
+            this._WebSocket = new WebSocket(WebSocketProtocol + '://' + hostname + ':' + port, Protocols);
+        } else {
+            this._WebSocket = new WebSocket(WebSocketProtocol + '://' + proxyHostname + ':' + (WebSocketProtocol === 'wss' ? proxyPortSecure : proxyPort) + '/' + hostname + '/' + port, Protocols);
+        }
+
+        if (Protocols.indexOf('binary') >= 0) {
+            this._WebSocket.binaryType = 'arraybuffer';
+        }
+
+        this._WebSocket.onclose = function () {
+            _this.OnSocketClose();
+        };
+        this._WebSocket.onerror = function (e) {
+            _this.OnSocketError(e);
+        };
+        this._WebSocket.onmessage = function (e) {
+            _this.OnSocketMessage(e);
+        };
+        this._WebSocket.onopen = function () {
+            _this.OnSocketOpen();
+        };
+    };
+
+    Object.defineProperty(WebSocketConnection.prototype, "connected", {
+        get: function () {
+            if (this._WebSocket) {
+                return (this._WebSocket.readyState === this._WebSocket.OPEN) || (this._WebSocket.readyState === WebSocket.OPEN);
+            }
+
+            return false;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+    WebSocketConnection.prototype.flush = function () {
+        var ToSendBytes = [];
+
+        this._OutputBuffer.position = 0;
+        while (this._OutputBuffer.bytesAvailable > 0) {
+            var B = this._OutputBuffer.readUnsignedByte();
+            ToSendBytes.push(B);
+        }
+
+        this.Send(ToSendBytes);
+        this._OutputBuffer.clear();
+    };
+
+    Object.defineProperty(WebSocketConnection.prototype, "LocalEcho", {
+        set: function (value) {
+            this._LocalEcho = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+    WebSocketConnection.prototype.NegotiateInbound = function (data) {
+        while (data.bytesAvailable) {
+            var B = data.readUnsignedByte();
+            this._InputBuffer.writeByte(B);
+        }
+    };
+
+    WebSocketConnection.prototype.OnSocketClose = function () {
+        if (this._WasConnected) {
+            this.onclose.trigger();
+        } else {
+            this.onsecurityerror.trigger();
+        }
+        this._WasConnected = false;
+    };
+
+    WebSocketConnection.prototype.OnSocketError = function (e) {
+        this.onioerror.trigger(e);
+    };
+
+    WebSocketConnection.prototype.OnSocketOpen = function () {
+        if (this._WebSocket.protocol) {
+            this._Protocol = this._WebSocket.protocol;
+        } else {
+            this._Protocol = 'plain';
+        }
+
+        this._WasConnected = true;
+        this.onconnect.trigger();
+    };
+
+    WebSocketConnection.prototype.OnSocketMessage = function (e) {
+        if (this._InputBuffer.bytesAvailable === 0) {
+            this._InputBuffer.clear();
+        }
+
+        var OldPosition = this._InputBuffer.position;
+        this._InputBuffer.position = this._InputBuffer.length;
+
+        var Data = new ByteArray();
+
+        var i;
+        if (this._Protocol === 'binary') {
+            var u8 = new Uint8Array(e.data);
+            for (i = 0; i < u8.length; i++) {
+                Data.writeByte(u8[i]);
+            }
+        } else if (this._Protocol === 'base64') {
+            Data.writeString(atob(e.data));
+        } else {
+            Data.writeString(e.data);
+        }
+        Data.position = 0;
+
+        this.NegotiateInbound(Data);
+
+        this._InputBuffer.position = OldPosition;
+    };
+
+    WebSocketConnection.prototype.readBytes = function (bytes, offset, length) {
+        return this._InputBuffer.readBytes(bytes, offset, length);
+    };
+
+    WebSocketConnection.prototype.readString = function (length) {
+        return this._InputBuffer.readString(length);
+    };
+
+    WebSocketConnection.prototype.readUnsignedByte = function () {
+        return this._InputBuffer.readUnsignedByte();
+    };
+
+    WebSocketConnection.prototype.readUnsignedShort = function () {
+        return this._InputBuffer.readUnsignedShort();
+    };
+
+    WebSocketConnection.prototype.Send = function (data) {
+        var i = 0;
+        var ToSendString = '';
+
+        if (this._Protocol === 'binary') {
+            this._WebSocket.send(new Uint8Array(data).buffer);
+        } else if (this._Protocol === 'base64') {
+            for (i = 0; i < data.length; i++) {
+                ToSendString += String.fromCharCode(data[i]);
+            }
+            this._WebSocket.send(btoa(ToSendString));
+        } else {
+            for (i = 0; i < data.length; i++) {
+                ToSendString += String.fromCharCode(data[i]);
+            }
+            this._WebSocket.send(ToSendString);
+        }
+    };
+
+    WebSocketConnection.prototype.writeByte = function (value) {
+        this._OutputBuffer.writeByte(value);
+    };
+
+    WebSocketConnection.prototype.writeBytes = function (bytes, offset, length) {
+        this._OutputBuffer.writeBytes(bytes, offset, length);
+    };
+
+    WebSocketConnection.prototype.writeShort = function (value) {
+        this._OutputBuffer.writeShort(value);
+    };
+
+    WebSocketConnection.prototype.writeString = function (text) {
+        this._OutputBuffer.writeString(text);
+        this.flush();
+    };
+    return WebSocketConnection;
+})();
+var TelnetConnection = (function (_super) {
+    __extends(TelnetConnection, _super);
+    function TelnetConnection() {
+        _super.call(this);
+
+        this._NegotiatedOptions = [];
+        for (var i = 0; i < 256; i++) {
+            this._NegotiatedOptions[i] = 0;
+        }
+        this._NegotiationState = 0 /* Data */;
+        this._TerminalTypeIndex = 0;
+        this._TerminalTypes = ['ansi-bbs', 'ansi', 'cp437', 'cp437'];
+    }
+    TelnetConnection.prototype.flush = function () {
+        var ToSendBytes = [];
+
+        this._OutputBuffer.position = 0;
+        while (this._OutputBuffer.bytesAvailable > 0) {
+            var B = this._OutputBuffer.readUnsignedByte();
+            ToSendBytes.push(B);
+
+            if (B === 255 /* IAC */) {
+                ToSendBytes.push(255 /* IAC */);
+            }
+        }
+
+        this.Send(ToSendBytes);
+        this._OutputBuffer.clear();
+    };
+
+    TelnetConnection.prototype.HandleAreYouThere = function () {
+        var ToSendBytes = [];
+        ToSendBytes.push('.'.charCodeAt(0));
+        this.Send(ToSendBytes);
+    };
+
+    TelnetConnection.prototype.HandleEcho = function (command) {
+        switch (command) {
+            case 253 /* Do */:
+                this.SendWill(1 /* Echo */);
+                this._LocalEcho = true;
+                this.onlocalecho.trigger(this._LocalEcho);
+                break;
+            case 254 /* Dont */:
+                this.SendWont(1 /* Echo */);
+                this._LocalEcho = false;
+                this.onlocalecho.trigger(this._LocalEcho);
+                break;
+            case 251 /* Will */:
+                this.SendDo(1 /* Echo */);
+                this._LocalEcho = false;
+                this.onlocalecho.trigger(this._LocalEcho);
+                break;
+            case 252 /* Wont */:
+                this.SendDont(1 /* Echo */);
+                this._LocalEcho = true;
+                this.onlocalecho.trigger(this._LocalEcho);
+                break;
+        }
+    };
+
+    TelnetConnection.prototype.HandleTerminalType = function () {
+        this.SendWill(24 /* TerminalType */);
+        this.SendSubnegotiate(24 /* TerminalType */);
+
+        var TerminalType = this._TerminalTypes[this._TerminalTypeIndex];
+        var ToSendBytes = [];
+        ToSendBytes.push(0);
+
+        for (var i = 0; i < TerminalType.length; i++) {
+            ToSendBytes.push(TerminalType.charCodeAt(i));
+        }
+        this.Send(ToSendBytes);
+
+        this.SendSubnegotiateEnd();
+
+        if (this._TerminalTypeIndex < (this._TerminalTypes.length - 1)) {
+            this._TerminalTypeIndex += 1;
+        } else {
+            this._TerminalTypeIndex = 0;
+        }
+    };
+
+    TelnetConnection.prototype.HandleTerminalLocationNumber = function () {
+        this.SendWill(28 /* TerminalLocationNumber */);
+        this.SendSubnegotiate(28 /* TerminalLocationNumber */);
+
+        var InternetHostNumber = 0;
+        var TerminalNumber = -1;
+
+        var SixtyFourBits = [];
+        SixtyFourBits.push(0);
+        SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
+        SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
+        SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
+        SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
+        SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
+        SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
+        SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
+        SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
+
+        var ToSendBytes = [];
+
+        for (var i = 0; i < SixtyFourBits.length; i++) {
+            ToSendBytes.push(SixtyFourBits[i]);
+            if (SixtyFourBits[i] === 255 /* IAC */) {
+                ToSendBytes.push(255 /* IAC */);
+            }
+        }
+        this.Send(ToSendBytes);
+
+        this.SendSubnegotiateEnd();
+    };
+
+    TelnetConnection.prototype.HandleWindowSize = function () {
+        this.SendWill(31 /* WindowSize */);
+        this.SendSubnegotiate(31 /* WindowSize */);
+
+        var Size = [];
+        Size[0] = (Crt.WindCols >> 8) & 0xff;
+        Size[1] = Crt.WindCols & 0xff;
+        Size[2] = (Crt.WindRows >> 8) & 0xff;
+        Size[3] = Crt.WindRows & 0xff;
+
+        var ToSendBytes = [];
+        for (var i = 0; i < Size.length; i++) {
+            ToSendBytes.push(Size[i]);
+            if (Size[i] === 255 /* IAC */) {
+                ToSendBytes.push(255 /* IAC */);
+            }
+        }
+        this.Send(ToSendBytes);
+
+        this.SendSubnegotiateEnd();
+    };
+
+    Object.defineProperty(TelnetConnection.prototype, "LocalEcho", {
+        set: function (value) {
+            this._LocalEcho = value;
+
+            if (this.connected) {
+                if (this._LocalEcho) {
+                    this.SendWill(1 /* Echo */);
+                } else {
+                    this.SendWont(1 /* Echo */);
+                }
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+    TelnetConnection.prototype.NegotiateInbound = function (data) {
+        while (data.bytesAvailable) {
+            var B = data.readUnsignedByte();
+
+            if (this._NegotiationState === 0 /* Data */) {
+                if (B === 255 /* IAC */) {
+                    this._NegotiationState = 1 /* IAC */;
+                } else {
+                    this._InputBuffer.writeByte(B);
+                }
+            } else if (this._NegotiationState === 1 /* IAC */) {
+                if (B === 255 /* IAC */) {
+                    this._NegotiationState = 0 /* Data */;
+                    this._InputBuffer.writeByte(B);
+                } else {
+                    switch (B) {
+                        case 241 /* NoOperation */:
+                        case 242 /* DataMark */:
+                        case 243 /* Break */:
+                        case 244 /* InterruptProcess */:
+                        case 245 /* AbortOutput */:
+                        case 247 /* EraseCharacter */:
+                        case 248 /* EraseLine */:
+                        case 249 /* GoAhead */:
+                            this._NegotiationState = 0 /* Data */;
+                            break;
+                        case 246 /* AreYouThere */:
+                            this.HandleAreYouThere();
+                            this._NegotiationState = 0 /* Data */;
+                            break;
+                        case 253 /* Do */:
+                            this._NegotiationState = 2 /* Do */;
+                            break;
+                        case 254 /* Dont */:
+                            this._NegotiationState = 3 /* Dont */;
+                            break;
+                        case 251 /* Will */:
+                            this._NegotiationState = 4 /* Will */;
+                            break;
+                        case 252 /* Wont */:
+                            this._NegotiationState = 5 /* Wont */;
+                            break;
+                        default:
+                            this._NegotiationState = 0 /* Data */;
+                            break;
+                    }
+                }
+            } else if (this._NegotiationState === 2 /* Do */) {
+                switch (B) {
+                    case 246 /* AreYouThere */:
+                        this.SendWill(246 /* AreYouThere */);
+                        this._NegotiatedOptions[246 /* AreYouThere */] = 0;
+                        break;
+                    case 0 /* TransmitBinary */:
+                        this.SendWill(B);
+                        break;
+                    case 1 /* Echo */:
+                        this.HandleEcho(253 /* Do */);
+                        break;
+                    case 3 /* SuppressGoAhead */:
+                        this.SendWill(B);
+                        break;
+                    case 24 /* TerminalType */:
+                        this.HandleTerminalType();
+                        break;
+                    case 28 /* TerminalLocationNumber */:
+                        this.HandleTerminalLocationNumber();
+                        break;
+                    case 31 /* WindowSize */:
+                        this.HandleWindowSize();
+                        break;
+                    case 34 /* LineMode */:
+                        this.SendWont(B);
+                        break;
+                    default:
+                        this.SendWont(B);
+                        break;
+                }
+                this._NegotiationState = 0 /* Data */;
+            } else if (this._NegotiationState === 3 /* Dont */) {
+                switch (B) {
+                    case 0 /* TransmitBinary */:
+                        this.SendWill(B);
+                        break;
+                    case 1 /* Echo */:
+                        this.HandleEcho(254 /* Dont */);
+                        break;
+                    case 3 /* SuppressGoAhead */:
+                        this.SendWill(B);
+                        break;
+                    case 28 /* TerminalLocationNumber */:
+                        this.SendWont(B);
+                        break;
+                    case 31 /* WindowSize */:
+                        this.SendWont(B);
+                        break;
+                    case 34 /* LineMode */:
+                        this.SendWont(B);
+                        break;
+                    default:
+                        this.SendWont(B);
+                        break;
+                }
+                this._NegotiationState = 0 /* Data */;
+            } else if (this._NegotiationState === 4 /* Will */) {
+                switch (B) {
+                    case 0 /* TransmitBinary */:
+                        this.SendDo(B);
+                        break;
+                    case 1 /* Echo */:
+                        this.HandleEcho(251 /* Will */);
+                        break;
+                    case 3 /* SuppressGoAhead */:
+                        this.SendDo(B);
+                        break;
+                    case 28 /* TerminalLocationNumber */:
+                        this.SendDont(B);
+                        break;
+                    case 31 /* WindowSize */:
+                        this.SendDont(B);
+                        break;
+                    case 34 /* LineMode */:
+                        this.SendDont(B);
+                        break;
+                    default:
+                        this.SendDont(B);
+                        break;
+                }
+                this._NegotiationState = 0 /* Data */;
+            } else if (this._NegotiationState === 5 /* Wont */) {
+                switch (B) {
+                    case 0 /* TransmitBinary */:
+                        this.SendDo(B);
+                        break;
+                    case 1 /* Echo */:
+                        this.HandleEcho(252 /* Wont */);
+                        break;
+                    case 3 /* SuppressGoAhead */:
+                        this.SendDo(B);
+                        break;
+                    case 28 /* TerminalLocationNumber */:
+                        this.SendDont(B);
+                        break;
+                    case 31 /* WindowSize */:
+                        this.SendDont(B);
+                        break;
+                    case 34 /* LineMode */:
+                        this.SendDont(B);
+                        break;
+                    default:
+                        this.SendDont(B);
+                        break;
+                }
+                this._NegotiationState = 0 /* Data */;
+            } else {
+                this._NegotiationState = 0 /* Data */;
+            }
+        }
+    };
+
+    TelnetConnection.prototype.OnSocketOpen = function () {
+        _super.prototype.OnSocketOpen.call(this);
+
+        if (this._LocalEcho) {
+            this.SendWill(1 /* Echo */);
+        } else {
+            this.SendWont(1 /* Echo */);
+        }
+    };
+
+    TelnetConnection.prototype.SendDo = function (option) {
+        if (this._NegotiatedOptions[option] !== 253 /* Do */) {
+            this._NegotiatedOptions[option] = 253 /* Do */;
+
+            var ToSendBytes = [];
+            ToSendBytes.push(255 /* IAC */);
+            ToSendBytes.push(253 /* Do */);
+            ToSendBytes.push(option);
+            this.Send(ToSendBytes);
+        }
+    };
+
+    TelnetConnection.prototype.SendDont = function (option) {
+        if (this._NegotiatedOptions[option] !== 254 /* Dont */) {
+            this._NegotiatedOptions[option] = 254 /* Dont */;
+
+            var ToSendBytes = [];
+            ToSendBytes.push(255 /* IAC */);
+            ToSendBytes.push(254 /* Dont */);
+            ToSendBytes.push(option);
+            this.Send(ToSendBytes);
+        }
+    };
+
+    TelnetConnection.prototype.SendSubnegotiate = function (option) {
+        var ToSendBytes = [];
+        ToSendBytes.push(255 /* IAC */);
+        ToSendBytes.push(250 /* Subnegotiation */);
+        ToSendBytes.push(option);
+        this.Send(ToSendBytes);
+    };
+
+    TelnetConnection.prototype.SendSubnegotiateEnd = function () {
+        var ToSendBytes = [];
+        ToSendBytes.push(255 /* IAC */);
+        ToSendBytes.push(240 /* EndSubnegotiation */);
+        this.Send(ToSendBytes);
+    };
+
+    TelnetConnection.prototype.SendWill = function (option) {
+        if (this._NegotiatedOptions[option] !== 251 /* Will */) {
+            this._NegotiatedOptions[option] = 251 /* Will */;
+
+            var ToSendBytes = [];
+            ToSendBytes.push(255 /* IAC */);
+            ToSendBytes.push(251 /* Will */);
+            ToSendBytes.push(option);
+            this.Send(ToSendBytes);
+        }
+    };
+
+    TelnetConnection.prototype.SendWont = function (option) {
+        if (this._NegotiatedOptions[option] !== 252 /* Wont */) {
+            this._NegotiatedOptions[option] = 252 /* Wont */;
+
+            var ToSendBytes = [];
+            ToSendBytes.push(255 /* IAC */);
+            ToSendBytes.push(252 /* Wont */);
+            ToSendBytes.push(option);
+            this.Send(ToSendBytes);
+        }
+    };
+    return TelnetConnection;
+})(WebSocketConnection);
 var CRC = (function () {
     function CRC() {
     }
     CRC.Calculate16 = function (bytes) {
         var CRC = 0;
 
-        // Save the old byte position
         var OldPosition = bytes.position;
         bytes.position = 0;
 
@@ -6820,14 +5866,12 @@ var CRC = (function () {
         CRC = this.UpdateCrc(0, CRC);
         CRC = this.UpdateCrc(0, CRC);
 
-        // Restore the old byte position
         bytes.position = OldPosition;
 
         return CRC;
     };
 
     CRC.UpdateCrc = function (curByte, curCrc) {
-        // Pascal code: UpdateCrc := CrcTable[((CurCrc shr 8) and 255)] xor (CurCrc shl 8) xor CurByte;
         return (this.CRC_TABLE[(curCrc >> 8) & 0x00FF] ^ (curCrc << 8) ^ curByte) & 0xFFFF;
     };
     CRC.CRC_TABLE = [
@@ -6865,21 +5909,6 @@ var CRC = (function () {
         0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0];
     return CRC;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var FileRecord = (function () {
     function FileRecord(name, size) {
         this._Data = new ByteArray();
@@ -6913,35 +5942,15 @@ var FileRecord = (function () {
     });
     return FileRecord;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var YModemReceive = (function () {
     function YModemReceive(connection) {
-        // Events
         this.ontransfercomplete = new TypedEvent();
-        // Private constants
         this.SOH = 0x01;
         this.STX = 0x02;
         this.EOT = 0x04;
         this.ACK = 0x06;
-        // Unused private NAK: number = 0x15;
         this.CAN = 0x18;
-        // Unused private SUB: number = 0x1A;
         this.CAPG = 'G'.charCodeAt(0);
-        // Private variables
         this._Blink = false;
         this._ExpectingHeader = true;
         this._Files = [];
@@ -6958,7 +5967,7 @@ var YModemReceive = (function () {
             this._Connection.writeByte(this.CAN);
             this._Connection.writeByte(this.CAN);
             this._Connection.writeByte(this.CAN);
-            this._Connection.writeString('\b\b\b\b\b     \b\b\b\b\b'); // will auto-flush
+            this._Connection.writeString('\b\b\b\b\b     \b\b\b\b\b');
         } catch (ioe1) {
             this.HandleIOError(ioe1);
             return;
@@ -6976,20 +5985,16 @@ var YModemReceive = (function () {
 
     YModemReceive.prototype.CleanUp = function (message) {
         var _this = this;
-        // Remove the listeners
         clearInterval(this._Timer);
 
-        // Update status label
         this.lblStatus.Text = 'Status: ' + message;
 
-        // Dispatch the event after 3 seconds
         setTimeout(function () {
             _this.Dispatch();
         }, 3000);
     };
 
     YModemReceive.prototype.Dispatch = function () {
-        // Remove the panel
         this.pnlMain.Hide();
         Crt.Blink = this._Blink;
         Crt.ShowCursor();
@@ -6999,12 +6004,10 @@ var YModemReceive = (function () {
 
     YModemReceive.prototype.Download = function () {
         var _this = this;
-        // Create our main timer
         this._Timer = setInterval(function () {
             _this.OnTimer();
         }, 50);
 
-        // Create the transfer dialog
         this._Blink = Crt.Blink;
         Crt.Blink = false;
         Crt.HideCursor();
@@ -7049,11 +6052,8 @@ var YModemReceive = (function () {
         }
 
         while (true) {
-            // Check if we've read a byte previously
             if (this._NextByte === 0) {
-                // Nope, try to read one now
                 if (this._Connection.bytesAvailable === 0) {
-                    // No data -- check if we should send a G
                     if (this._ShouldSendG && ((new Date()).getTime() - this._LastGTime > 3000)) {
                         try  {
                             this._Connection.writeByte(this.CAPG);
@@ -7063,7 +6063,6 @@ var YModemReceive = (function () {
                             return;
                         }
 
-                        // Reset last G time so we don't spam G's
                         this._LastGTime = new Date().getTime();
                     }
 
@@ -7080,40 +6079,32 @@ var YModemReceive = (function () {
 
             switch (this._NextByte) {
                 case this.CAN:
-                    // Sender requested cancellation
                     this.CleanUp('Sender requested abort');
 
                     break;
                 case this.SOH:
                 case this.STX:
-                    // File transfer is happening, don't send a G on timeout
                     this._ShouldSendG = false;
 
                     var BlockSize = (this._NextByte === this.STX) ? 1024 : 128;
 
-                    // Make sure we have enough data to read a full block
                     if (this._Connection.bytesAvailable < (1 + 1 + BlockSize + 1 + 1)) {
                         return;
                     }
 
-                    // Reset NextByte variable so we read in a new byte next loop
                     this._NextByte = 0;
 
-                    // Get block numbers
                     var InBlock = this._Connection.readUnsignedByte();
                     var InBlockInverse = this._Connection.readUnsignedByte();
 
-                    // Validate block numbers
                     if (InBlockInverse !== (255 - InBlock)) {
                         this.Cancel('Bad block #: ' + InBlockInverse.toString() + ' !== 255-' + InBlock.toString());
                         return;
                     }
 
-                    // Read data block
                     var Packet = new ByteArray();
                     this._Connection.readBytes(Packet, 0, BlockSize);
 
-                    // Validate CRC
                     var InCRC = this._Connection.readUnsignedShort();
                     var OurCRC = CRC.Calculate16(Packet);
                     if (InCRC !== OurCRC) {
@@ -7121,18 +6112,14 @@ var YModemReceive = (function () {
                         return;
                     }
 
-                    // Reading the header?
                     if (this._ExpectingHeader) {
-                        // Make sure it's block 0
                         if (InBlock !== 0) {
                             this.Cancel('Expecting header got block ' + InBlock.toString());
                             return;
                         }
 
-                        // It is, so mark that we don't want it next packet 0
                         this._ExpectingHeader = false;
 
-                        // Get the filename
                         var FileName = '';
                         var B = Packet.readUnsignedByte();
                         while ((B !== 0) && (Packet.bytesAvailable > 0)) {
@@ -7140,7 +6127,6 @@ var YModemReceive = (function () {
                             B = Packet.readUnsignedByte();
                         }
 
-                        // Get the file size
                         var Temp = '';
                         var FileSize = 0;
                         B = Packet.readUnsignedByte();
@@ -7150,19 +6136,16 @@ var YModemReceive = (function () {
                         }
                         FileSize = parseInt(Temp, 10);
 
-                        // Check for blank filename (means batch is complete)
                         if (FileName.length === 0) {
                             this.CleanUp('File(s) successfully received!');
                             return;
                         }
 
-                        // Check for blank file size (we don't like this case!)
                         if (isNaN(FileSize) || (FileSize === 0)) {
                             this.Cancel('File Size missing from header block');
                             return;
                         }
 
-                        // Header is good, setup a new file record
                         this._File = new FileRecord(FileName, FileSize);
                         this.lblFileCount.Text = 'Receiving file ' + (this._Files.length + 1).toString();
                         this.lblFileName.Text = 'File Name: ' + FileName;
@@ -7179,7 +6162,6 @@ var YModemReceive = (function () {
                             return;
                         }
                     } else {
-                        // Add bytes to byte array (don't exceed desired file size though)
                         var BytesToWrite = Math.min(BlockSize, this._File.size - this._File.data.length);
                         this._File.data.writeBytes(Packet, 0, BytesToWrite);
                         this._TotalBytesReceived += BytesToWrite;
@@ -7191,7 +6173,6 @@ var YModemReceive = (function () {
 
                     break;
                 case this.EOT:
-                    // File transfer is over, send a G on timeout
                     this._ShouldSendG = true;
 
                     try  {
@@ -7203,19 +6184,15 @@ var YModemReceive = (function () {
                         return;
                     }
 
-                    // Reset NextByte variable so we read in a new byte next loop
                     this._NextByte = 0;
 
-                    // Reset variables for next transfer
                     this._ExpectingHeader = true;
                     this._Files.push(this._File);
 
-                    // Save the file
                     this.SaveFile(this._Files.length - 1);
 
                     break;
                 default:
-                    // Didn't expect this, so abort
                     this.Cancel('Unexpected byte: ' + this._NextByte.toString());
                     return;
             }
@@ -7236,26 +6213,9 @@ var YModemReceive = (function () {
     };
     return YModemReceive;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var YModemSend = (function () {
     function YModemSend(connection) {
-        // Events
         this.ontransfercomplete = new TypedEvent();
-        // Private constants
         this.SOH = 0x01;
         this.STX = 0x02;
         this.EOT = 0x04;
@@ -7264,7 +6224,6 @@ var YModemSend = (function () {
         this.CAN = 0x18;
         this.SUB = 0x1A;
         this.CAPG = 'G'.charCodeAt(0);
-        // Private variables
         this._Block = 0;
         this._Blink = false;
         this._EOTCount = 0;
@@ -7283,7 +6242,7 @@ var YModemSend = (function () {
             this._Connection.writeByte(this.CAN);
             this._Connection.writeByte(this.CAN);
             this._Connection.writeByte(this.CAN);
-            this._Connection.writeString('\b\b\b\b\b     \b\b\b\b\b'); // will auto-flush
+            this._Connection.writeString('\b\b\b\b\b     \b\b\b\b\b');
         } catch (ioe1) {
             this.HandleIOError(ioe1);
             return;
@@ -7301,20 +6260,16 @@ var YModemSend = (function () {
 
     YModemSend.prototype.CleanUp = function (message) {
         var _this = this;
-        // Remove the listeners
         clearInterval(this._Timer);
 
-        // Update status label
         this.lblStatus.Text = 'Status: ' + message;
 
-        // Dispatch the event after 3 seconds
         setTimeout(function () {
             _this.Dispatch();
         }, 3000);
     };
 
     YModemSend.prototype.Dispatch = function () {
-        // Remove the panel
         this.pnlMain.Hide();
         Crt.Blink = this._Blink;
         Crt.ShowCursor();
@@ -7340,12 +6295,10 @@ var YModemSend = (function () {
             }
         }
 
-        // Break if no data is waiting (unless we're in the YModemSendState.SendingData state)
         if ((this._State !== 3 /* SendingData */) && (this._Connection.bytesAvailable === 0)) {
             return;
         }
 
-        // Determine what to do
         var B = 0;
         switch (this._State) {
             case 0 /* WaitingForHeaderRequest */:
@@ -7356,7 +6309,6 @@ var YModemSend = (function () {
                     return;
                 }
 
-                // Make sure we got the G and not something else
                 if (B !== this.CAPG) {
                     this.Cancel('Expecting G got ' + B.toString() + ' (State=' + this._State + ')');
                     return;
@@ -7369,15 +6321,12 @@ var YModemSend = (function () {
                     return;
                 }
 
-                // Do we still have files in the array?
                 if (this._Files.length === 0) {
-                    // Nope, let the other end know we're done
                     this.SendEmptyHeaderBlock();
                     this.CleanUp('File(s) successfully sent!');
                     return;
                 }
 
-                // Load the next file
                 this._File = this._Files.shift();
                 this.lblFileCount.Text = 'Sending file ' + (this._FileCount - this._Files.length).toString() + ' of ' + this._FileCount.toString();
                 this.lblFileName.Text = 'File Name: ' + this._File.name;
@@ -7386,15 +6335,12 @@ var YModemSend = (function () {
                 this.pbFileSent.Value = 0;
                 this.pbFileSent.Maximum = this._File.size;
 
-                // Send the header block
                 this.SendHeaderBlock();
 
-                // Reset variables for the new file transfer
                 this._Block = 1;
                 this._EOTCount = 0;
                 this._FileBytesSent = 0;
 
-                // Move to next state
                 this._State = 1 /* WaitingForHeaderAck */;
                 return;
 
@@ -7406,18 +6352,14 @@ var YModemSend = (function () {
                     return;
                 }
 
-                // Make sure we got the ACK or G and not something else
                 if ((B !== this.ACK) && (B !== this.CAPG)) {
                     this.Cancel('Expecting ACK/G got ' + B.toString() + ' (State=' + this._State + ')');
                     return;
                 }
 
                 if (B === this.ACK) {
-                    // Move to next state
                     this._State = 2 /* WaitingForFileRequest */;
                 } else if (B === this.CAPG) {
-                    // Async PRO doesn't ACK the header packet, so we can only assume this G is a request for the file to start, not for a re-send of the header
-                    // Move to next state
                     this._State = 3 /* SendingData */;
                 }
                 return;
@@ -7430,19 +6372,16 @@ var YModemSend = (function () {
                     return;
                 }
 
-                // Make sure we got the G and not something else
                 if (B !== this.CAPG) {
                     this.Cancel('Expecting G got ' + B.toString() + ' (State=' + this._State + ')');
                     return;
                 }
 
-                // Move to next state
                 this._State = 3 /* SendingData */;
                 return;
 
             case 3 /* SendingData */:
                 if (this.SendDataBlocks(16)) {
-                    // SendDataBlocks returns true when the whole file has been sent
                     this._State = 4 /* WaitingForFileAck */;
                 }
                 return;
@@ -7455,18 +6394,14 @@ var YModemSend = (function () {
                     return;
                 }
 
-                // Make sure we got the ACK (or NAK) and not something else
                 if ((B !== this.ACK) && (B !== this.NAK)) {
                     this.Cancel('Expecting (N)ACK got ' + B.toString() + ' (State=' + this._State + ')');
                     return;
                 }
 
-                // Move to next state
                 if (B === this.ACK) {
-                    // Waiting for them to request the next header
                     this._State = 0 /* WaitingForHeaderRequest */;
                 } else if (B === this.NAK) {
-                    // Re-send the EOT
                     this.SendEOT();
                 }
                 return;
@@ -7475,20 +6410,15 @@ var YModemSend = (function () {
 
     YModemSend.prototype.SendDataBlocks = function (blocks) {
         for (var loop = 0; loop < blocks; loop++) {
-            // Determine how many bytes to read (max 1024 per block)
             var BytesToRead = Math.min(1024, this._File.data.bytesAvailable);
 
-            // Check how many bytes are left
             if (BytesToRead === 0) {
-                // No more bytes left, send the EOT
                 this.SendEOT();
                 return true;
             } else {
-                // Read the bytes from the file
                 var Packet = new ByteArray();
                 this._File.data.readBytes(Packet, 0, BytesToRead);
 
-                // Append SUB bytes to pad to 1024, if necessary
                 if (Packet.length < 1024) {
                     Packet.position = Packet.length;
                     while (Packet.length < 1024) {
@@ -7509,12 +6439,10 @@ var YModemSend = (function () {
                     return false;
                 }
 
-                // Increment counters
                 this._Block++;
                 this._FileBytesSent += BytesToRead;
                 this._TotalBytesSent += BytesToRead;
 
-                // Update labels
                 this.lblFileSent.Text = 'File Sent: ' + StringUtils.AddCommas(this._FileBytesSent) + ' bytes';
                 this.pbFileSent.StepBy(BytesToRead);
                 this.lblTotalSent.Text = 'Total Sent: ' + StringUtils.AddCommas(this._TotalBytesSent) + ' bytes';
@@ -7522,7 +6450,6 @@ var YModemSend = (function () {
             }
         }
 
-        // Didn't finish the file yet
         return false;
     };
 
@@ -7565,32 +6492,26 @@ var YModemSend = (function () {
             Packet.writeByte(this._File.name.charCodeAt(i));
         }
 
-        // Add null separator
         Packet.writeByte(0);
 
-        // Add file size to packet (as string)
         var Size = this._File.size.toString();
         for (i = 0; i < Size.length; i++) {
             Packet.writeByte(Size.charCodeAt(i));
         }
 
-        // Pad out the packet as necessary
         if (Packet.length < 128) {
             while (Packet.length < 128) {
                 Packet.writeByte(0);
             }
         } else if (Packet.length === 128) {
-            // Do nothing, we fit into 128 bytes exactly
-            i = 0; // Make JSLint happy
+            i = 0;
         } else if (Packet.length < 1024) {
             while (Packet.length < 1024) {
                 Packet.writeByte(0);
             }
         } else if (Packet.length === 1024) {
-            // Do nothing, we fit into 1024 bytes exactly
-            i = 0; // Make JSLint happy
+            i = 0;
         } else {
-            // Shitty, we exceeded 1024 bytes!  What to do now?
             this.Cancel('Header packet exceeded 1024 bytes!');
             return;
         }
@@ -7612,12 +6533,9 @@ var YModemSend = (function () {
         var _this = this;
         this._FileCount = fileCount;
 
-        // Add the file to the queue
         this._Files.push(file);
 
-        // If the queue has just this one item, start the timers and listeners
         if (this._Files.length === fileCount) {
-            // Create our main timer
             this._Timer = setInterval(function () {
                 _this.OnTimer();
             }, 50);
@@ -7626,7 +6544,6 @@ var YModemSend = (function () {
                 this._TotalBytes += this._Files[i].size;
             }
 
-            // Create the transfer dialog
             this._Blink = Crt.Blink;
             Crt.Blink = false;
             Crt.HideCursor();
@@ -7645,21 +6562,6 @@ var YModemSend = (function () {
     };
     return YModemSend;
 })();
-/*
-fTelnet: An HTML5 WebSocket client
-Copyright (C) 2009-2013  Rick Parrish, R&M Software
-This file is part of fTelnet.
-fTelnet is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or any later version.
-fTelnet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
-*/
 var YModemSendState;
 (function (YModemSendState) {
     YModemSendState[YModemSendState["WaitingForHeaderRequest"] = 0] = "WaitingForHeaderRequest";
@@ -7668,4 +6570,74 @@ var YModemSendState;
     YModemSendState[YModemSendState["SendingData"] = 3] = "SendingData";
     YModemSendState[YModemSendState["WaitingForFileAck"] = 4] = "WaitingForFileAck";
 })(YModemSendState || (YModemSendState = {}));
-//# sourceMappingURL=ftelnet.js.map
+var StringUtils = (function () {
+    function StringUtils() {
+    }
+    StringUtils.AddCommas = function (value) {
+        var Result = '';
+
+        var Position = 1;
+        for (var i = value.toString().length - 1; i >= 0; i--) {
+            if ((Position > 3) && (Position % 3 === 1)) {
+                Result = ',' + Result;
+            }
+            Result = value.toString().charAt(i) + Result;
+            Position++;
+        }
+
+        return Result;
+    };
+
+    StringUtils.FormatPercent = function (value, fractionDigits) {
+        return (value * 100).toFixed(fractionDigits) + '%';
+    };
+
+    StringUtils.NewString = function (ch, length) {
+        if (ch.length === 0) {
+            return '';
+        }
+
+        var Result = '';
+        for (var i = 0; i < length; i++) {
+            Result += ch.charAt(0);
+        }
+        return Result;
+    };
+
+    StringUtils.PadLeft = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text = ch.charAt(0) + text;
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.PadRight = function (text, ch, length) {
+        if (ch.length === 0) {
+            return text;
+        }
+
+        while (text.length < length) {
+            text += ch.charAt(0);
+        }
+        return text.substring(0, length);
+    };
+
+    StringUtils.Trim = function (text) {
+        return this.TrimLeft(this.TrimRight(text));
+    };
+
+    StringUtils.TrimLeft = function (text) {
+        return text.replace(/^\s+/g, '');
+    };
+
+    StringUtils.TrimRight = function (text) {
+        return text.replace(/\s+$/g, '');
+    };
+    return StringUtils;
+})();
+//# sourceMappingURL=ftelnet.temp.js.map
+
