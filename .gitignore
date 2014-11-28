@@ -1,7 +1,4 @@
 release/keyboard/*.css.map
-release/Blob.js
-release/FileSaver.js
-release/ftelnet.temp.js
 release/*.js.map
 
 # User-specific files
