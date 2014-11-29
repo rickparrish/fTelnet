@@ -118,10 +118,10 @@ var fTelnet = (function () {
         if (Crt.Init(this._Container)) {
             this._InitMessageBar.style.display = 'none';
 
-            Crt.onfontchange.add(function () {
+            Crt.onfontchange.on(function () {
                 _this.OnCrtScreenSizeChanged();
             });
-            Crt.onscreensizechange.add(function () {
+            Crt.onscreensizechange.on(function () {
                 _this.OnCrtScreenSizeChanged();
             });
             Crt.BareLFtoCRLF = this._BareLFtoCRLF;
@@ -157,16 +157,16 @@ var fTelnet = (function () {
 
             this.OnCrtScreenSizeChanged();
 
-            Ansi.onesc5n.add(function () {
+            Ansi.onesc5n.on(function () {
                 _this.OnAnsiESC5n();
             });
-            Ansi.onesc6n.add(function () {
+            Ansi.onesc6n.on(function () {
                 _this.OnAnsiESC6n();
             });
-            Ansi.onesc255n.add(function () {
+            Ansi.onesc255n.on(function () {
                 _this.OnAnsiESC255n();
             });
-            Ansi.onescQ.add(function (font) {
+            Ansi.onescQ.on(function (font) {
                 _this.OnAnsiESCQ(font);
             });
 
@@ -257,19 +257,19 @@ var fTelnet = (function () {
         }
 
         this._Connection.LocalEcho = this._LocalEcho;
-        this._Connection.onclose.add(function () {
+        this._Connection.onclose.on(function () {
             _this.OnConnectionClose();
         });
-        this._Connection.onconnect.add(function () {
+        this._Connection.onconnect.on(function () {
             _this.OnConnectionConnect();
         });
-        this._Connection.onlocalecho.add(function (value) {
+        this._Connection.onlocalecho.on(function (value) {
             _this.OnConnectionLocalEcho(value);
         });
-        this._Connection.onioerror.add(function () {
+        this._Connection.onioerror.on(function () {
             _this.OnConnectionIOError();
         });
-        this._Connection.onsecurityerror.add(function () {
+        this._Connection.onsecurityerror.on(function () {
             _this.OnConnectionSecurityError();
         });
 
@@ -305,11 +305,11 @@ var fTelnet = (function () {
         }
 
         if (prompt && confirm('Are you sure you want to disconnect?')) {
-            this._Connection.onclose.remove();
-            this._Connection.onconnect.remove();
-            this._Connection.onioerror.remove();
-            this._Connection.onlocalecho.remove();
-            this._Connection.onsecurityerror.remove();
+            this._Connection.onclose.off();
+            this._Connection.onconnect.off();
+            this._Connection.onioerror.off();
+            this._Connection.onlocalecho.off();
+            this._Connection.onsecurityerror.off();
             this._Connection.close();
             this._Connection = null;
 
@@ -329,7 +329,7 @@ var fTelnet = (function () {
         this._YModemReceive = new YModemReceive(this._Connection);
 
         clearInterval(this._Timer);
-        this._YModemReceive.ontransfercomplete.add(function () {
+        this._YModemReceive.ontransfercomplete.on(function () {
             _this.OnDownloadComplete();
         });
 
@@ -571,7 +571,7 @@ var fTelnet = (function () {
         this._YModemSend = new YModemSend(this._Connection);
 
         clearInterval(this._Timer);
-        this._YModemSend.ontransfercomplete.add(function () {
+        this._YModemSend.ontransfercomplete.on(function () {
             _this.OnUploadComplete();
         });
 
@@ -720,10 +720,10 @@ var TypedEvent = (function () {
     function TypedEvent() {
         this._listeners = [];
     }
-    TypedEvent.prototype.add = function (listener) {
+    TypedEvent.prototype.on = function (listener) {
         this._listeners.push(listener);
     };
-    TypedEvent.prototype.remove = function (listener) {
+    TypedEvent.prototype.off = function (listener) {
         if (typeof listener === 'function') {
             for (var i = 0, l = this._listeners.length; i < l; l++) {
                 if (this._listeners[i] === listener) {
@@ -2439,7 +2439,7 @@ var Crt = (function () {
         this._Container = container;
 
         this._Font = new CrtFont();
-        this._Font.onchange.add(function () {
+        this._Font.onchange.on(function () {
             _this.OnFontChanged();
         });
 
@@ -2469,10 +2469,10 @@ var Crt = (function () {
         this.InitBuffers(true);
 
         this._Cursor = new Cursor(this._Container, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
-        this._Cursor.onhide.add(function () {
+        this._Cursor.onhide.on(function () {
             _this.OnBlinkHide();
         });
-        this._Cursor.onshow.add(function () {
+        this._Cursor.onshow.on(function () {
             _this.OnBlinkShow();
         });
 

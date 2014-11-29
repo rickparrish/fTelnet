@@ -99,7 +99,7 @@ class Crt {
         this._Container = container;
 
         this._Font = new CrtFont();
-        this._Font.onchange.add((): void => { this.OnFontChanged(); });
+        this._Font.onchange.on((): void => { this.OnFontChanged(); });
 
         // Create the canvas
         this._Canvas = document.createElement('canvas');
@@ -127,8 +127,8 @@ class Crt {
 
         // Create the cursor
         this._Cursor = new Cursor(this._Container, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
-        this._Cursor.onhide.add((): void => { this.OnBlinkHide(); });
-        this._Cursor.onshow.add((): void => { this.OnBlinkShow(); });
+        this._Cursor.onhide.on((): void => { this.OnBlinkHide(); });
+        this._Cursor.onshow.on((): void => { this.OnBlinkShow(); });
 
         // Update the WindMin/WindMax records
         this._WindMin = 0;

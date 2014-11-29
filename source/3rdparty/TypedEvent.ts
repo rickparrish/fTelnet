@@ -3,8 +3,8 @@
 // Base IEvent interface and implementation
 
 interface IEvent {
-    add(listener: () => void): void;
-    remove(listener?: () => void): void;
+    on(listener: () => void): void;
+    off(listener?: () => void): void;
     trigger(...a: any[]): void;
 }
 
@@ -12,12 +12,12 @@ class TypedEvent implements IEvent {
     // Private member vars
     private _listeners: any[] = [];
 
-    public add(listener: () => void): void {
+    public on(listener: () => void): void {
         /// <summary>Registers a new listener for the event.</summary>
         /// <param name="listener">The callback function to register.</param>
         this._listeners.push(listener);
     }
-    public remove(listener?: () => void): void {
+    public off(listener?: () => void): void {
         /// <summary>Unregisters a listener from the event.</summary>
         /// <param name="listener">The callback function that was registered. If missing then all listeners will be removed.</param>
         if (typeof listener === 'function') {
@@ -45,13 +45,13 @@ class TypedEvent implements IEvent {
 
 // Exposing events
 interface IBooleanEvent extends IEvent {
-    add(listener: (value: boolean) => void): void;
-    remove(listener?: (value: boolean) => void): void;
+    on(listener: (value: boolean) => void): void;
+    off(listener?: (value: boolean) => void): void;
     trigger(value: boolean): void;
 }
 
 interface IMessageEvent extends IEvent {
-    add(listener: (message: string) => void): void;
-    remove(listener?: (message: string) => void): void;
+    on(listener: (message: string) => void): void;
+    off(listener?: (message: string) => void): void;
     trigger(message: string): void;
 }

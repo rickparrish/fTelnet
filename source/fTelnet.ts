@@ -108,8 +108,8 @@ class fTelnet {
         if (Crt.Init(this._Container)) {
             this._InitMessageBar.style.display = 'none';
 
-            Crt.onfontchange.add((): void => { this.OnCrtScreenSizeChanged(); });
-            Crt.onscreensizechange.add((): void => { this.OnCrtScreenSizeChanged(); });
+            Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
+            Crt.onscreensizechange.on((): void => { this.OnCrtScreenSizeChanged(); });
             Crt.BareLFtoCRLF = this._BareLFtoCRLF;
             Crt.Blink = this._Blink;
             Crt.LocalEcho = this._LocalEcho;
@@ -148,10 +148,10 @@ class fTelnet {
             this.OnCrtScreenSizeChanged();
 
             // Create the ansi cursor position handler
-            Ansi.onesc5n.add((): void => { this.OnAnsiESC5n(); });
-            Ansi.onesc6n.add((): void => { this.OnAnsiESC6n(); });
-            Ansi.onesc255n.add((): void => { this.OnAnsiESC255n(); });
-            Ansi.onescQ.add((font: string): void => { this.OnAnsiESCQ(font); });
+            Ansi.onesc5n.on((): void => { this.OnAnsiESC5n(); });
+            Ansi.onesc6n.on((): void => { this.OnAnsiESC6n(); });
+            Ansi.onesc255n.on((): void => { this.OnAnsiESC255n(); });
+            Ansi.onescQ.on((font: string): void => { this.OnAnsiESCQ(font); });
 
             Ansi.Write(atob(this._SplashScreen));
         } else {
@@ -220,11 +220,11 @@ class fTelnet {
         }
 
         this._Connection.LocalEcho = this._LocalEcho;
-        this._Connection.onclose.add((): void => { this.OnConnectionClose(); });
-        this._Connection.onconnect.add((): void => { this.OnConnectionConnect(); });
-        this._Connection.onlocalecho.add((value: boolean): void => { this.OnConnectionLocalEcho(value); });
-        this._Connection.onioerror.add((): void => { this.OnConnectionIOError(); });
-        this._Connection.onsecurityerror.add((): void => { this.OnConnectionSecurityError(); });
+        this._Connection.onclose.on((): void => { this.OnConnectionClose(); });
+        this._Connection.onconnect.on((): void => { this.OnConnectionConnect(); });
+        this._Connection.onlocalecho.on((value: boolean): void => { this.OnConnectionLocalEcho(value); });
+        this._Connection.onioerror.on((): void => { this.OnConnectionIOError(); });
+        this._Connection.onsecurityerror.on((): void => { this.OnConnectionSecurityError(); });
 
         // Reset display
         Crt.NormVideo();
@@ -250,11 +250,11 @@ class fTelnet {
         if (!this._Connection.connected) { return; }
 
         if (prompt && confirm('Are you sure you want to disconnect?')) {
-            this._Connection.onclose.remove();
-            this._Connection.onconnect.remove();
-            this._Connection.onioerror.remove();
-            this._Connection.onlocalecho.remove();
-            this._Connection.onsecurityerror.remove();
+            this._Connection.onclose.off();
+            this._Connection.onconnect.off();
+            this._Connection.onioerror.off();
+            this._Connection.onlocalecho.off();
+            this._Connection.onsecurityerror.off();
             this._Connection.close();
             this._Connection = null;
 
@@ -271,7 +271,7 @@ class fTelnet {
 
         // Setup listeners for during transfer
         clearInterval(this._Timer);
-        this._YModemReceive.ontransfercomplete.add((): void => { this.OnDownloadComplete(); });
+        this._YModemReceive.ontransfercomplete.on((): void => { this.OnDownloadComplete(); });
 
         // Download the file
         this._YModemReceive.Download();
@@ -485,7 +485,7 @@ class fTelnet {
 
         // Setup the listeners
         clearInterval(this._Timer);
-        this._YModemSend.ontransfercomplete.add((): void => { this.OnUploadComplete(); });
+        this._YModemSend.ontransfercomplete.on((): void => { this.OnUploadComplete(); });
 
         // Loop through the FileList and prep them for upload
         for (var i: number = 0; i < fTelentUpload.files.length; i++) {
