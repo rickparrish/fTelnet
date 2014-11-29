@@ -1,5 +1,7 @@
-release/keyboard/*.css.map
+release/index.debug.html
+release/ftelnet.debug.js
 release/*.js.map
+release/keyboard/*.css.map
 
 # User-specific files
 *.suo

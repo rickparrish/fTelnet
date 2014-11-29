@@ -410,7 +410,8 @@ class fTelnet {
 
         // Pick virtual keyboard width
         var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
-        var CssUrl: string = ScriptUrl.replace('/ftelnet.js', '/keyboard/keyboard-{size}.min.css');
+        var CssUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/keyboard/keyboard-{size}.min.css');
+        CssUrl = CssUrl.replace('/ftelnet.debug.js', '/keyboard/keyboard-{size}.min.css');
         var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480];
         for (var i: number = 0; i < KeyboardSizes.length; i++) {
             if ((NewWidth >= KeyboardSizes[i]) || (i === (KeyboardSizes.length - 1))) {

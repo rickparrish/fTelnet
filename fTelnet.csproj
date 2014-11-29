@@ -23,6 +23,7 @@
     <Content Include="release\docs\index.html" />
     <Content Include="release\ftelnet.css" />
     <Content Include="release\index.html" />
+    <Content Include="release\index.debug.html" />
     <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
     <Content Include="source\randm\crt\font\RIP\RIP-16x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-7x14.png" />
@@ -118,7 +119,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
-    <TypeScriptOutFile>release\ftelnet.js</TypeScriptOutFile>
+    <TypeScriptOutFile>release\ftelnet.debug.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

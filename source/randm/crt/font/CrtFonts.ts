@@ -72,12 +72,13 @@ class CrtFonts {
 
     public static GetLocalUrl(font: string, width: number, height: number): string {
         var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
-        var PngUrl: string = ScriptUrl.replace('/ftelnet.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
+        var PngUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
+        PngUrl = PngUrl.replace('/ftelnet.debug.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
         return PngUrl;
     }
 
     public static GetRemoteUrl(font: string, width: number, height: number): string {
-        var PngUrl: string = 'http://embed.ftelnet.ca/fTelnet/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png';
+        var PngUrl: string = 'http://embed.ftelnet.ca/ftelnet/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png';
         return PngUrl;
     }
 }
