@@ -1,10 +1,11 @@
 ﻿class VirtualKeyboard {
-    private static _Div: HTMLDivElement = null;
-
+    // Private variables
     private static _AltPressed: boolean = false;
     private static _CapsLockEnabled: boolean = false;
     private static _CtrlPressed: boolean = false;
+    private static _Div: HTMLDivElement = null;
     private static _ShiftPressed: boolean = false;
+    private static _Visible: boolean = true;
 
     private static _ClassKeys: any = {
         '27': 'Escape',
@@ -179,6 +180,7 @@
         this._Div = document.createElement('div');
         this._Div.id = 'fTelnetKeyboard';
         this._Div.innerHTML = Html;
+        this._Div.style.display = (this._Visible ? 'block' : 'none');
 
         return this._Div;
     }
@@ -280,4 +282,17 @@
         this.HighlightKey('fTelnetKeyboardKeyCtrl', this._CtrlPressed);
         this.HighlightKey('fTelnetKeyboardKeyAlt', this._AltPressed);
     }
+
+    public static get Visible(): boolean {
+        return this._Visible;
+    }
+
+    public static set Visible(value: boolean) {
+        this._Visible = value;
+
+        if (this._Div != null) {
+            this._Div.style.display = (value ? 'block' : 'none');
+        }
+    }
+
 }
