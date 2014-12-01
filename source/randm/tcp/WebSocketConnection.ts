@@ -64,7 +64,7 @@ class WebSocketConnection {
         this._WasConnected = false;
 
         var Protocols: string[];
-        if (('websocket' in Window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) { // From: http://stackoverflow.com/a/17850524/342378
+        if (('WebSocket' in window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) { // From: http://stackoverflow.com/a/17850524/342378
             // This is likely a hixie client, which doesn't support negotiation fo multiple protocols, so we only ask for plain
             Protocols = ['plain'];
         } else {

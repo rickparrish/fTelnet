@@ -36,31 +36,40 @@ class CrtLabel extends CrtControl {
 
     public Paint(force: boolean): void {
         // Draw the message
-        switch (this._TextAlign) {
-            case ContentAlignment.Center:
-                if (this._Text.length >= this.Width) {
-                    // Text is greater than available space so chop it off with PadRight()
-                    Crt.FastWrite(this._Text.substring(0, this.Width), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
-                } else {
-                    // Text needs to be centered
-                    var i: number = 0;
-                    var LeftSpaces: string = '';
-                    for (i = 0; i < Math.floor((this.Width - this._Text.length) / 2); i++) {
-                        LeftSpaces += ' ';
+        var Lines: string[] = this._Text.replace("\r\n", "\n").split("\n");
+        for (var i: number = 0; i < Lines.length; i++) {
+            // Break if the line number is greater than the height
+            if (i === this.Height) {
+                break;
+            }
+
+            // Output the line with the correct alignment
+            switch (this._TextAlign) {
+                case ContentAlignment.Center:
+                    if (Lines[i].length >= this.Width) {
+                        // Text is greater than available space so chop it off with PadRight()
+                        Crt.FastWrite(Lines[i].substring(0, this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                    } else {
+                        // Text needs to be centered
+                        var i: number = 0;
+                        var LeftSpaces: string = '';
+                        for (i = 0; i < Math.floor((this.Width - Lines[i].length) / 2); i++) {
+                            LeftSpaces += ' ';
+                        }
+                        var RightSpaces: string = '';
+                        for (i = 0; i < this.Width - Lines[i].length - LeftSpaces.length; i++) {
+                            RightSpaces += ' ';
+                        }
+                        Crt.FastWrite(LeftSpaces + Lines[i] + RightSpaces, this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
                     }
-                    var RightSpaces: string = '';
-                    for (i = 0; i < this.Width - this._Text.length - LeftSpaces.length; i++) {
-                        RightSpaces += ' ';
-                    }
-                    Crt.FastWrite(LeftSpaces + this._Text + RightSpaces, this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
-                }
-                break;
-            case ContentAlignment.Left:
-                Crt.FastWrite(StringUtils.PadRight(this._Text, ' ', this.Width), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
-                break;
-            case ContentAlignment.Right:
-                Crt.FastWrite(StringUtils.PadLeft(this._Text, ' ', this.Width), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
-                break;
+                    break;
+                case ContentAlignment.Left:
+                    Crt.FastWrite(StringUtils.PadRight(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                    break;
+                case ContentAlignment.Right:
+                    Crt.FastWrite(StringUtils.PadLeft(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                    break;
+            }
         }
     }
 
