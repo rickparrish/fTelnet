@@ -578,16 +578,10 @@ class fTelnet {
         }
     }
 
-    public static get VirtualKeyboardVisible(): boolean {
-        return this._VirtualKeyboardVisible;
-    }
-
-    public static set VirtualKeyboardVisible(value: boolean) {
-        this._VirtualKeyboardVisible = value;
-        VirtualKeyboard.Visible = value;
-    }
-
     public static Upload(): void {
+        if (this._Connection === null) { return; }
+        if (!this._Connection.connected) { return; }
+
         document.getElementById('fTelnetUpload').click();
     }
 
@@ -608,5 +602,14 @@ class fTelnet {
 
         // Read in the image file as a data URL.
         reader.readAsArrayBuffer(file);
+    }
+
+    public static get VirtualKeyboardVisible(): boolean {
+        return this._VirtualKeyboardVisible;
+    }
+
+    public static set VirtualKeyboardVisible(value: boolean) {
+        this._VirtualKeyboardVisible = value;
+        VirtualKeyboard.Visible = value;
     }
 }
