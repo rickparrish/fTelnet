@@ -261,11 +261,11 @@ class fTelnet {
         return this._Connection.connected;
     }
 
-    public static Disconnect(prompt: boolean): void {
-        if (this._Connection === null) { return; }
-        if (!this._Connection.connected) { return; }
+    public static Disconnect(prompt: boolean): boolean {
+        if (this._Connection === null) { return true; }
+        if (!this._Connection.connected) { return true; }
 
-        if (prompt && confirm('Are you sure you want to disconnect?')) {
+        if (!prompt || confirm('Are you sure you want to disconnect?')) {
             this._Connection.onclose.off();
             this._Connection.onconnect.off();
             this._Connection.onioerror.off();
@@ -275,7 +275,10 @@ class fTelnet {
             this._Connection = null;
 
             this.OnConnectionClose();
+            return true;
         }
+
+        return false;
     }
 
     public static Download(): void {
