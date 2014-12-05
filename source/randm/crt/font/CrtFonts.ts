@@ -71,10 +71,15 @@ class CrtFonts {
     }
 
     public static GetLocalUrl(font: string, width: number, height: number): string {
-        var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
-        var PngUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
-        PngUrl = PngUrl.replace('/ftelnet.debug.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
-        return PngUrl;
+        if (document.getElementById('fTelnetScript') === null) {
+            // Use remote url instead
+            return this.GetRemoteUrl(font, width, height);
+        } else {
+            var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
+            var PngUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
+            PngUrl = PngUrl.replace('/ftelnet.debug.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
+            return PngUrl;
+        }
     }
 
     public static GetRemoteUrl(font: string, width: number, height: number): string {

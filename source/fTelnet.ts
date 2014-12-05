@@ -428,14 +428,16 @@ class fTelnet {
         if (this._StatusBar != null) { this._StatusBar.style.width = NewWidth - 10 + 'px'; }
 
         // Pick virtual keyboard width
-        var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
-        var CssUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/keyboard/keyboard-{size}.min.css');
-        CssUrl = CssUrl.replace('/ftelnet.debug.js', '/keyboard/keyboard-{size}.min.css');
-        var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480];
-        for (var i: number = 0; i < KeyboardSizes.length; i++) {
-            if ((NewWidth >= KeyboardSizes[i]) || (i === (KeyboardSizes.length - 1))) {
-                (<HTMLLinkElement>document.getElementById('fTelnetKeyboardCss')).href = CssUrl.replace('{size}', KeyboardSizes[i].toString(10));
-                break;
+        if ((document.getElementById('fTelnetScript') !== null) && (document.getElementById('fTelnetKeyboardCss') != null)) {
+            var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
+            var CssUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/keyboard/keyboard-{size}.min.css');
+            CssUrl = CssUrl.replace('/ftelnet.debug.js', '/keyboard/keyboard-{size}.min.css');
+            var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480];
+            for (var i: number = 0; i < KeyboardSizes.length; i++) {
+                if ((NewWidth >= KeyboardSizes[i]) || (i === (KeyboardSizes.length - 1))) {
+                    (<HTMLLinkElement>document.getElementById('fTelnetKeyboardCss')).href = CssUrl.replace('{size}', KeyboardSizes[i].toString(10));
+                    break;
+                }
             }
         }
     }

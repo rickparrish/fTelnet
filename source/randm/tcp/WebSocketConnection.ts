@@ -18,6 +18,9 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// For Firefox 6.0
+window['WebSocket'] = window['WebSocket'] || window['MozWebSocket'];
+
 var WebSocketProtocol: string = ('https:' === document.location.protocol ? 'wss' : 'ws');
 var WebSocketSupportsTypedArrays: boolean = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
 var WebSocketSupportsBinaryType: boolean = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));

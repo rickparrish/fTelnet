@@ -23,6 +23,7 @@
             <li><a href="#Install">How to install</a></li>
             <li><a href="#Use">How to use</a></li>
             <li><a href="#Customize">How to customize</a></li>
+            <li><a href="#Problems">Common problems</a></li>
             <li><a href="#Help">I need more help</a></li>
         </ul>
 
@@ -277,6 +278,34 @@
         <a href="#TOC">Back to top</a>
         <hr />
 
+        <h2 id="Problems">Common Problems</h2>
+        <div class="well">
+            <p>There's a few things that are easy to miss that make a big difference between fTelnet working and not working.  So a few of them are:</p>
+
+            <h3>I don't see the client anywhere</h3>
+            <blockquote>Did you call <strong>fTelnet.Init();</strong> at the bottom of your page/in an on document ready event?</blockquote>
+
+            <h3>I get a popup error that says "fTelnet Error: Element with id="fTelnetContainer" was not found"</h3>
+            <blockquote>You need a placeholder element (usually a div) with <strong>id="fTelnetContainer"</strong> on your page somewhere.  When you call fTelnet.Init(), it'll put the fTelnet client into that placeholder element.</blockquote>
+
+            <h3>The button bar links/status bar look plain</h3>
+            <blockquote>Did you add a reference to <strong>ftelnet.css</strong>?</blockquote>
+
+            <h3>The virtual keyboard looks ugly</h3>
+            <blockquote>Did you add the placholder stylesheet element with the <strong>id="fTelnetKeyboardCss"</strong>?  And also use <strong>id="fTelnetScript"</strong> when referencing the <strong>ftelnet.min.js</strong> script?</blockquote>
+
+            <h3>I can't connect with Internet Explorer 9</h3>
+            <blockquote>Did you add the <strong>&lt;!-- Add support for WebSocket to IE9 --></strong> code to your page?  That sets up fTelnet to use a Flash object in IE9 since it doesn't have WebSocket support.  Also, did you confirm the three paths in that chunk of code are correct?  Also, do you have Flash installed?</blockquote>
+
+            <h3>I get an error/don't see anything with Internet Explorer 8 and older</h3>
+            <blockquote>Did you add the <strong>&lt;!-- Stop IE8 and below from complaining about Object.defineProperty --></strong> code to your page?  That fixes the error.  It still doesn't fix the client though, IE8 and older don't support Canvas, so all you'll see is "fTelnet Error: Internet Explorer < 9 is not supported."</blockquote>
+
+            <h3>Uploading and downloading don't work</h3>
+            <blockquote>Those features work for me in all the desktop browsers (well not IE9, but it doesn't use real WebSockets), so if you're using a desktop browser get ahold of me and let me know what browser+version.  I haven't had as much luck with the mobile browsers though, so don't bother reporting problems there because there's probably not much I can do.</blockquote>
+        </div>
+        <a href="#TOC">Back to top</a>
+        <hr />
+
         <h2 id="Help">I need more help</h2>
         <div class="well">
             <p>First, re-read this document</p>
@@ -287,8 +316,8 @@
         <a href="#TOC">Back to top</a>
         <hr />
 
-            <p class="footer"><a href="https://www.ftelnet.ca" target="_blank">fTelnet</a> is copyright &copy; <a href="https://www.rickparrish.ca" target="_blank">Rick Parrish</a> of <a href="https://www.randm.ca" target="_blank">R&amp;M Software</a></p>
-        </div>
+        <p class="footer"><a href="https://www.ftelnet.ca" target="_blank">fTelnet</a> is copyright &copy; <a href="https://www.rickparrish.ca" target="_blank">Rick Parrish</a> of <a href="https://www.randm.ca" target="_blank">R&amp;M Software</a></p>
+    </div>
 
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>

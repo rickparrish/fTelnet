@@ -171,6 +171,7 @@ class CrtFont {
             }
 
             this._Png = new Image();
+            this._Png.crossOrigin = 'Anonymous';
             this._Png.onload = (): void => { this.OnPngLoad(); };
             this._Png.onerror = (): void => { this.OnPngError(); };
             this._Png.src = CrtFonts.GetLocalUrl(font, this._NewSize.x, this._NewSize.y);
