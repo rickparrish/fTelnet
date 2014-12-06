@@ -31,9 +31,9 @@
     <Content Include="source\randm\crt\font\RIP\RIP-8x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
     <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
-    <Content Include="source\randm\tcp\rlogin\RLoginCommand.as" />
-    <Content Include="source\randm\tcp\rlogin\RLoginNegotiationState.as" />
-    <Content Include="source\randm\tcp\rlogin\TRLoginConnection.as" />
+    <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginCommand.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginNegotiationState.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginConnection.ts" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -69,7 +69,7 @@
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetNegotiationState.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetOption.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\telnet\TTelnetConnection.ts" />
+    <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetConnection.ts" />
     <TypeScriptCompile Include="source\randm\tcp\WebSocketConnection.ts" />
     <TypeScriptCompile Include="source\randm\xfer\CRC.ts" />
     <TypeScriptCompile Include="source\randm\xfer\FileRecord.ts" />

@@ -17,6 +17,7 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
+/// <reference path="randm/tcp/rlogin/RLoginConnection.ts" />
 class fTelnet {
     // Private variables
     private static _ButtonBar: HTMLDivElement = null;
@@ -46,6 +47,9 @@ class fTelnet {
     private static _ProxyHostname: string = '';
     private static _ProxyPort: number = 1123;
     private static _ProxyPortSecure: number = 11235;
+    private static _RLoginClientUsername: string = '';
+    private static _RLoginServerUsername: string = '';
+    private static _RLoginTerminalType: string = '';
     private static _ScreenColumns: number = 80;
     private static _ScreenRows: number = 25;
     private static _SplashScreen: string = 'G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==';
@@ -230,15 +234,21 @@ class fTelnet {
 
         // Create new connection
         switch (this._ConnectionType) {
-            // TODO case 'rlogin': this._Connection = new TRLoginConnection(); break;
-            // TODO case 'tcp': this._Connection = new TTcpConnection(); break;
-            default: this._Connection = new TelnetConnection(); break;
+            case 'rlogin':
+                this._Connection = new RLoginConnection();
+                break;
+            case 'tcp':
+                this._Connection = new WebSocketConnection();
+                break;
+            default:
+                this._Connection = new TelnetConnection();
+                this._Connection.LocalEcho = this._LocalEcho;
+                this._Connection.onlocalecho.on((value: boolean): void => { this.OnConnectionLocalEcho(value); });
+                break;
         }
 
-        this._Connection.LocalEcho = this._LocalEcho;
         this._Connection.onclose.on((): void => { this.OnConnectionClose(); });
         this._Connection.onconnect.on((): void => { this.OnConnectionConnect(); });
-        this._Connection.onlocalecho.on((value: boolean): void => { this.OnConnectionLocalEcho(value); });
         this._Connection.onioerror.on((): void => { this.OnConnectionIOError(); });
         this._Connection.onsecurityerror.on((): void => { this.OnConnectionSecurityError(); });
 
@@ -399,6 +409,17 @@ class fTelnet {
         } else {
             this._StatusBar.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via proxy';
         }
+
+        if (this._ConnectionType === 'rlogin') {
+            var TerminalType: string = this._RLoginTerminalType;
+            if (TerminalType === '') {
+                TerminalType = 'ansi-bbs/' + this._BitsPerSecond; // TODO ansi-bbs can be this._Emulation, once its added
+            }
+            this._Connection.writeString(String.fromCharCode(0) + this._RLoginClientUsername + String.fromCharCode(0) + this._RLoginServerUsername + String.fromCharCode(0) + TerminalType + String.fromCharCode(0));
+            this._Connection.flush();
+        }
+
+        // TODO If telnet, old fTelnet used to send will sga, wont linemode, and will/wont echo based on localecho
     }
 
     private static OnConnectionLocalEcho(value: boolean): void {
@@ -545,6 +566,30 @@ class fTelnet {
 
     public static set ProxyPortSecure(value: number) {
         this._ProxyPortSecure = value;
+    }
+
+    public static get RLoginClientUsername(): string {
+        return this._RLoginClientUsername;
+    }
+
+    public static set RLoginClientUsername(value: string) {
+        this._RLoginClientUsername = value;
+    }
+
+    public static get RLoginServerUsername(): string {
+        return this._RLoginServerUsername;
+    }
+
+    public static set RLoginServerUsername(value: string) {
+        this._RLoginServerUsername = value;
+    }
+
+    public static get RLoginTerminalType(): string {
+        return this._RLoginTerminalType;
+    }
+
+    public static set RLoginTerminalType(value: string) {
+        this._RLoginTerminalType = value;
     }
 
     public static get ScreenColumns(): number {

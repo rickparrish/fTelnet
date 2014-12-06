@@ -169,7 +169,11 @@
                     <td>ConnectionType</td>
                     <td>string</td>
                     <td>telnet</td>
-                    <td><strong>telnet: </strong> It's the only option for now, so don't change this!</td>
+                    <td>
+                        <p><strong>rlogin: </strong> You're going to be making an rlogin connection (see other RLogin* settings below)</p>
+                        <p><strong>tcp: </strong> You're going to be making a raw tcp connection (no protocol will be used)</p>
+                        <p><strong>telnet: </strong> You're going to be making a telnet connection</p>
+                    </td>
                 </tr>
                 <tr>
                     <td>Enter</td>
@@ -233,6 +237,33 @@
                     <td>
                         <p>If the server you are connecting to <strong>DOES SPEAK</strong> WebSocket, leave this alone</p>
                         <p>If the server you are connecting to <strong>DOES NOT SPEAK</strong> WebSocket, then you want to specify the secure port of the WebSocket-to-telnet proxy that you'll be connecting to.  Some server software listen for wss:// connections on a different port than ws:// connections, hence the two port numbers.  If your proxy listens on the same port for both types, then you can specify the same ports for both settings.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>RLoginClientUsername</td>
+                    <td>string</td>
+                    <td><i>blank</i></td>
+                    <td>
+                        <p>The string to send for the client-user-name portion of the connection establishment packet</p>
+                        <p>If using Synchronet's auto login feature, this should be your password</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>RLoginServerUsername</td>
+                    <td>string</td>
+                    <td><i>blank</i></td>
+                    <td>
+                        <p>The string to send for the server-user-name portion of the connection establishment packet</p>
+                        <p>If using Synchronet's auto login feature, this should be your username</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>RLoginTerminalType</td>
+                    <td>string</td>
+                    <td><i>blank</i></td>
+                    <td>
+                        <p>The string to send for the terminal-type/speed portion of the connection establishment packet</p>
+                        <p>If you leave this blank, the default of ansi-bbs/BitsPerSecond (ie ansi-bbs/57600) will be used</p>
                     </td>
                 </tr>
                 <tr>
