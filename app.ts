@@ -1,11 +1,8 @@
 ﻿/// <reference path='source/fTelnet.ts' />
 
 // TODO List:
-// Automate closure compiler
-// Add notes about IE9 support to docs
 // Add callback for when data comes in
 // Add method for writing data to remote server
-// Add ability to hide top buttons (individually or as a whole)
 // Add ability to hide virtual keyboard
 // Add ability to show virtual keyboard (if hidden)
 
@@ -21,12 +18,28 @@
 //   Download failed (CRC error)
 //   Upload failed (fTelentUpload.files is undefined, need to use fTelentUpload.value)
 
+// IE8 (using IE11 developer tools):
+//   Canvas not supported
+
 // Firefox 33.1:
 //   All worked well
+
+// Firefox 4.0:
+//   Had to enable websockets via about:config
+//   Able to connect directly to bbs.ftelnet.ca
+//   Unable to connect via proxy (likely a FleckProxy issue since connecting directly worked)
+
+// Firefox 6.0:
+//   Download failed (DataView is not defined)
+//   Upload failed (reader.readAsArrayBuffer is not a function)
+
 
 // Chrome 39.0.2171.71 m
 //   Infrequent status updates during download
 //   Upload worked well
+
+// Chrome 4.0:
+//   Couldn't find old installs for Chrome
 
 // Blackberry Playbook (OS 2.1.0.1917):
 //   Infrequent status updates during download
