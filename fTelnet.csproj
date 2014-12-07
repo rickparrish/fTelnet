@@ -128,7 +128,7 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>copy $(ProjectDir)release\Blob.js + $(ProjectDir)release\FileSaver.js + $(ProjectDir)release\ftelnet.debug.js $(ProjectDir)release\ftelnet.combined.js
+jsmin &lt;$(ProjectDir)release\ftelnet.combined.js &gt;$(ProjectDir)release\ftelnet.min.js</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -1,4 +1,5 @@
 release/index.debug.html
+release/ftelnet.combined.js
 release/ftelnet.debug.js
 release/*.js.map
 release/keyboard/*.css.map
