@@ -31,9 +31,11 @@
     <Content Include="source\randm\crt\font\RIP\RIP-8x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
     <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
+    <TypeScriptCompile Include="source\randm\actionscript\Rectangle.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginNegotiationState.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginConnection.ts" />
+    <TypeScriptCompile Include="source\randm\graph\IPutPixelFunction.ts" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +81,25 @@
     <TypeScriptCompile Include="source\randm\StringUtils.ts" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="source\randm\graph\BitmapFont.ts" />
+    <TypeScriptCompile Include="source\randm\graph\FillStyle.ts" />
+    <TypeScriptCompile Include="source\randm\graph\Graph.ts" />
+    <TypeScriptCompile Include="source\randm\graph\LineStyle.ts" />
+    <TypeScriptCompile Include="source\randm\graph\LineThickness.ts" />
+    <TypeScriptCompile Include="source\randm\graph\rip\DirtyType.ts" />
+    <TypeScriptCompile Include="source\randm\graph\rip\PopUp.ts" />
+    <TypeScriptCompile Include="source\randm\graph\rip\RIP.ts" />
+    <TypeScriptCompile Include="source\randm\graph\rip\RIPParserState.ts" />
+    <TypeScriptCompile Include="source\randm\graph\rip\ButtonStyle.ts" />
+    <TypeScriptCompile Include="source\randm\graph\rip\MouseButton.ts" />
+    <TypeScriptCompile Include="source\randm\graph\StrokeFont.ts" />
+    <TypeScriptCompile Include="source\randm\graph\TextJustification.ts" />
+    <TypeScriptCompile Include="source\randm\graph\TextOrientation.ts" />
+    <TypeScriptCompile Include="source\randm\graph\FillSettings.ts" />
+    <TypeScriptCompile Include="source\randm\graph\LineSettings.ts" />
+    <TypeScriptCompile Include="source\randm\graph\TextSettings.ts" />
+    <TypeScriptCompile Include="source\randm\graph\ViewPortSettings.ts" />
+    <TypeScriptCompile Include="source\randm\graph\WriteMode.ts" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
