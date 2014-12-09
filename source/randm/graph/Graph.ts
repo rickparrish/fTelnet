@@ -18,6 +18,11 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path='IPutPixelFunction.ts' />
+/// <reference path='FillSettings.ts' />
+/// <reference path='LineSettings.ts' />
+/// <reference path='StrokeFont.ts' />
+/// <reference path='TextSettings.ts' />
+/// <reference path='ViewPortSettings.ts' />
 
 // doors menu club on card
 // user setup position of characters on buttons
@@ -37,14 +42,14 @@ class Graph {
 
     // The full EGA palette
     private static EGA_PALETTE: number[] = [
-        0xFF000000, 0xFF0000AA, 0xFF00AA00, 0xFF00AAAA, 0xFFAA0000, 0xFFAA00AA, 0xFFAAAA00, 0xFFAAAAAA,
-        0xFF000055, 0xFF0000FF, 0xFF00AA55, 0xFF00AAFF, 0xFFAA0055, 0xFFAA00FF, 0xFFAAAA55, 0xFFAAAAFF,
-        0xFF005500, 0xFF0055AA, 0xFF00FF00, 0xFF00FFAA, 0xFFAA5500, 0xFFAA55AA, 0xFFAAFF00, 0xFFAAFFAA,
-        0xFF005555, 0xFF0055FF, 0xFF55FF00, 0xFF00FFFF, 0xFFAA5555, 0xFFAA55FF, 0xFFAAFF55, 0xFFAAFFFF,
-        0xFF550000, 0xFF5500AA, 0xFF55AA00, 0xFF55AAAA, 0xFFFF0000, 0xFFFF00AA, 0xFFFFAA00, 0xFFFFAAAA,
-        0xFF550055, 0xFF5500FF, 0xFF55AA55, 0xFF55AAFF, 0xFFFF0055, 0xFFFF00FF, 0xFFFFAA55, 0xFFFFAAFF,
-        0xFF555500, 0xFF5555AA, 0xFF55FF00, 0xFF55FFAA, 0xFFFF5500, 0xFFFF55AA, 0xFFFFFF00, 0xFFFFFFAA,
-        0xFF555555, 0xFF5555FF, 0xFF55FF55, 0xFF55FFFF, 0xFFFF5555, 0xFFFF55FF, 0xFFFFFF55, 0xFFFFFFFF
+        0x000000, 0x0000AA, 0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xAAAA00, 0xAAAAAA,
+        0x000055, 0x0000FF, 0x00AA55, 0x00AAFF, 0xAA0055, 0xAA00FF, 0xAAAA55, 0xAAAAFF,
+        0x005500, 0x0055AA, 0x00FF00, 0x00FFAA, 0xAA5500, 0xAA55AA, 0xAAFF00, 0xAAFFAA,
+        0x005555, 0x0055FF, 0x55FF00, 0x00FFFF, 0xAA5555, 0xAA55FF, 0xAAFF55, 0xAAFFFF,
+        0x550000, 0x5500AA, 0x55AA00, 0x55AAAA, 0xFF0000, 0xFF00AA, 0xFFAA00, 0xFFAAAA,
+        0x550055, 0x5500FF, 0x55AA55, 0x55AAFF, 0xFF0055, 0xFF00FF, 0xFFAA55, 0xFFAAFF,
+        0x555500, 0x5555AA, 0x55FF00, 0x55FFAA, 0xFF5500, 0xFF55AA, 0xFFFF00, 0xFFFFAA,
+        0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF
     ];
 
     // The current palette, which can only contain 16 elements from the full EGA palette at one time
@@ -60,43 +65,50 @@ class Graph {
     private static _TextSettings: TextSettings = new TextSettings();
     private static _ViewPortSettings: ViewPortSettings = new ViewPortSettings();
 
-    private static _Bitmap: any; // TODO Bitmap;
-    private static _Canvas: any; // TODO Sprite;
-
     private static _BackColour: number = 0;
+    private static _Canvas: HTMLCanvasElement = null;
+    private static _CanvasContext: CanvasRenderingContext2D = null;
     private static _Colour: number = 0;
+    private static _Container: HTMLElement = null;
     private static _CursorPosition: Point = new Point(0, 0);
-    private static _Dirty: number = DirtyType.Clear;
     private static _FillEllipse: Boolean = false;
     private static _FillPolyMap: any = [];
-    private static _Pixels: number[];
     private static _TextWindow: Rectangle = new Rectangle(0, 0, Crt.ScreenCols, Crt.ScreenRows);
     private static _WriteMode: number = WriteMode.Normal;
 
     public static PutPixel: IPutPixelFunction = Graph.PutPixelDefault;
 
-    // Static constructor
-    private static __ctor = ((): void => {
-        //TODO Graph._Canvas = new Sprite();
+    public static Init(container: HTMLElement): boolean {
+        this._Container = container;
 
-        // Create the bitmap
-        //TODO Graph._Bitmap = new Bitmap(new BitmapData(this.PIXELS_X, PIXELS_Y, false, 0), PixelSnapping.NEVER, false);
-        Graph._Canvas.addChild(Graph._Bitmap);
-        Graph._Canvas.width = Graph._Bitmap.width;
-        Graph._Canvas.height = Graph._Bitmap.height;
+        // Init BitmapFont.Pixels
+        BitmapFont.Init();
 
-        // Add the Crt window in the hidden state
-        Graph._Canvas.addChild(Crt.Canvas);
+        // Create the canvas
+        this._Canvas = document.createElement('canvas');
+        this._Canvas.id = 'fTelnetGraphCanvas';
+        this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
+        this._Canvas.width = this.PIXELS_X;
+        this._Canvas.height = this.PIXELS_Y;
 
-        // And more variables
-        //TODO this._Pixels = this._Bitmap.bitmapData.getVector(new flash.geom.Rectangle(0, 0, this.PIXELS_X, PIXELS_Y));
+        // Check for Canvas support
+        if (!this._Canvas.getContext) {
+            console.log('fTelnet Error: Canvas not supported');
+            return false;
+        }
 
-        // Add the exit frame listener that will repaint when necessary
-        //TODO FCanvas.addEventListener(Event.EXIT_FRAME, OnExitFrame);
+        // Add graph to container
+        this._Container.appendChild(this._Canvas);
 
-        // Set defaults
-        Graph.GraphDefaults();
-    });
+        // Create the context
+        this._CanvasContext = this._Canvas.getContext('2d');
+        this._CanvasContext.font = '12pt monospace';
+        this._CanvasContext.textBaseline = 'top';
+
+        this.GraphDefaults();
+
+        return true;
+    }
 
     // Draws a circular arc.
     // The arc goes from StAngle (start angle) to EndAngle, with radius Radius,
@@ -129,14 +141,8 @@ class Graph {
         AX2 = Math.min(AX2, this._ViewPortSettings.x2);
         AY2 = Math.min(AY2, this._ViewPortSettings.y2);
 
-        // Indicate that we need to repaint
-        this._Dirty = DirtyType.Pixel;
-
-        var XOffset: number = AX1 + (AY1 * this.PIXELS_X);
-        var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1)
-
-			// OPTIMIZATION: In certain circumstances we can ignore the pattern lookup
-			if ((this._FillSettings.Colour == this._BackColour) || (this._FillSettings.Style == FillStyle.Empty) || (this._FillSettings.Style == FillStyle.Solid)) {
+		// OPTIMIZATION: In certain circumstances we can ignore the pattern lookup
+		if ((this._FillSettings.Colour == this._BackColour) || (this._FillSettings.Style == FillStyle.Empty) || (this._FillSettings.Style == FillStyle.Solid)) {
             // No pattern lookup needed because either:
             //  - The fill colour is the same as the background colour
             //  - The fill style is to use the background colour
@@ -145,19 +151,22 @@ class Graph {
             // Check which colour to use
             var Colour: number = (this._FillSettings.Style == FillStyle.Solid) ? this._FillSettings.Colour : this._BackColour;
             Colour = this.CURRENT_PALETTE[Colour];
+            this._CanvasContext.fillStyle = '#' + Colour.toString(16);
 
-            // Fill all the pixels with the specified colour
+            // Fill all the pixels with the specified colour TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
             for (y = AY1; y <= AY2; y++) {
                 for (x = AX1; x <= AX2; x++) {
-                    this._Pixels[XOffset++] = Colour; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel(XOffset++, Colour); // Incrememnt offset in pixel lookup
+                    this._CanvasContext.fillRect(x, y, 1, 1);
                 }
-                XOffset += RowSkip;
             }
         } else {
             // Need to do a pattern lookup since the condition for a patternless fill wasn't met
+            var XOffset: number = AX1 + (AY1 * this.PIXELS_X);
+            var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1)
             for (y = AY1; y <= AY2; y++) {
                 for (x = AX1; x <= AX2; x++) {
-                    this._Pixels[XOffset] = this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[XOffset++]]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel(XOffset, this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[XOffset++]]); // Incrememnt offset in pattern lookup
+                    this._CanvasContext.fillStyle = '#' + this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[XOffset++]].toString(16);
+                    this._CanvasContext.fillRect(x, y, 1, 1);
                 }
                 XOffset += RowSkip;
             }
@@ -190,35 +199,20 @@ class Graph {
         this.Line(lastx, lasty, x4, y4);
     }
 
-    // TODO
-    //public get bitmapData(): BitmapData {
-    //    return this._Bitmap.bitmapData;
-    //}
-
-    //public static get Canvas(): Sprite {
-    //    return FCanvas;
-    //}
-
     // Clears the text window with the current background colour and homes the cursor
     public static ClearTextWindow(): void {
-        var x1: number = Crt.Canvas.x;
-        var x2: number = Crt.Canvas.x + Crt.Canvas.width - 1;
-        var y1: number = Crt.Canvas.y;
-        var y2: number = Crt.Canvas.y + Crt.Canvas.height - 1;
+        var x1: number = parseInt(Crt.Canvas.style.left.replace('px', ''), 10);
+        var x2: number = x1 + Crt.Canvas.width - 1;
+        var y1: number = parseInt(Crt.Canvas.style.top.replace('px', ''), 10);
+        var y2: number = y1 + Crt.Canvas.height - 1;
 
-        var Colour: number = this.CURRENT_PALETTE[this._BackColour];
-        var XOffset: number = x1 + (y1 * this.PIXELS_X);
-        var RowSkip: number = ((this.PIXELS_X - 1) - x2) + (x1);
+        this._CanvasContext.fillStyle = '#' + this.CURRENT_PALETTE[this._BackColour].toString(16);
 
-        // Indicate that we need to repaint
-        this._Dirty = DirtyType.Pixel;
-
-        // Reset the pixels behind the text window
+        // Reset the pixels behind the text window TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
         for (var y: number = y1; y <= y2; y++) {
             for (var x: number = x1; x <= x2; x++) {
-                this._Pixels[XOffset++] = Colour; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel(XOffset++, Colour);
+                this._CanvasContext.fillRect(x, y, 1, 1);
             }
-            XOffset += RowSkip;
         }
 
         // Clear the Crt screen
@@ -241,15 +235,6 @@ class Graph {
 
         // Restore the old fill style
         this._FillSettings.Style = OldFillStyle;
-
-        // Indicate that we need to repaint
-        if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
-            // Only partial screen cleared
-            this._Dirty = DirtyType.Pixel;
-        } else {
-            // Full scren was cleared
-            this._Dirty = DirtyType.Clear;
-        }
     }
 
     // Draws a circle (in the current color set by SetColor), using (X,Y) as the
@@ -400,24 +385,18 @@ class Graph {
     // Clears the text line with the current background colour
     public static EraseEOL(): void {
         //TODO Not tested yet
-        var x1: number = Crt.Canvas.x + ((Crt.WhereX() - 1) * Crt.Font.Width);
-        var x2: number = Crt.Canvas.x + Crt.Canvas.width - 1;
-        var y1: number = Crt.Canvas.y + ((Crt.WhereY() - 1) * Crt.Font.Height);
+        var x1: number = parseInt(Crt.Canvas.style.left.replace('px', ''), 10) + ((Crt.WhereX() - 1) * Crt.Font.Width);
+        var x2: number = x1 + Crt.Canvas.width - 1;
+        var y1: number = parseInt(Crt.Canvas.style.top.replace('px', ''), 10) + ((Crt.WhereY() - 1) * Crt.Font.Height);
         var y2: number = y1 + Crt.Font.Height;
 
-        var Colour: number = this.CURRENT_PALETTE[this._BackColour];
-        var XOffset: number = x1 + (y1 * this.PIXELS_X);
-        var RowSkip: number = ((this.PIXELS_X - 1) - x2) + (x1);
+        this._CanvasContext.fillStyle = '#' + this.CURRENT_PALETTE[this._BackColour].toString(16);
 
-        // Indicate that we need to repaint
-        this._Dirty = DirtyType.Pixel;
-
-        // Reset the pixels behind the text window
+        // Reset the pixels behind the text window TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
         for (var y: number = y1; y <= y2; y++) {
             for (var x: number = x1; x <= x2; x++) {
-                this._Pixels[XOffset++] = Colour; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel(XOffset++, Colour);
+                this._CanvasContext.fillRect(x, y, 1, 1);
             }
-            XOffset += RowSkip;
         }
 
         // Clear the Crt line
@@ -451,7 +430,7 @@ class Graph {
         this.PutPixel = this.PutPixelDefault;
 
         // Get the bounding rect of the polygon (so we only use PointInPoly() on pixels we need to)
-        var Bounds: flash.geom.Rectangle = new Rectangle();
+        var Bounds: Rectangle = new Rectangle();
         Bounds.left = APoints[0].x;
         Bounds.top = APoints[0].y;
         Bounds.right = APoints[0].x;
@@ -531,94 +510,92 @@ class Graph {
     // or SetFillPattern, is used to flood the area bounded by Border color. If the
     // seed point is within an enclosed area, then the inside will be filled. If
     // the seed is outside the enclosed area, then the exterior will be filled.
-    public static FloodFill(AX: number, AY: number, ABorder: number): void {
-        // Adjust for modified viewport, if necessary
-        if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
-            // Convert to global coordinates
-            AX += this._ViewPortSettings.x1;
-            AY += this._ViewPortSettings.y1;
+    //TODO 
+    //public static FloodFill(AX: number, AY: number, ABorder: number): void {
+    //    // Adjust for modified viewport, if necessary
+    //    if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
+    //        // Convert to global coordinates
+    //        AX += this._ViewPortSettings.x1;
+    //        AY += this._ViewPortSettings.y1;
 
-            // Ensure that x and y are in the visible viewport
-            if ((AX < this._ViewPortSettings.x1) || (AX > this._ViewPortSettings.x2) || (AY < this._ViewPortSettings.y1) || (AY > this._ViewPortSettings.y2)) return;
-        }
+    //        // Ensure that x and y are in the visible viewport
+    //        if ((AX < this._ViewPortSettings.x1) || (AX > this._ViewPortSettings.x2) || (AY < this._ViewPortSettings.y1) || (AY > this._ViewPortSettings.y2)) return;
+    //    }
 
-        // Check if target point is already border colour point is in viewport
-        if (this._Pixels[AX + (AY * this.PIXELS_X)] == this.CURRENT_PALETTE[ABorder]) return;
+    //    // Check if target point is already border colour point is in viewport
+    //    if (this._Pixels[AX + (AY * this.PIXELS_X)] == this.CURRENT_PALETTE[ABorder]) return;
 
-        var VisitedPoints: number[] = [];
-        var ProcessPoints: number[] = [];
+    //    var VisitedPoints: number[] = [];
+    //    var ProcessPoints: number[] = [];
 
-        ProcessPoints.push(AX + (AY * this.PIXELS_X));
+    //    ProcessPoints.push(AX + (AY * this.PIXELS_X));
 
-        var ThisPoint: number;
-        var NorthPoint: number;
-        var SouthPoint: number;
-        var EastPoint: number;
-        var WestPoint: number;
-        var LeftEdge: number;
-        var RightEdge: number;
-        var LeftStop: number;
-        var RightStop: number;
-        var WantTop: Boolean;
-        var WantBottom: Boolean;
-        var DidTop: Boolean;
-        var DidBottom: Boolean;
-        var DoNorth: Boolean;
-        var DoSouth: Boolean;
-        while (ProcessPoints.length > 0) {
-            ThisPoint = ProcessPoints.pop();
+    //    var ThisPoint: number;
+    //    var NorthPoint: number;
+    //    var SouthPoint: number;
+    //    var EastPoint: number;
+    //    var WestPoint: number;
+    //    var LeftEdge: number;
+    //    var RightEdge: number;
+    //    var LeftStop: number;
+    //    var RightStop: number;
+    //    var WantTop: Boolean;
+    //    var WantBottom: Boolean;
+    //    var DidTop: Boolean;
+    //    var DidBottom: Boolean;
+    //    var DoNorth: Boolean;
+    //    var DoSouth: Boolean;
+    //    while (ProcessPoints.length > 0) {
+    //        ThisPoint = ProcessPoints.pop();
 
-            LeftEdge = Math.floor(ThisPoint / this.PIXELS_X) * this.PIXELS_X;
-            if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) LeftEdge += this._ViewPortSettings.FromLeft;
-            LeftStop = ThisPoint;
-            while ((LeftStop >= LeftEdge) && (this._Pixels[LeftStop] != this.CURRENT_PALETTE[ABorder])) LeftStop -= 1;
-            LeftStop += 1;
+    //        LeftEdge = Math.floor(ThisPoint / this.PIXELS_X) * this.PIXELS_X;
+    //        if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) LeftEdge += this._ViewPortSettings.FromLeft;
+    //        LeftStop = ThisPoint;
+    //        while ((LeftStop >= LeftEdge) && (this._Pixels[LeftStop] != this.CURRENT_PALETTE[ABorder])) LeftStop -= 1;
+    //        LeftStop += 1;
 
-            RightEdge = (Math.floor(ThisPoint / this.PIXELS_X) * this.PIXELS_X) + this.PIXELS_X - 1;
-            if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) RightEdge -= this._ViewPortSettings.FromRight;
-            RightStop = ThisPoint;
-            while ((RightStop <= RightEdge) && (this._Pixels[RightStop] != this.CURRENT_PALETTE[ABorder])) RightStop += 1;
-            RightStop -= 1;
+    //        RightEdge = (Math.floor(ThisPoint / this.PIXELS_X) * this.PIXELS_X) + this.PIXELS_X - 1;
+    //        if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) RightEdge -= this._ViewPortSettings.FromRight;
+    //        RightStop = ThisPoint;
+    //        while ((RightStop <= RightEdge) && (this._Pixels[RightStop] != this.CURRENT_PALETTE[ABorder])) RightStop += 1;
+    //        RightStop -= 1;
 
-            DidTop = false;
-            DidBottom = false;
-            DoNorth = ThisPoint >= this.PIXELS_X;
-            if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) DoNorth = (ThisPoint >= (this._ViewPortSettings.FromTop + 1) * this.PIXELS_X);
-            DoSouth = ThisPoint <= ((this.PIXELS - 1) - this.PIXELS_X);
-            if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) DoSouth = (ThisPoint <= ((this.PIXELS - 1) - ((this._ViewPortSettings.FromBottom + 1) * this.PIXELS_X)));
-            for (var i: number = LeftStop; i <= RightStop; i++) {
-                this._Pixels[i] = this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(i, this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]);
-                VisitedPoints[i] = 1;
+    //        DidTop = false;
+    //        DidBottom = false;
+    //        DoNorth = ThisPoint >= this.PIXELS_X;
+    //        if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) DoNorth = (ThisPoint >= (this._ViewPortSettings.FromTop + 1) * this.PIXELS_X);
+    //        DoSouth = ThisPoint <= ((this.PIXELS - 1) - this.PIXELS_X);
+    //        if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) DoSouth = (ThisPoint <= ((this.PIXELS - 1) - ((this._ViewPortSettings.FromBottom + 1) * this.PIXELS_X)));
+    //        for (var i: number = LeftStop; i <= RightStop; i++) {
+    //            this._Pixels[i] = this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(i, this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]);
+    //            VisitedPoints[i] = 1;
 
-                // Check above
-                if (DoNorth) {
-                    NorthPoint = i - this.PIXELS_X;
-                    WantTop = ((VisitedPoints[NorthPoint] == 0) && (this._Pixels[NorthPoint] != this.CURRENT_PALETTE[ABorder]));
-                    if (WantTop && !DidTop) {
-                        ProcessPoints.push(NorthPoint);
-                        DidTop = true;
-                    } else if (!WantTop && DidTop) {
-                        DidTop = false;
-                    }
-                }
+    //            // Check above
+    //            if (DoNorth) {
+    //                NorthPoint = i - this.PIXELS_X;
+    //                WantTop = ((VisitedPoints[NorthPoint] == 0) && (this._Pixels[NorthPoint] != this.CURRENT_PALETTE[ABorder]));
+    //                if (WantTop && !DidTop) {
+    //                    ProcessPoints.push(NorthPoint);
+    //                    DidTop = true;
+    //                } else if (!WantTop && DidTop) {
+    //                    DidTop = false;
+    //                }
+    //            }
 
-                // Check below
-                if (DoSouth) {
-                    SouthPoint = i + this.PIXELS_X;
-                    WantBottom = ((VisitedPoints[SouthPoint] == 0) && (this._Pixels[SouthPoint] != this.CURRENT_PALETTE[ABorder]));
-                    if (WantBottom && !DidBottom) {
-                        ProcessPoints.push(SouthPoint);
-                        DidBottom = true;
-                    } else if (!WantBottom && DidBottom) {
-                        DidBottom = false;
-                    }
-                }
-            }
-        }
-
-        // Indicate that we need to repaint
-        this._Dirty = DirtyType.Pixel;
-    }
+    //            // Check below
+    //            if (DoSouth) {
+    //                SouthPoint = i + this.PIXELS_X;
+    //                WantBottom = ((VisitedPoints[SouthPoint] == 0) && (this._Pixels[SouthPoint] != this.CURRENT_PALETTE[ABorder]));
+    //                if (WantBottom && !DidBottom) {
+    //                    ProcessPoints.push(SouthPoint);
+    //                    DidBottom = true;
+    //                } else if (!WantBottom && DidBottom) {
+    //                    DidBottom = false;
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     // Returns the current drawing color.
     // Drawing colors range from 0 to 15, depending on the current graphics driver
@@ -646,19 +623,13 @@ class Graph {
     // and height of the region. The third word is reserved.
     // The remaining part of BitMap is used to save the bit image itself. Use the
     // ImageSize function to determine the size requirements of BitMap.
-    public static GetImage(x1: number, y1: number, x2: number, y2: number): BitmapData {
-        // TODO Validate coordinates are top left and bottom right?
-
-        // Need to ensure this._Pixels is written to this._Bitmap before we copy the region
-        if (this._Dirty != DirtyType.None) {
-            this._Dirty = DirtyType.None;
-            this._Bitmap.bitmapData.setVector(new Rectangle(0, 0, this.PIXELS_X, this.PIXELS_Y), this._Pixels);
-        }
-
-        var Result: BitmapData = new BitmapData(x2 - x1 + 1, y2 - y1 + 1);
-        Result.copyPixels(this._Bitmap.bitmapData, new Rectangle(x1, y1, Result.width, Result.height), new Point(0, 0));
-        return Result;
-    }
+    //TODO 
+    //public static GetImage(x1: number, y1: number, x2: number, y2: number): BitmapData {
+    //    // TODO Validate coordinates are top left and bottom right?
+    //    var Result: BitmapData = new BitmapData(x2 - x1 + 1, y2 - y1 + 1);
+    //    Result.copyPixels(this._Bitmap.bitmapData, new Rectangle(x1, y1, Result.width, Result.height), new Point(0, 0));
+    //    return Result;
+    //}
 
     // Homes the current pointer (CP) and resets the graphics system to specified
     // default values.
@@ -678,7 +649,7 @@ class Graph {
         this.SetBkColour(0);
 
         // Update the palette, but tell it not to update the screen since it'll be cleared below anyway
-        this.SetAllPalette(Vector.<int>([0, 1, 2, 3, 4, 5, 20, 7, 56, 57, 58, 59, 60, 61, 62, 63]), false);
+        this.SetAllPalette([0, 1, 2, 3, 4, 5, 20, 7, 56, 57, 58, 59, 60, 61, 62, 63], false);
         this.SetViewPort(0, 0, (this.PIXELS_X - 1), (this.PIXELS_Y - 1), true);
         this.ClearViewPort();
 
@@ -706,17 +677,11 @@ class Graph {
             AY2 = Math.min(AY2, this._ViewPortSettings.y2);
         }
 
-        // Indicate that we need to repaint
-        this._Dirty = DirtyType.Pixel;
-
-        var XOffset: number = AX1 + (AY1 * this.PIXELS_X);
-        var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1)
-
 			for (var y: number = AY1; y <= AY2; y++) {
-            for (var x: number = AX1; x <= AX2; x++) {
-                this._Pixels[XOffset] = this._Pixels[XOffset++] ^ 0x00FFFFFF; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(XOffset, this._Pixels[XOffset++] ^ 0x00FFFFFF);
+                for (var x: number = AX1; x <= AX2; x++) {
+                    // TODO Likely need to do this with getImageData and putImageData?
+                //TODO this._Pixels[XOffset] = this._Pixels[XOffset++] ^ 0x00FFFFFF; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(XOffset, this._Pixels[XOffset++] ^ 0x00FFFFFF);
             }
-            XOffset += RowSkip;
         }
     }
 
@@ -1522,13 +1487,6 @@ class Graph {
         this._CursorPosition.y = AY;
     }
 
-    private static OnExitFrame(e: Event): void {
-        if (this._Dirty != DirtyType.None) {
-            this._Dirty = DirtyType.None;
-            this._Bitmap.bitmapData.setVector(new Rectangle(0, 0, this.PIXELS_X, this.PIXELS_Y), this._Pixels);
-        }
-    }
-
     // Sends a string to the output device at the current pointer.
     // Displays TextString at the CP using the current justification settings.
     // TextString is truncated at the viewport border if it is too long.
@@ -1638,7 +1596,7 @@ class Graph {
                 var LastPoint: Point = new Point(AX, AY);
                 var NextPoint: Point = new Point(AX, AY);
 
-                var Strokes: [] = StrokeFont.Strokes[this._TextSettings.Font - 1][AText.charCodeAt(i)];
+                var Strokes: any[] = StrokeFont.Strokes[this._TextSettings.Font - 1][AText.charCodeAt(i)];
                 var Strokeslength: number = Strokes.length;
                 for (var j: number = 1; j < Strokeslength; j++) {
                     if (this._TextSettings.Direction == TextOrientation.Vertical) {
@@ -1730,41 +1688,39 @@ class Graph {
     // image stored in BitMap at (X, Y) using the assembly language MOV for each
     // byte in the image. Thus, the image appears in inverse video of the original
     // BitMap.
-    public static PutImage(AX: number, AY: number, ABitMap: BitmapData, ABitBlt: number): void {
-        // Check for out out bound coordinates
-        if ((AX < 0) || (AY < 0) || (AX >= this.PIXELS_X) || (AY >= this.PIXELS_Y)) return;
+    //TODO
+    //public static PutImage(AX: number, AY: number, ABitMap: BitmapData, ABitBlt: number): void {
+    //    // Check for out out bound coordinates
+    //    if ((AX < 0) || (AY < 0) || (AX >= this.PIXELS_X) || (AY >= this.PIXELS_Y)) return;
 
-        if (ABitBlt != WriteMode.Copy) {
-            //TODO trace("PutImage() only supports COPY mode");
-            ABitBlt = WriteMode.Copy;
-        }
+    //    if (ABitBlt != WriteMode.Copy) {
+    //        //TODO trace("PutImage() only supports COPY mode");
+    //        ABitBlt = WriteMode.Copy;
+    //    }
 
-        if (ABitMap != null) {
-            var AX1: number = AX;
-            var AY1: number = AY;
-            var AX2: number = AX1 + ABitMap.width - 1;
-            var AY2: number = AY1 + ABitMap.height - 1;
+    //    if (ABitMap != null) {
+    //        var AX1: number = AX;
+    //        var AY1: number = AY;
+    //        var AX2: number = AX1 + ABitMap.width - 1;
+    //        var AY2: number = AY1 + ABitMap.height - 1;
 
-            // Ensure valid right and bottom
-            if (AX2 >= this.PIXELS_X) AX2 = (this.PIXELS_X - 1);
-            if (AY2 >= this.PIXELS_Y) AY2 = (this.PIXELS_Y - 1);
+    //        // Ensure valid right and bottom
+    //        if (AX2 >= this.PIXELS_X) AX2 = (this.PIXELS_X - 1);
+    //        if (AY2 >= this.PIXELS_Y) AY2 = (this.PIXELS_Y - 1);
 
-            // Indicate that we need to repaint
-            this._Dirty = DirtyType.Pixel;
+    //        var V: number[] = ABitMap.getVector(new Rectangle(0, 0, ABitMap.width, ABitMap.height));
 
-            var V: number[] = ABitMap.getVector(new Rectangle(0, 0, ABitMap.width, ABitMap.height));
-
-            var InOffset: number = 0;
-            var OutOffset: number = AX1 + (AY1 * this.PIXELS_X);
-            var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1);
-            for (var y: number = AY1; y <= AY2; y++) {
-                for (var x: number = AX1; x <= AX2; x++) {
-                    this._Pixels[OutOffset++] = V[InOffset++]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(OutOffset++, V[InOffset++]);
-                }
-                OutOffset += RowSkip;
-            }
-        }
-    }
+    //        var InOffset: number = 0;
+    //        var OutOffset: number = AX1 + (AY1 * this.PIXELS_X);
+    //        var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1);
+    //        for (var y: number = AY1; y <= AY2; y++) {
+    //            for (var x: number = AX1; x <= AX2; x++) {
+    //                this._Pixels[OutOffset++] = V[InOffset++]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(OutOffset++, V[InOffset++]);
+    //            }
+    //            OutOffset += RowSkip;
+    //        }
+    //    }
+    //}
 
     // Plots a pixel at X,Y
     // Plots a point in the color defined by Pixel at (X, Y).
@@ -1786,8 +1742,8 @@ class Graph {
         var Pos: number = AX + (AY * this.PIXELS_X);
         if ((Pos >= 0) && (Pos < this.PIXELS)) {
             // Indicate that we need to repaint
-            this._Dirty = DirtyType.Pixel;
-            this._Pixels[Pos] = this.CURRENT_PALETTE[APaletteIndex];
+            this._CanvasContext.fillStyle = '#' + this.CURRENT_PALETTE[APaletteIndex].toString(16);
+            this._CanvasContext.fillRect(AX, AY, 1, 1);
         }
     }
 
@@ -1848,10 +1804,11 @@ class Graph {
         //               this._Dirty will be DirtyType.Clear.  In this case, we know the screen contains only pixels
         //               coloured in the background colour, so we only need to update the screen pixels for the
         //               background palette entry, and not the subsequent 15 palette entries
-        if (this._Dirty == DirtyType.Clear) {
-            this.SetPalette(this._BackColour, APalette[this._BackColour], true);
-            AUpdateScreen = false;
-        }
+        // TODO
+        //if (this._Dirty == DirtyType.Clear) {
+        //    this.SetPalette(this._BackColour, APalette[this._BackColour], true);
+        //    AUpdateScreen = false;
+        //}
 
         var APalettelength: number = APalette.length;
         for (var i: number = 0; i < APalettelength; i++) {
@@ -1981,20 +1938,18 @@ class Graph {
     // list of defined color constants.
     public static SetPalette(ACurrentPaletteIndex: number, AEGAPaletteIndex: number, AUpdateScreen: Boolean = true): void {
         if (this.CURRENT_PALETTE[ACurrentPaletteIndex] != this.EGA_PALETTE[AEGAPaletteIndex]) {
-            // Indicate that we need to repaint
-            this._Dirty = DirtyType.Pixel;
-
             // Update the screen if requested
             if (AUpdateScreen) {
                 var OldColour: number = this.CURRENT_PALETTE[ACurrentPaletteIndex];
                 var NewColour: number = this.EGA_PALETTE[AEGAPaletteIndex];
 
-                var Pixelslength: number = this._Pixels.length
-					for (var i: number = 0; i < Pixelslength; i++) {
-                    if (this._Pixels[i] == OldColour) {
-                        this._Pixels[i] = NewColour; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(i, NewColour); 
-                    }
-                }
+                // TODO
+                //var Pixelslength: number = this._Pixels.length
+                //	for (var i: number = 0; i < Pixelslength; i++) {
+                //    if (this._Pixels[i] == OldColour) {
+                //        this._Pixels[i] = NewColour; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(i, NewColour); 
+                //    }
+                //}
             }
 
             this.CURRENT_PALETTE[ACurrentPaletteIndex] = this.EGA_PALETTE[AEGAPaletteIndex];
@@ -2028,50 +1983,50 @@ class Graph {
     public static SetTextWindow(AX1: number, AY1: number, AX2: number, AY2: number, AWrap: number, ASize: number): void {
         if ((AX1 == 0) && (AY1 == 0) && (AX2 == 0) && (AY2 == 0)) {
             // Disable crt window
-            Crt.Canvas.alpha = 0;
+            Crt.Canvas.style.opacity = "0";
         } else if ((AX2 == 0) || (AY2 == 0)) {
             // Sanity check, do nothing if either of those values are 0
-            Crt.Canvas.alpha = 0;
+            Crt.Canvas.style.opacity = "0";
         } else if ((AX1 > AX2) || (AY1 > AY2)) {
             // More sanity checking, do nothing in this case
         } else {
             if ((AX1 == this._TextWindow.left) && (AY1 == this._TextWindow.top) && (AX2 == this._TextWindow.right) && (AY2 == this._TextWindow.bottom) && (ASize == this._TextSettings.Size)) {
                 // Provided same settings, so only update the wrap
-                Crt.AutoWrap = (AWrap != 0);
+                //TODO Crt.AutoWrap = (AWrap != 0);
             } else {
                 // Provided some new settings, so update everything
-                Crt.AutoWrap = (AWrap != 0)
-					Crt.SetScreenSize(AX2 - AX1 + 1, AY2 - AY1 + 1);
+                //TODO Crt.AutoWrap = (AWrap != 0);
+                Crt.SetScreenSize(AX2 - AX1 + 1, AY2 - AY1 + 1);
                 switch (ASize) {
                     case 0:
-                        Crt.Canvas.x = AX1 * 8;
-                        Crt.Canvas.y = AY1 * 8;
-                        Crt.SetFont("RIP", 8, 8);
+                        Crt.Canvas.style.left = (AX1 * 8) + 'px';
+                        Crt.Canvas.style.top = (AY1 * 8) + 'px';
+                        //TODO Crt.SetFont("RIP", 8, 8);
                         break;
                     case 1:
-                        Crt.Canvas.x = AX1 * 7;
-                        Crt.Canvas.y = AY1 * 8;
-                        Crt.SetFont("RIP", 7, 8);
+                        Crt.Canvas.style.left = (AX1 * 7) + 'px';
+                        Crt.Canvas.style.top = (AY1 * 8) + 'px';
+                        //TODO Crt.SetFont("RIP", 7, 8);
                         break;
                     case 2:
-                        Crt.Canvas.x = AX1 * 8;
-                        Crt.Canvas.y = AY1 * 14;
-                        Crt.SetFont("RIP", 8, 14);
+                        Crt.Canvas.style.left = (AX1 * 8) + 'px';
+                        Crt.Canvas.style.top = (AY1 * 14) + 'px';
+                        //TODO Crt.SetFont("RIP", 8, 14);
                         break;
                     case 3:
-                        Crt.Canvas.x = AX1 * 7;
-                        Crt.Canvas.y = AY1 * 14;
-                        Crt.SetFont("RIP", 7, 14);
+                        Crt.Canvas.style.left = (AX1 * 7) + 'px';
+                        Crt.Canvas.style.top = (AY1 * 14) + 'px';
+                        //TODO Crt.SetFont("RIP", 7, 14);
                         break;
                     case 4:
-                        Crt.Canvas.x = AX1 * 16;
-                        Crt.Canvas.y = AY1 * 14;
-                        Crt.SetFont("RIP", 16, 14);
+                        Crt.Canvas.style.left = (AX1 * 16) + 'px';
+                        Crt.Canvas.style.top = (AY1 * 14) + 'px';
+                        //TODO Crt.SetFont("RIP", 16, 14);
                         break;
                 }
                 Crt.TextAttr = 15;
                 Crt.ClrScr();
-                Crt.Canvas.alpha = 1;
+                Crt.Canvas.style.opacity = "1";
             }
         }
     }
@@ -2161,7 +2116,7 @@ class Graph {
         } else {
             var Result: number = 0;
             for (var i: number = 0; i < ATextlength; i++) {
-                var Strokes: Array = StrokeFont.Strokes[this._TextSettings.Font - 1][AText.charCodeAt(i)];
+                var Strokes: any[] = StrokeFont.Strokes[this._TextSettings.Font - 1][AText.charCodeAt(i)];
                 Result += Math.floor(Strokes[0] * this._TextSettings.StrokeScaleX);
             }
             return Result;

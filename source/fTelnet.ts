@@ -47,6 +47,7 @@ class fTelnet {
     private static _ProxyHostname: string = '';
     private static _ProxyPort: number = 1123;
     private static _ProxyPortSecure: number = 11235;
+    private static _RIP: boolean = false;
     private static _RLoginClientUsername: string = '';
     private static _RLoginServerUsername: string = '';
     private static _RLoginTerminalType: string = '';
@@ -113,7 +114,7 @@ class fTelnet {
         this._Container.appendChild(this._FocusWarningBar);
 
         // Seup the crt window
-        if (Crt.Init(this._Container)) {
+        if ((this._RIP && Graph.Init(this._Container)) && Crt.Init(this._Container)) {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
@@ -566,6 +567,14 @@ class fTelnet {
 
     public static set ProxyPortSecure(value: number) {
         this._ProxyPortSecure = value;
+    }
+
+    public static get RIP(): boolean {
+        return this._RIP;
+    }
+
+    public static set RIP(value: boolean) {
+        this._RIP = value;
     }
 
     public static get RLoginClientUsername(): string {

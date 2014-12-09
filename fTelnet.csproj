@@ -32,6 +32,8 @@
     <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
     <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
     <TypeScriptCompile Include="source\randm\actionscript\Rectangle.ts" />
+    <None Include="source\randm\graph\rip\PopUp.ts.exclude" />
+    <TypeScriptCompile Include="source\randm\graph\StrokeFont.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginNegotiationState.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginConnection.ts" />
@@ -86,13 +88,10 @@
     <TypeScriptCompile Include="source\randm\graph\Graph.ts" />
     <TypeScriptCompile Include="source\randm\graph\LineStyle.ts" />
     <TypeScriptCompile Include="source\randm\graph\LineThickness.ts" />
-    <TypeScriptCompile Include="source\randm\graph\rip\DirtyType.ts" />
-    <TypeScriptCompile Include="source\randm\graph\rip\PopUp.ts" />
-    <TypeScriptCompile Include="source\randm\graph\rip\RIP.ts" />
+    <None Include="source\randm\graph\rip\RIP.ts.exclude" />
     <TypeScriptCompile Include="source\randm\graph\rip\RIPParserState.ts" />
     <TypeScriptCompile Include="source\randm\graph\rip\ButtonStyle.ts" />
     <TypeScriptCompile Include="source\randm\graph\rip\MouseButton.ts" />
-    <TypeScriptCompile Include="source\randm\graph\StrokeFont.ts" />
     <TypeScriptCompile Include="source\randm\graph\TextJustification.ts" />
     <TypeScriptCompile Include="source\randm\graph\TextOrientation.ts" />
     <TypeScriptCompile Include="source\randm\graph\FillSettings.ts" />
