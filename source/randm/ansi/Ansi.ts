@@ -944,7 +944,17 @@ class Ansi {
                         this._AnsiParserState = AnsiParserState.None;
                     }
                 } else if (this._AnsiParserState === AnsiParserState.Bracket) {
-                    if ((text.charAt(i) >= '0') && (text.charAt(i) <= '?')) {
+                    if (text.charAt(i) === '!') {
+                        // Handle ESC[!, which is rip detect
+                        Crt.Write(Buffer);
+                        Buffer = '';
+
+                        // Handle the command
+                        this.AnsiCommand(text.charAt(i));
+
+                        // Reset the parser state
+                        this._AnsiParserState = AnsiParserState.None;
+                    } else if ((text.charAt(i) >= '0') && (text.charAt(i) <= '?')) {
                         // It's a parameter byte
                         this._AnsiBuffer += text.charAt(i);
                         this._AnsiParserState = AnsiParserState.ParameterByte;
@@ -968,7 +978,21 @@ class Ansi {
                         this._AnsiParserState = AnsiParserState.None;
                     }
                 } else if (this._AnsiParserState === AnsiParserState.ParameterByte) {
-                    if ((text.charAt(i)) === ';') {
+                    if (text.charAt(i) === '!') {
+                        // Handle ESC[0!, which is rip detect (or ESC[1! or ESC[2! which are disable/enable)
+                        this._AnsiParams.push((this._AnsiBuffer === '') ? '0' : this._AnsiBuffer);
+                        this._AnsiBuffer = '';
+
+                        // Output whatever we have buffered
+                        Crt.Write(Buffer);
+                        Buffer = '';
+
+                        // Handle the command
+                        this.AnsiCommand(text.charAt(i));
+
+                        // Reset the parser state
+                        this._AnsiParserState = AnsiParserState.None;
+                    } else if (text.charAt(i) === ';') {
                         // Start of new parameter
                         this._AnsiParams.push((this._AnsiBuffer === '') ? '0' : this._AnsiBuffer);
                         this._AnsiBuffer = '';

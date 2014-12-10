@@ -115,7 +115,7 @@ class fTelnet {
         this._Container.appendChild(this._FocusWarningBar);
 
         // Seup the crt window
-        if (Crt.Init(this._Container) && (this._RIP && Graph.Init(this._Container))) {
+        if (Crt.Init(this._Container) && (!this._RIP || Graph.Init(this._Container))) {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
@@ -163,6 +163,9 @@ class fTelnet {
             Ansi.onesc6n.on((): void => { this.OnAnsiESC6n(); });
             Ansi.onesc255n.on((): void => { this.OnAnsiESC255n(); });
             Ansi.onescQ.on((font: string): void => { this.OnAnsiESCQ(font); });
+            Ansi.onripdetect.on((): void => { this.OnAnsiRIPDetect(); });
+            Ansi.onripdisable.on((): void => { this.OnAnsiRIPDisable(); });
+            Ansi.onripenable.on((): void => { this.OnAnsiRIPEnable(); });
 
             if (this._RIP) {
                 RIP.Parse(atob(this._SplashScreen));
@@ -403,6 +406,18 @@ class fTelnet {
         Crt.SetFont(font);
     }
 
+    private static OnAnsiRIPDetect(): void {
+        this._Connection.writeString('RIPSCRIP015400');
+    }
+
+    private static OnAnsiRIPDisable(): void {
+        // TODO RIP.DisableParsing();
+    }
+
+    private static OnAnsiRIPEnable(): void {
+        // TODO RIP.EnableParsing();
+    }
+
     private static OnConnectionClose(): void {
         this._StatusBar.innerHTML = 'Disconnected from ' + this._Hostname + ':' + this._Port;
     }
@@ -496,7 +511,11 @@ class fTelnet {
             // Read the number of bytes we want
             var Data: string = this._Connection.readString(BytesToRead);
             if (Data.length > 0) {
-                Ansi.Write(Data);
+                if (this._RIP) {
+                    RIP.Parse(Data);
+                } else {
+                    Ansi.Write(Data);
+                }
             }
 
             while (Crt.KeyPressed()) {

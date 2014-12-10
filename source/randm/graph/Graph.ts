@@ -427,7 +427,13 @@ class Graph {
     // style and color as set by SetLineStyle.
     public static FillPoly(APoints: Point[]): void {
         // Reset the pixel map (which records which pixels were set since the last time the map was reset)
-        // TODO this._FillPolyMap.InitTwoDimensions(this.PIXELS_X, PIXELS_Y);
+        this._FillPolyMap = [];
+        for (var x: number = 0; x <= this.PIXELS_X; x++) {
+            this._FillPolyMap[x] = [];
+            for (var y: number = 0; y <= this.PIXELS_Y; y++) {
+                this._FillPolyMap[x][y] = 0;
+            }
+        }
 
         // Draw the polygon (override this.PutPixel() to the version that records pixel locations first)
         this.PutPixel = this.PutPixelPoly;
