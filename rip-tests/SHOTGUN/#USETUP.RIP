@@ -1,0 +1,120 @@
+
+!|1K
+!|*
+!|w0010271410
+!|c01
+!|Y00000200
+!|@180CUSER SETUP
+!|c09
+!|@160AUSER SETUP
+!|L140Y5I0Y
+!|Y00000100
+!|c04
+!|@6Z06Real name:
+!|@6Z0MAlias name:
+!|c0C
+!|@9H06{USERSREALNAME_______________\|
+!|@9H0M{USERSALIASNAME______________\|
+!|c08
+!|W00
+!|=00000001
+!|LFM5IFM72
+!|LHK5IHK71
+!|ZFM5IFM5AFM52FW521E
+!|ZHK5IHL5AHL52HB521E
+!|ZFM72FU7IHC7IHK721E
+!|LFW52HB52
+!|LGI7DGM7D
+!|c00
+!|LGI7EGO7E
+!|c08
+!|LFM5PHJ5P
+!|LGK53GK5O
+!|S010F
+!|FG45F08
+!|FH35E08
+!|FH25Y08
+!|c00
+!|LFN5QHJ5Q
+!|LGL53GL5O
+!|c08
+!|LFL57FH5D
+!|LFH5DFH71
+!|ZFH72FP7KGX7IHA791E
+!|S0107
+!|FFK6X08
+!|LFM5QFJ5T
+!|LFJ5SFJ5C
+!|LFJ5CFM57
+!|LFJ5UFJ73
+!|ZFK74FT7EGG7HGW7D1E
+!|S0108
+!|FFI6108
+!|LFJ74FO79
+!|LFO78FW7C
+!|XFQ7A
+!|LFW7CG67E
+!|XFJ5B
+!|XFK73
+!|ZGF51FI3LHG23HH001E
+!|ZHL00HJ1ZFM3QGJ511E
+!|S0107
+!|FG74608
+!|1B00000209AA010F000F080700000F08000000
+!|1U0Z1A0K1Q1T00<>A<>a
+!|1U0K1U0Z2A1U00<>B<>b
+!|1U0K2E0Z2U1V00<>C<>c
+!|1U0K2Y0Z3E1W00<>D<>d
+!|1U9Q1TA5291X00<>E<>e
+!|1U9Q2DA52T1Y00<>F<>f
+!|1U9Q2XA53D1Z00<>G<>g
+!|1U9Q3HA53X2000<>H<>h
+!|1U0K3X0Z4D2100<>I<>i
+!|1U0K4H0Z4X2200<>J<>j
+!|1U0K510Z5H2300<>K<>k
+!|1U0K5L0Z612400<>L<>l
+!|1U0K650Z6L2500<>M<>m
+!|1U0K6P0Z752600<>N<>n
+!|1U0K790Z7P2700<>O<>o
+!|1U9Q64A56K0X00<>\!<>\!
+!|1U9Q6OA5742900<>Q<>q
+!|c02
+!|Y02000400
+!|@141AYour password....
+!|@141UYour gender.......
+!|@142EFile seperator lines..
+!|@142Y# Description lines...
+!|@AA1TFull-screen editor.....
+!|@AA2DANSI graphics............
+!|@AA2XIBM characters..........
+!|@AA3HClear screen codes....
+!|@143XStreet address...
+!|@144HCity/Town...........
+!|@1451Province/State...
+!|@145LCountry.............
+!|@1465Postal/Zip code..
+!|@146PProtocol............
+!|@1479Archiver............
+!|@AA64Available for chat.....
+!|@AA6OQuit To Main Menu
+!|c0A
+!|@3W1A{USERSPASSWORD_____\|
+!|@3W1U{USEX\|
+!|@4Q2E{SEP\|
+!|@4Q2Y{FDL\|
+!|@DW1T{FSE\|
+!|@DW2D{ANS\|
+!|@DW2X{IBM\|
+!|@DW3H{CLR\|
+!|@3W3X{USERSSTREETADDRESS__________\|
+!|@3W4H{USERSCITY___________________\|
+!|@3W51{USERSPROVINCEORSTATE________\|
+!|@3W5L{USERSCOUNTRY________________\|
+!|@3W65{USERSPOSTALCODE___\|
+!|@3W6P{UPROTOCOL___\|
+!|@3W79{UARCHIVER___\|
+!|@DW64{PAGE\|
+!|#
+!|#
+!|#
+
