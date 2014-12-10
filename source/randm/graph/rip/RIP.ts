@@ -32,12 +32,12 @@
 /// <reference path='../../crt/Crt.ts' />
 class RIP {
     /* Private variables */
-    private static _Buffer: string = "";
+    private static _Buffer: string = '';
     private static _ButtonInverted: boolean = false;
     private static _ButtonPressed: number = -1;
     private static _ButtonStyle: ButtonStyle = new ButtonStyle();
-    //TODO private static _Clipboard: BitmapData = null;
-    private static _Command: string = "";
+    private static _Clipboard: ImageData = null;
+    private static _Command: string = '';
     private static _DoTextCommand: boolean = false;
     private static _InputBuffer: number[] = [];
     private static _IconsLoading: number = 0;
@@ -58,7 +58,7 @@ class RIP {
     // Define a rectangular text region
     // Status: Not Implemented
     public static BeginText(x1: number, y1: number, x2: number, y2: number): void {
-        console.log("BeginText() is not handled");
+        console.log('BeginText() is not handled');
     }
 
     // Define a Mouse Button
@@ -81,26 +81,26 @@ class RIP {
         var TempFillSettings: FillSettings = Graph.GetFillSettings();
 
         // Split the text portion (which is 3 items separated by <>)
-        var iconfile: string = "";
-        var label: string = "";
-        var hostcommand: string = "";
-        var textarray: string[] = text.split("<>");
+        var iconfile: string = '';
+        var label: string = '';
+        var hostcommand: string = '';
+        var textarray: string[] = text.split('<>');
         if (textarray.length >= 3) hostcommand = this.HandleCtrlKeys(textarray[2]);
         if (textarray.length >= 2) label = textarray[1];
         if (textarray.length >= 1) iconfile = textarray[0];
 
-        if ((this._ButtonStyle.flags & 128) == 128) {
-            console.log("Button() doesn't support the icon type");
+        if ((this._ButtonStyle.flags & 128) === 128) {
+            console.log('Button() doesn\'t support the icon type');
             return;
-        } else if ((this._ButtonStyle.flags & 1) == 1) {
-            console.log("Button() doesn't support the clipboard type");
+        } else if ((this._ButtonStyle.flags & 1) === 1) {
+            console.log('Button() doesn\'t support the clipboard type');
             return;
         }
 
         // Get width and height of button
         var Size: Rectangle;
         var InvertCoords: Rectangle;
-        if ((this._ButtonStyle.width == 0) || (this._ButtonStyle.height == 0)) {
+        if ((this._ButtonStyle.width === 0) || (this._ButtonStyle.height === 0)) {
             Size = new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
             InvertCoords = new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
         } else {
@@ -119,9 +119,9 @@ class RIP {
 
         // Add bevel, if necessary
         //var BevelSize: number = 0;
-        if ((this._ButtonStyle.flags & 512) == 512) {
-            Graph.SetLineStyle(LineStyle.Solid, 0, 1);//TODO Must restore at end
-            Graph.SetFillStyle(FillStyle.Solid, this._ButtonStyle.bright);//TODO Must restore at end
+        if ((this._ButtonStyle.flags & 512) === 512) {
+            Graph.SetLineStyle(LineStyle.Solid, 0, 1);// TODO Must restore at end
+            Graph.SetFillStyle(FillStyle.Solid, this._ButtonStyle.bright);// TODO Must restore at end
             Graph.SetColour(this._ButtonStyle.bright);
 
             var Trapezoid: Point[] = [];
@@ -147,7 +147,6 @@ class RIP {
             Graph.Line(x2 + 1, y1 - 1, x2 + this._ButtonStyle.bevelsize, y1 - this._ButtonStyle.bevelsize);
             Graph.Line(x2 + 1, y2 + 1, x2 + this._ButtonStyle.bevelsize, y2 + this._ButtonStyle.bevelsize);
 
-
             Size.left -= this._ButtonStyle.bevelsize;
             Size.top -= this._ButtonStyle.bevelsize;
             Size.width += this._ButtonStyle.bevelsize;
@@ -159,7 +158,7 @@ class RIP {
         }
 
         // Add chisel, if necessary
-        if ((this._ButtonStyle.flags & 8) == 8) {
+        if ((this._ButtonStyle.flags & 8) === 8) {
             var xchisel: number;
             var ychisel: number;
 
@@ -204,7 +203,7 @@ class RIP {
         Graph.SetColour(OldColour);
 
         // Add recessed, if necessary
-        if ((this._ButtonStyle.flags & 16) == 16) {
+        if ((this._ButtonStyle.flags & 16) === 16) {
             Graph.SetColour(0);
             Graph.Rectangle(x1 - this._ButtonStyle.bevelsize - 1, y1 - this._ButtonStyle.bevelsize - 1, x2 + this._ButtonStyle.bevelsize + 1, y2 + this._ButtonStyle.bevelsize + 1);
 
@@ -225,7 +224,7 @@ class RIP {
         }
 
         // Add sunken, if necessary
-        if ((this._ButtonStyle.flags & 32768) == 32768) {
+        if ((this._ButtonStyle.flags & 32768) === 32768) {
             Graph.SetColour(this._ButtonStyle.dark);
             Graph.Line(x1, y1, x2, y1);
             Graph.Line(x1, y1, x1, y2);
@@ -238,7 +237,7 @@ class RIP {
         }
 
         // Draw label
-        if (label != "") {
+        if (label !== '') {
             var labelx: number;
             var labely: number;
             switch (this._ButtonStyle.orientation) {
@@ -263,7 +262,7 @@ class RIP {
                     labely = Size.bottom;
                     break;
             }
-            if ((this._ButtonStyle.flags & 32) == 32) {
+            if ((this._ButtonStyle.flags & 32) === 32) {
                 Graph.SetColour(this._ButtonStyle.dback);
                 Graph.OutTextXY(labelx + 1, labely + 1, label);
             }
@@ -273,7 +272,7 @@ class RIP {
         }
 
         // Store mouse button, if necessary
-        if ((this._ButtonStyle.flags & 1024) == 1024) {
+        if ((this._ButtonStyle.flags & 1024) === 1024) {
             this._MouseFields.push(new MouseButton(InvertCoords, hostcommand, this._ButtonStyle.flags, String.fromCharCode(hotkey)));
         }
     }
@@ -281,31 +280,31 @@ class RIP {
     // Copy screen region up/down
     // Status: Not Implemented
     public static CopyRegion(x1: number, y1: number, x2: number, y2: number, desty: number): void {
-        console.log("CopyRegion() is not handled");
+        console.log('CopyRegion() is not handled');
     }
 
     // Define a text variable
     // Status: Not Implemented
     public static Define(flags: number, text: string): void {
-        console.log("Define() is not handled");
+        console.log('Define() is not handled');
     }
 
     // End a rectangular text region
     // Status: Not Implemented
     public static EndText(): void {
-        console.log("EndText() is not handled");
+        console.log('EndText() is not handled');
     }
 
     // Enter block transfer mode with host
     // Status: Not Implemented
     public static EnterBlockMode(mode: number, protocol: number, filetype: number, filename: string): void {
-        console.log("EnterBlockMode() is not handled");
+        console.log('EnterBlockMode() is not handled');
     }
 
     // Query existing information on a particular file
     // Status: Not Implemented
     public static FileQuery(mode: number, filename: string): void {
-        console.log("FileQuery() is not handled");
+        console.log('FileQuery() is not handled');
     }
 
     // TODO Also make this handle the @@ text variables (and rename function)
@@ -313,11 +312,11 @@ class RIP {
         var Result: string = AHostCommand;
         for (var i: number = 1; i <= 26; i++) {
             // For example, replaces ^a or ^A with ASCII 1, ^z or ^Z with ASCII 26
-            Result = Result.replace("^" + String.fromCharCode(64 + i), String.fromCharCode(i));
-            Result = Result.replace("^" + String.fromCharCode(96 + i), String.fromCharCode(i));
+            Result = Result.replace('^' + String.fromCharCode(64 + i), String.fromCharCode(i));
+            Result = Result.replace('^' + String.fromCharCode(96 + i), String.fromCharCode(i));
         }
-        Result = Result.replace("^@", String.fromCharCode(0));
-        Result = Result.replace("^[", String.fromCharCode(27));
+        Result = Result.replace('^@', String.fromCharCode(0));
+        Result = Result.replace('^[', String.fromCharCode(27));
         return Result;
     }
 
@@ -328,31 +327,31 @@ class RIP {
         }
 
         // Check for a host command
-        if (AButton.HostCommand != "") {
-            if ((AButton.HostCommand.length > 2) && (AButton.HostCommand.substr(0, 2) == "((") && (AButton.HostCommand.substr(AButton.HostCommand.length - 2, 2) == "))")) {
-                //TODO PopUp.show(AButton.HostCommand, OnPopUpClick); 
+        if (AButton.HostCommand !== '') {
+            if ((AButton.HostCommand.length > 2) && (AButton.HostCommand.substr(0, 2) === '((') && (AButton.HostCommand.substr(AButton.HostCommand.length - 2, 2) === '))')) {
+                // TODO PopUp.show(AButton.HostCommand, OnPopUpClick); 
             } else {
                 for (var i: number = 0; i < AButton.HostCommand.length; i++) {
-                    //TODO this._KeyBuf.push(new KeyPressEvent(KEY_PRESSED, new KeyboardEvent(KeyboardEvent.KEY_DOWN), AButton.HostCommand.charAt(i)));
+                    // TODO this._KeyBuf.push(new KeyPressEvent(KEY_PRESSED, new KeyboardEvent(KeyboardEvent.KEY_DOWN), AButton.HostCommand.charAt(i)));
                 }
             }
         }
     }
 
     private static IsCommandCharacter(Ch: string, Level: number): boolean {
-        var CommandChars: string = "";
+        var CommandChars: string = '';
         switch (Level) {
             case 0:
-                CommandChars = "@#*=>AaBCcEeFgHIiLlmOoPpQRSsTVvWwXYZ";
+                CommandChars = '@#*=>AaBCcEeFgHIiLlmOoPpQRSsTVvWwXYZ';
                 break;
             case 1:
-                CommandChars = "BCDEFGIKMPRTtUW" + "\x1B";
+                CommandChars = 'BCDEFGIKMPRTtUW' + '\x1B';
                 break;
             case 9:
-                CommandChars = "\x1B";
+                CommandChars = '\x1B';
                 break;
         }
-        return (CommandChars.indexOf(Ch) != -1);
+        return (CommandChars.indexOf(Ch) !== -1);
     }
 
     public static KeyPressed(): boolean {
@@ -363,7 +362,7 @@ class RIP {
 
         //	for (var i: number = 0; i < this._MouseFields.length; i++) {
         //		var MB: MouseButton = this._MouseFields[i];
-        //		if ((MB.HotKey != "") && (MB.HotKey.toUpperCase() == KPE.keyString.toUpperCase())) {
+        //		if ((MB.HotKey !== '') && (MB.HotKey.toUpperCase() === KPE.keyString.toUpperCase())) {
         //			HandleMouseButton(MB);
         //			Handled = true;
         //			break;
@@ -385,14 +384,14 @@ class RIP {
     // Status: Partially Implemented
     private static LoadIcon(x: number, y: number, mode: number, clipboard: number, filename: string): void {
         return; // TODO No icons to load for this test
-        if (mode != 0) {
-            console.log("LoadIcon() only supports COPY mode");
+        if (mode !== 0) {
+            console.log('LoadIcon() only supports COPY mode');
             mode = 0;
         }
 
         // Ensure the filename ends with .ICN
         filename = filename.toUpperCase();
-        if (filename.indexOf(".") == -1) filename += ".ICN";
+        if (filename.indexOf('.') === -1) filename += '.ICN';
 
         // Load from remote server since it's not in the cache
         // TODO
@@ -400,11 +399,11 @@ class RIP {
         //Icon.addEventListener(Event.COMPLETE, OnIconLoadComplete);
         //Icon.addEventListener(IOErrorEvent.IO_ERROR, OnIconLoadIOError);
         //Icon.dataFormat = URLLoaderDataFormat.BINARY;
-        //Icon.parameters["x"] = x;
-        //Icon.parameters["y"] = y;
-        //Icon.parameters["mode"] = mode;
-        //Icon.parameters["clipboard"] = clipboard;
-        //Icon.parameters["filename"] = filename;
+        //Icon.parameters['x'] = x;
+        //Icon.parameters['y'] = y;
+        //Icon.parameters['mode'] = mode;
+        //Icon.parameters['clipboard'] = clipboard;
+        //Icon.parameters['filename'] = filename;
 
         //try {
         //	this._IconsLoading++;
@@ -420,8 +419,8 @@ class RIP {
         //try {
         //	var loader: RMURLLoader = RMURLLoader(e.target);
 
-        //	var left: number = loader.parameters["x"];
-        //	var top: number = loader.parameters["y"];
+        //	var left: number = loader.parameters['x'];
+        //	var top: number = loader.parameters['y'];
 
         //	// Get the byte array
         //	var BA: ByteArray = loader.data;
@@ -430,10 +429,10 @@ class RIP {
         //	// Store the image in a sharedobject for later use
         //	var SO: SharedObject
         //	try {
-        //		SO = SharedObject.getLocal(loader.parameters["filename"], "fTelnet");
+        //		SO = SharedObject.getLocal(loader.parameters['filename'], 'fTelnet');
         //		var SOBA: ByteArray = new ByteArray();
         //		SOBA.writeBytes(BA);
-        //		SO.data["bytes"] = SOBA;
+        //		SO.data['bytes'] = SOBA;
         //		SO.flush();
         //		SO.close();
         //	} catch (e: Error) {
@@ -488,18 +487,18 @@ class RIP {
         //	BD.setVector(new Rectangle(0, 0, width, height), OutV);
         //	Graph.PutImage(left, top, BD, WriteMode.Copy);
 
-        //	if (loader.parameters["clipboard"] == 1) {
+        //	if (loader.parameters['clipboard'] === 1) {
         //		FClipboard = BD;
         //	}
         //} catch (e: Error) {
-        //	console.log("Error loading icon: " + e);
+        //	console.log('Error loading icon: ' + e);
         //}
 
         //this._IconsLoading--;
     }
 
     private static OnIconLoadIOError(ioe: ErrorEvent): void {
-        console.log("Error loading icon: " + ioe);
+        console.log('Error loading icon: ' + ioe);
         this._IconsLoading--;
     }
 
@@ -529,24 +528,24 @@ class RIP {
 
             switch (this._RIPParserState) {
                 case RIPParserState.None:
-                    if ((Ch == '!') && (this._LineStarting)) {
-                        this._Buffer = "";
+                    if ((Ch === '!') && (this._LineStarting)) {
+                        this._Buffer = '';
                         this._DoTextCommand = false;
                         this._LineStartedWithRIP = true;
                         this._LineStarting = false;
                         this._RIPParserState = RIPParserState.GotExclamation;
-                    } else if ((Ch == '|') && (this._LineStartedWithRIP)) {
-                        this._Buffer = "";
+                    } else if ((Ch === '|') && (this._LineStartedWithRIP)) {
+                        this._Buffer = '';
                         this._DoTextCommand = false;
                         this._RIPParserState = RIPParserState.GotPipe;
                     } else {
-                        this._LineStarting = (Code == 10);
+                        this._LineStarting = (Code === 10);
                         if (this._LineStarting) this._LineStartedWithRIP = false;
                         Ansi.Write(Ch);
                     }
                     break;
                 case RIPParserState.GotExclamation:
-                    if (Ch == '|') {
+                    if (Ch === '|') {
                         this._RIPParserState = RIPParserState.GotPipe;
                     } else {
                         Ansi.Write('!' + Ch);
@@ -554,7 +553,7 @@ class RIP {
                     }
                     break;
                 case RIPParserState.GotPipe:
-                    this._Buffer = "";
+                    this._Buffer = '';
                     this._DoTextCommand = false;
 
                     if ((Ch >= '0') && (Ch <= '9')) {
@@ -566,7 +565,7 @@ class RIP {
                         this._SubLevel = 0;
                         this._RIPParserState = RIPParserState.GotCommand;
                     } else {
-                        Ansi.Write("|" + Ch);
+                        Ansi.Write('|' + Ch);
                         this._RIPParserState = RIPParserState.None;
                     }
                     break;
@@ -579,7 +578,7 @@ class RIP {
                         this._SubLevel = 0;
                         this._RIPParserState = RIPParserState.GotCommand;
                     } else {
-                        Ansi.Write("|" + this._Level.toString() + Ch);
+                        Ansi.Write('|' + this._Level.toString() + Ch);
                         this._RIPParserState = RIPParserState.None;
                     }
                     break;
@@ -589,35 +588,35 @@ class RIP {
                         this._Command = Ch;
                         this._RIPParserState = RIPParserState.GotCommand;
                     } else {
-                        Ansi.Write("|" + this._Level.toString() + this._SubLevel.toString() + Ch);
+                        Ansi.Write('|' + this._Level.toString() + this._SubLevel.toString() + Ch);
                         this._RIPParserState = RIPParserState.None;
                     }
                     break;
                 case RIPParserState.GotCommand:
-                    if (Ch == "\\") {
+                    if (Ch === '\\') {
                         if (this._LastWasEscape) {
                             this._LastWasEscape = false;
-                            this._Buffer += "\\";
+                            this._Buffer += '\\';
                         } else {
                             this._LastWasEscape = true;
                         }
-                    } else if (Ch == "!") {
+                    } else if (Ch === '!') {
                         if (this._LastWasEscape) {
                             this._LastWasEscape = false;
-                            this._Buffer += "!";
+                            this._Buffer += '!';
                         } else {
                             // TODO This shouldn't happen, so what do we do if it does?
                         }
-                    } else if (Ch == "|") {
+                    } else if (Ch === '|') {
                         if (this._LastWasEscape) {
                             this._LastWasEscape = false;
-                            this._Buffer += "|";
+                            this._Buffer += '|';
                         } else {
                             // New command starting
                             this._RIPParserState = RIPParserState.GotPipe;
                             this._DoTextCommand = true;
                         }
-                    } else if (Code == 10) {
+                    } else if (Code === 10) {
                         if (this._LastWasEscape) {
                             // Line wrap, ignore
                         } else {
@@ -626,7 +625,7 @@ class RIP {
                             this._LineStarting = true;
                             this._LineStartedWithRIP = false;
                         }
-                    } else if (Code == 13) {
+                    } else if (Code === 13) {
                         // Always ignore CR
                     } else {
                         this._Buffer += Ch;
@@ -636,7 +635,7 @@ class RIP {
             }
 
             // Some commands have 0 parameters, so we need to handle them in the same loop that we moved to GotCommand
-            if ((this._RIPParserState == RIPParserState.GotCommand) || (this._DoTextCommand)) {
+            if ((this._RIPParserState === RIPParserState.GotCommand) || (this._DoTextCommand)) {
                 var Points: number;
 
                 switch (this._Level) {
@@ -646,7 +645,7 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_TEXT_XY();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case '#': // no more
@@ -658,7 +657,7 @@ class RIP {
                                 this._RIPParserState = RIPParserState.None;
                                 break;
                             case '=': // line style
-                                if (this._Buffer.length == 8) {
+                                if (this._Buffer.length === 8) {
                                     this.RIP_LINE_STYLE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -668,31 +667,31 @@ class RIP {
                                 this._RIPParserState = RIPParserState.None;
                                 break;
                             case 'A': // arc
-                                if (this._Buffer.length == 10) {
+                                if (this._Buffer.length === 10) {
                                     this.RIP_ARC();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'a': // one palette
-                                if (this._Buffer.length == 4) {
+                                if (this._Buffer.length === 4) {
                                     this.RIP_ONE_PALETTE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'B': // bar
-                                if (this._Buffer.length == 8) {
+                                if (this._Buffer.length === 8) {
                                     this.RIP_BAR();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'C': // circle
-                                if (this._Buffer.length == 6) {
+                                if (this._Buffer.length === 6) {
                                     this.RIP_CIRCLE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'c': // colour
-                                if (this._Buffer.length == 2) {
+                                if (this._Buffer.length === 2) {
                                     this.RIP_COLOUR();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -706,13 +705,13 @@ class RIP {
                                 this._RIPParserState = RIPParserState.None;
                                 break;
                             case 'F': // fill
-                                if (this._Buffer.length == 6) {
+                                if (this._Buffer.length === 6) {
                                     this.RIP_FILL();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'g': // gotoxy
-                                if (this._Buffer.length == 4) {
+                                if (this._Buffer.length === 4) {
                                     this.RIP_GOTOXY();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -722,19 +721,19 @@ class RIP {
                                 this._RIPParserState = RIPParserState.None;
                                 break;
                             case 'I': // pie slice
-                                if (this._Buffer.length == 10) {
+                                if (this._Buffer.length === 10) {
                                     this.RIP_PIE_SLICE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'i': // oval pie slice
-                                if (this._Buffer.length == 12) {
+                                if (this._Buffer.length === 12) {
                                     this.RIP_OVAL_PIE_SLICE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'L': // line
-                                if (this._Buffer.length == 8) {
+                                if (this._Buffer.length === 8) {
                                     this.RIP_LINE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -742,26 +741,26 @@ class RIP {
                             case 'l': // polyline
                                 if (this._Buffer.length >= 2) {
                                     Points = parseInt(this._Buffer.substr(0, 2), 36);
-                                    if (this._Buffer.length == (2 + (4 * Points))) {
+                                    if (this._Buffer.length === (2 + (4 * Points))) {
                                         this.RIP_POLYLINE();
                                         this._RIPParserState = RIPParserState.None;
                                     }
                                 }
                                 break;
                             case 'm': // move
-                                if (this._Buffer.length == 4) {
+                                if (this._Buffer.length === 4) {
                                     this.RIP_MOVE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'O': // oval
-                                if (this._Buffer.length == 12) {
+                                if (this._Buffer.length === 12) {
                                     this.RIP_OVAL();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'o': // filled oval
-                                if (this._Buffer.length == 8) {
+                                if (this._Buffer.length === 8) {
                                     this.RIP_FILLED_OVAL();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -769,7 +768,7 @@ class RIP {
                             case 'P': // polygon
                                 if (this._Buffer.length >= 2) {
                                     Points = parseInt(this._Buffer.substr(0, 2), 36);
-                                    if (this._Buffer.length == (2 + (4 * Points))) {
+                                    if (this._Buffer.length === (2 + (4 * Points))) {
                                         this.RIP_POLYGON();
                                         this._RIPParserState = RIPParserState.None;
                                     }
@@ -778,32 +777,32 @@ class RIP {
                             case 'p': // filled polygon
                                 if (this._Buffer.length >= 2) {
                                     Points = parseInt(this._Buffer.substr(0, 2), 36);
-                                    if (this._Buffer.length == (2 + (4 * Points))) {
+                                    if (this._Buffer.length === (2 + (4 * Points))) {
                                         this.RIP_FILLED_POLYGON();
                                         this._RIPParserState = RIPParserState.None;
                                     }
                                 }
                                 break;
                             case 'Q': // set palette
-                                if (this._Buffer.length == 32) {
+                                if (this._Buffer.length === 32) {
                                     this.RIP_SET_PALETTE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'R': // rectangle
-                                if (this._Buffer.length == 8) {
+                                if (this._Buffer.length === 8) {
                                     this.RIP_RECTANGLE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'S': // fill style
-                                if (this._Buffer.length == 4) {
+                                if (this._Buffer.length === 4) {
                                     this.RIP_FILL_STYLE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 's': // fill pattern
-                                if (this._Buffer.length == 18) {
+                                if (this._Buffer.length === 18) {
                                     this.RIP_FILL_PATTERN();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -812,41 +811,41 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_TEXT();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'V': // oval arc
-                                if (this._Buffer.length == 12) {
+                                if (this._Buffer.length === 12) {
                                     this.RIP_OVAL_ARC();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'v': // view port
-                                if (this._Buffer.length == 8) {
+                                if (this._Buffer.length === 8) {
                                     this.RIP_VIEWPORT();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'W': // write mode
-                                if (this._Buffer.length == 2) {
+                                if (this._Buffer.length === 2) {
                                     this.RIP_WRITE_MODE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'w': // text window
-                                if (this._Buffer.length == 10) {
+                                if (this._Buffer.length === 10) {
                                     this.RIP_TEXT_WINDOW();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'X': // pixel
-                                if (this._Buffer.length == 4) {
+                                if (this._Buffer.length === 4) {
                                     this.RIP_PIXEL();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'Y': // font style
-                                if (this._Buffer.length == 8) {
+                                if (this._Buffer.length === 8) {
                                     // Peek to see what font is being requested
                                     // TODO So we need WaitingForStrokeFont after all!
                                     var font: number = parseInt(this._Buffer.substr(0, 2), 36);
@@ -856,7 +855,7 @@ class RIP {
                                             this.RIP_FONT_STYLE();
                                             this._RIPParserState = RIPParserState.None;
                                         } else {
-                                            //TODO FWaitingForStrokeFont = true;
+                                            // TODO FWaitingForStrokeFont = true;
                                         }
                                     } else {
                                         this.RIP_FONT_STYLE();
@@ -865,7 +864,7 @@ class RIP {
                                 }
                                 break;
                             case 'Z': // bezier
-                                if (this._Buffer.length == 18) {
+                                if (this._Buffer.length === 18) {
                                     this.RIP_BEZIER();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -878,17 +877,17 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_QUERY();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'B': // button style
-                                if (this._Buffer.length == 36) {
+                                if (this._Buffer.length === 36) {
                                     this.RIP_BUTTON_STYLE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'C': // get image
-                                if (this._Buffer.length == 9) {
+                                if (this._Buffer.length === 9) {
                                     this.RIP_GET_IMAGE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -897,7 +896,7 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_DEFINE();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'E': // end text
@@ -908,11 +907,11 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_FILE_QUERY();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'G': // copy region
-                                if (this._Buffer.length == 12) {
+                                if (this._Buffer.length === 12) {
                                     this.RIP_COPY_REGION();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -921,7 +920,7 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_LOAD_ICON();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'K': // kill mouse fields
@@ -932,11 +931,11 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_MOUSE();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'P': // put image
-                                if (this._Buffer.length == 7) {
+                                if (this._Buffer.length === 7) {
                                     this.RIP_PUT_IMAGE();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -945,11 +944,11 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_READ_SCENE();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'T': // begin text
-                                if (this._Buffer.length == 10) {
+                                if (this._Buffer.length === 10) {
                                     this.RIP_BEGIN_TEXT();
                                     this._RIPParserState = RIPParserState.None;
                                 }
@@ -958,31 +957,31 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_REGION_TEXT();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'U': // button
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_BUTTON();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                             case 'W': // write icon
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_WRITE_ICON();
-                                    if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                                 }
                                 break;
                         }
                         break;
                     case 9:
-                        if (this._Command == '\x1B') {
+                        if (this._Command === '\x1B') {
                             if (this._DoTextCommand) {
                                 this._DoTextCommand = false;
                                 this.RIP_ENTER_BLOCK_MODE();
-                                if (this._RIPParserState == RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
                             }
                         }
                         break;
@@ -1030,7 +1029,7 @@ class RIP {
         //if (me.localY > MB.Coords.bottom) Over = false;
 
         //// Check if we need to change the inversion
-        //if ((MB.IsInvertable()) && (Over != FButtonInverted)) {
+        //if ((MB.IsInvertable()) && (Over !== FButtonInverted)) {
         //	Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
         //	FButtonInverted = Over;
         //}
@@ -1064,7 +1063,7 @@ class RIP {
 
     private static OnPopUpClick(AResponse: string): void {
         for (var i: number = 0; i < AResponse.length; i++) {
-            //TODO this._KeyBuf.push(new KeyPressEvent(KEY_PRESSED, new KeyboardEvent(KeyboardEvent.KEY_DOWN), AResponse.charAt(i)));
+            // TODO this._KeyBuf.push(new KeyPressEvent(KEY_PRESSED, new KeyboardEvent(KeyboardEvent.KEY_DOWN), AResponse.charAt(i)));
         }
     }
 
@@ -1082,24 +1081,24 @@ class RIP {
     // Status: Partially Implemented
     // Notes: lots to do here!
     public static Query(mode: number, text: string): void {
-        if (mode != 0) {
-            console.log("Query() only supports immediate execution");
+        if (mode !== 0) {
+            console.log('Query() only supports immediate execution');
             mode = 0;
         }
 
-        if (text == "$ETW$") {
+        if (text === '$ETW$') {
             Graph.ClearTextWindow();
-        } else if (text == "$SBAROFF$") {
+        } else if (text === '$SBAROFF$') {
             // We don't have a status-bar anyway, so nothing to do here
         } else {
-            console.log("Query(" + text + ") is not handled");
+            console.log('Query(' + text + ') is not handled');
         }
     }
 
-    //TODO
+    // TODO
     //public static ReadKey(): KeyPressEvent
     //{
-    //	if (this._KeyBuf.length == 0) return null;
+    //	if (this._KeyBuf.length === 0) return null;
 
     //	return this._KeyBuf.shift();
     //}
@@ -1107,13 +1106,13 @@ class RIP {
     // Playback local .RIP file
     // Status: Not Implemented
     public static ReadScene(filename: string): void {
-        console.log("ReadScene() is not handled");
+        console.log('ReadScene() is not handled');
     }
 
     // Display a line of text in rectangular text region
     // Status: Not Implemented
     public static RegionText(justify: number, text: string): void {
-        console.log("RegionText() is not handled");
+        console.log('RegionText() is not handled');
     }
 
     // Clear Graphics/Text Windows & reset to full screen
@@ -1126,7 +1125,7 @@ class RIP {
 
         Graph.GraphDefaults();
 
-        //TODO FClipboard = null;
+        this._Clipboard = null;
     }
 
     private static RIP_ARC(): void {
@@ -1136,9 +1135,9 @@ class RIP {
         var endangle: number = parseInt(this._Buffer.substr(6, 2), 36);
         var radius: number = parseInt(this._Buffer.substr(8, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Arc(xcenter, ycenter, startangle, endangle, radius);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Arc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Arc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
     }
 
     private static RIP_BAR(): void {
@@ -1147,9 +1146,9 @@ class RIP {
         var x2: number = parseInt(this._Buffer.substr(4, 2), 36);
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Bar(x1, y1, x2, y2);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Bar(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Bar(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     private static RIP_BEGIN_TEXT(): void {
@@ -1159,9 +1158,9 @@ class RIP {
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
         var reserved: number = parseInt(this._Buffer.substr(8, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.BeginText(x1, y1, x2, y2);
-        //BENCHMARK console.log((getTimer() - FTimer) + " BeginText(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " BeginText(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     private static RIP_BEZIER(): void {
@@ -1175,9 +1174,9 @@ class RIP {
         var y4: number = parseInt(this._Buffer.substr(14, 2), 36);
         var count: number = parseInt(this._Buffer.substr(16, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Bezier(x1, y1, x2, y2, x3, y3, x4, y4, count);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Bezier(" + x1 + ", " + y1 + ", " +  x2 + ", " +  y2 + ", " +  x3 + ", " +  y3 + ", " +  x4 + ", " +  y4 + ", " + count + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Bezier(" + x1 + ", " + y1 + ", " +  x2 + ", " +  y2 + ", " +  x3 + ", " +  y3 + ", " +  x4 + ", " +  y4 + ", " + count + ");");
     }
 
     private static RIP_BUTTON(): void {
@@ -1190,9 +1189,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(11, 1), 36);
         var text: string = this._Buffer.substr(12, this._Buffer.length - 12);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.Button(x1, y1, x2, y2, hotkey, flags, text);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Button(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + hotkey + ", " + flags + ", " + text + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Button(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + hotkey + ", " + flags + ", " + text + ");");
     }
 
     private static RIP_BUTTON_STYLE(): void {
@@ -1212,9 +1211,9 @@ class RIP {
         var cornercolour: number = parseInt(this._Buffer.substr(28, 2), 36);
         var reserved: number = parseInt(this._Buffer.substr(30, 6), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.SetButtonStyle(width, height, orientation, flags, bevelsize, dfore, dback, bright, dark, surface, groupid, flags2, underlinecolour, cornercolour);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetButtonStyle(" + width + ", " + height + ", " + orientation + ", " + flags + ", " + bevelsize + ", " + dfore + ", " + dback + ", " + bright + ", " + dark + ", " + surface + ", " + groupid + ", " + flags2 + ", " + underlinecolour + ", " + cornercolour + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetButtonStyle(" + width + ", " + height + ", " + orientation + ", " + flags + ", " + bevelsize + ", " + dfore + ", " + dback + ", " + bright + ", " + dark + ", " + surface + ", " + groupid + ", " + flags2 + ", " + underlinecolour + ", " + cornercolour + ");");
     }
 
     private static RIP_CIRCLE(): void {
@@ -1222,17 +1221,17 @@ class RIP {
         var ycenter: number = parseInt(this._Buffer.substr(2, 2), 36);
         var radius: number = parseInt(this._Buffer.substr(4, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Circle(xcenter, ycenter, radius);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Circle(" + xcenter + ", " + ycenter + ", " + radius + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Circle(" + xcenter + ", " + ycenter + ", " + radius + ");");
     }
 
     private static RIP_COLOUR(): void {
         var colour: number = parseInt(this._Buffer.substr(0, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetColour(colour);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetColour(" + colour + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetColour(" + colour + ");");
     }
 
     private static RIP_COPY_REGION(): void {
@@ -1243,9 +1242,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(8, 2), 36);
         var desty: number = parseInt(this._Buffer.substr(10, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.CopyRegion(x1, y1, x2, y2, desty);
-        //BENCHMARK console.log((getTimer() - FTimer) + " CopyRegion(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + desty + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " CopyRegion(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + desty + ");");
     }
 
     // Define a text variable
@@ -1255,15 +1254,15 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(3, 2), 36);
         var text: string = this._Buffer.substr(5, this._Buffer.length - 5);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.Define(flags, text);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Define(" + flags + ", " + text + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Define(" + flags + ", " + text + ");");
     }
 
     private static RIP_END_TEXT(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.EndText();
-        //BENCHMARK console.log((getTimer() - FTimer) + " EndText();");
+        // BENCHMARK console.log((getTimer() - FTimer) + " EndText();");
     }
 
     // Enter block transfer mode with host
@@ -1275,27 +1274,27 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(4, 4), 36);
         var filename: string = this._Buffer.substr(8, this._Buffer.length - 8);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.EnterBlockMode(mode, protocol, filetype, filename);
-        //BENCHMARK console.log((getTimer() - FTimer) + " EnterBlockMode(" + mode + ", " + protocol + ", " + filetype + ", " + filename + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " EnterBlockMode(" + mode + ", " + protocol + ", " + filetype + ", " + filename + ");");
     }
 
     private static RIP_ERASE_EOL(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.EraseEOL();
-        //BENCHMARK console.log((getTimer() - FTimer) + " EraseEOL();");
+        // BENCHMARK console.log((getTimer() - FTimer) + " EraseEOL();");
     }
 
     private static RIP_ERASE_VIEW(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.ClearViewPort();
-        //BENCHMARK console.log((getTimer() - FTimer) + " EraseView();");
+        // BENCHMARK console.log((getTimer() - FTimer) + " EraseView();");
     }
 
     private static RIP_ERASE_WINDOW(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.ClearTextWindow();
-        //BENCHMARK console.log((getTimer() - FTimer) + " EraseWindow();");
+        // BENCHMARK console.log((getTimer() - FTimer) + " EraseWindow();");
     }
 
     // Query existing information on a particular file
@@ -1305,9 +1304,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(2, 4), 36);
         var filename: string = this._Buffer.substr(6, this._Buffer.length - 6);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.FileQuery(mode, filename);
-        //BENCHMARK console.log((getTimer() - FTimer) + " FileQuery(" + mode + ", " + filename + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " FileQuery(" + mode + ", " + filename + ");");
     }
 
     private static RIP_FILL(): void {
@@ -1315,9 +1314,9 @@ class RIP {
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
         var border: number = parseInt(this._Buffer.substr(4, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
-        //TODO Graph.FloodFill(x, y, border);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Fill(" + x + ", " + y + ", " + border + ");");
+        // BENCHMARK FTimer = getTimer();
+        Graph.FloodFill(x, y, border);
+        // BENCHMARK console.log((getTimer() - FTimer) + " Fill(" + x + ", " + y + ", " + border + ");");
     }
 
     private static RIP_FILL_PATTERN(): void {
@@ -1331,19 +1330,19 @@ class RIP {
         var c8: number = parseInt(this._Buffer.substr(14, 2), 36);
         var colour: number = parseInt(this._Buffer.substr(16, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetFillStyle(FillStyle.User, colour);
         Graph.SetFillPattern([c1, c2, c3, c4, c5, c6, c7, c8], colour);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetFillPattern(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + colour + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetFillPattern(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + colour + ");");
     }
 
     private static RIP_FILL_STYLE(): void {
         var pattern: number = parseInt(this._Buffer.substr(0, 2), 36);
         var colour: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetFillStyle(pattern, colour);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetFillStyle(" + pattern + ", " + colour + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetFillStyle(" + pattern + ", " + colour + ");");
     }
 
     private static RIP_FILLED_OVAL(): void {
@@ -1352,15 +1351,15 @@ class RIP {
         var xradius: number = parseInt(this._Buffer.substr(4, 2), 36);
         var yradius: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.FillEllipse(xcenter, ycenter, xradius, yradius);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Graph.FillEllipse(" + xcenter + ", " + ycenter + ", " + xradius + ", " + yradius + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Graph.FillEllipse(" + xcenter + ", " + ycenter + ", " + xradius + ", " + yradius + ");");
     }
 
     private static RIP_FILLED_POLYGON(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         var count: number = parseInt(this._Buffer.substr(0, 2), 36);
-        var points: Point[] = []; // TODO Was initialized to count size before
+        var points: Point[] = []; // TODO new Vector.<Point>(count);
 
         if (count >= 2) {
             for (var i: number = 0; i < count; i++) {
@@ -1369,9 +1368,9 @@ class RIP {
             points.push(new Point(points[0].x, points[0].y));
 
             Graph.FillPoly(points);
-            //BENCHMARK console.log((getTimer() - FTimer) + " FillPoly(" + points.toString() + ");");
+            // BENCHMARK console.log((getTimer() - FTimer) + " FillPoly(" + points.toString() + ");");
         } else {
-            console.log("RIP_FILLED_POLYGON with " + count + " points is not allowed");
+            console.log('RIP_FILLED_POLYGON with ' + count + ' points is not allowed');
         }
     }
 
@@ -1381,9 +1380,9 @@ class RIP {
         var size: number = parseInt(this._Buffer.substr(4, 2), 36);
         var reserved: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetTextStyle(font, direction, size);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetFontStyle(" + font + ", " + direction + ", " + size + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetFontStyle(" + font + ", " + direction + ", " + size + ");");
     }
 
     private static RIP_GET_IMAGE(): void {
@@ -1394,34 +1393,34 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(7, 1), 36);
 
         if ((x1 > x2) || (y1 > y2)) {
-            console.log("TODO Invalid coordinates: " + x1 + "," + y1 + " to " + x2 + "," + y2);
+            console.log('TODO Invalid coordinates: ' + x1 + ',' + y1 + ' to ' + x2 + ',' + y2);
             return;
         }
 
-        //BENCHMARK FTimer = getTimer();
-        //TODO FClipboard = Graph.GetImage(x1, y1, x2, y2);
-        //BENCHMARK console.log((getTimer() - FTimer) + " GetImage(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        // BENCHMARK FTimer = getTimer();
+        this._Clipboard = Graph.GetImage(x1, y1, x2, y2);
+        // BENCHMARK console.log((getTimer() - FTimer) + " GetImage(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     private static RIP_GOTOXY(): void {
         var x: number = parseInt(this._Buffer.substr(0, 2), 36);
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Crt.GotoXY(x, y);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Crt.GotoXY(" + x + ", " + y + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Crt.GotoXY(" + x + ", " + y + ");");
     }
 
     private static RIP_HOME(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Crt.GotoXY(1, 1);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Crt.GotoXY(1, 1);");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Crt.GotoXY(1, 1);");
     }
 
     private static RIP_KILL_MOUSE_FIELDS(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.KillMouseFields();
-        //BENCHMARK console.log((getTimer() - FTimer) + " KillMouseFields();");
+        // BENCHMARK console.log((getTimer() - FTimer) + " KillMouseFields();");
     }
 
     private static RIP_LINE(): void {
@@ -1430,9 +1429,9 @@ class RIP {
         var x2: number = parseInt(this._Buffer.substr(4, 2), 36);
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Line(x1, y1, x2, y2);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Line(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Line(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     private static RIP_LINE_STYLE(): void {
@@ -1440,9 +1439,9 @@ class RIP {
         var userpattern: number = parseInt(this._Buffer.substr(2, 4), 36);
         var thickness: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetLineStyle(style, userpattern, thickness);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetLineStyle(" + style + ", " + userpattern + ", " + thickness + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetLineStyle(" + style + ", " + userpattern + ", " + thickness + ");");
     }
 
     private static RIP_LOAD_ICON(): void {
@@ -1453,9 +1452,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(7, 2), 36);
         var filename: string = this._Buffer.substr(9, this._Buffer.length - 9);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.LoadIcon(x, y, mode, clipboard, filename);
-        //BENCHMARK console.log((getTimer() - FTimer) + " LoadIcon(" + x + ", " + y + ", " + mode + ", " + clipboard + ", " + filename + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " LoadIcon(" + x + ", " + y + ", " + mode + ", " + clipboard + ", " + filename + ");");
     }
 
     // Defines a rectangular hot mouse region
@@ -1471,22 +1470,22 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(12, 5), 36);
         var hostcommand: string = this._Buffer.substr(17, this._Buffer.length - 17);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         // TODO Move this into a function
         var flags: number = 0;
-        if (invert == 1) flags |= 2;
-        if (clear == 1) flags |= 4;
-        this._MouseFields.push(new MouseButton(new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1), hostcommand, flags, ""));
-        //BENCHMARK console.log((getTimer() - FTimer) + " this._MouseFields.push(new MouseButton(new Rectangle(" + x1 + ", " + y1 + ", " + (x2 - x1 + 1) + ", " + (y2 - y1 + 1) + "), " + hostcommand + ", " + flags + ", " + "''));");
+        if (invert === 1) flags |= 2;
+        if (clear === 1) flags |= 4;
+        this._MouseFields.push(new MouseButton(new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1), hostcommand, flags, ''));
+        // BENCHMARK console.log((getTimer() - FTimer) + " this._MouseFields.push(new MouseButton(new Rectangle(" + x1 + ", " + y1 + ", " + (x2 - x1 + 1) + ", " + (y2 - y1 + 1) + "), " + hostcommand + ", " + flags + ", " + "''));");
     }
 
     private static RIP_MOVE(): void {
         var x: number = parseInt(this._Buffer.substr(0, 2), 36);
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.MoveTo(x, y);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Graph.MoveTo(" + x + ", " + y + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Graph.MoveTo(" + x + ", " + y + ");");
     }
 
     private static RIP_NO_MORE(): void {
@@ -1497,9 +1496,9 @@ class RIP {
         var colour: number = parseInt(this._Buffer.substr(0, 2), 36);
         var value: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetPalette(colour, value);
-        //BENCHMARK console.log((getTimer() - FTimer) + " OnePalette(" + colour + ", " + value + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " OnePalette(" + colour + ", " + value + ");");
     }
 
     private static RIP_OVAL(): void {
@@ -1510,9 +1509,9 @@ class RIP {
         var xradius: number = parseInt(this._Buffer.substr(8, 2), 36);
         var yradius: number = parseInt(this._Buffer.substr(10, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Ellipse(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Oval(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Oval(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
     }
 
     private static RIP_OVAL_ARC(): void {
@@ -1523,9 +1522,9 @@ class RIP {
         var xradius: number = parseInt(this._Buffer.substr(8, 2), 36);
         var yradius: number = parseInt(this._Buffer.substr(10, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Ellipse(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        //BENCHMARK console.log((getTimer() - FTimer) + " OvalArc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " OvalArc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
     }
 
     private static RIP_OVAL_PIE_SLICE(): void {
@@ -1536,9 +1535,9 @@ class RIP {
         var xradius: number = parseInt(this._Buffer.substr(8, 2), 36);
         var yradius: number = parseInt(this._Buffer.substr(10, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Sector(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Graph.Sector(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Graph.Sector(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
     }
 
     private static RIP_PIE_SLICE(): void {
@@ -1548,22 +1547,22 @@ class RIP {
         var endangle: number = parseInt(this._Buffer.substr(6, 2), 36);
         var radius: number = parseInt(this._Buffer.substr(8, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.PieSlice(xcenter, ycenter, startangle, endangle, radius);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Graph.PieSlice(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Graph.PieSlice(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
     }
 
     private static RIP_PIXEL(): void {
         var x: number = parseInt(this._Buffer.substr(0, 2), 36);
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.PutPixel(x, y, Graph.GetColour());
-        //BENCHMARK console.log((getTimer() - FTimer) + " Pixel(" + x + ", " + y + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Pixel(" + x + ", " + y + ");");
     }
 
     private static RIP_POLYGON(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         var count: number = parseInt(this._Buffer.substr(0, 2), 36);
         var points: Point[] = []; // TODO new Vector.<Point>(count);
 
@@ -1573,11 +1572,11 @@ class RIP {
         points.push(new Point(points[0].x, points[0].y));
 
         Graph.DrawPoly(points);
-        //BENCHMARK console.log((getTimer() - FTimer) + " DrawPoly(" + points.toString() + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " DrawPoly(" + points.toString() + ");");
     }
 
     private static RIP_POLYLINE(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         var count: number = parseInt(this._Buffer.substr(0, 2), 36);
         var points: Point[] = []; // TODO new Vector.<Point>(count);
 
@@ -1586,7 +1585,7 @@ class RIP {
         }
 
         Graph.DrawPoly(points);
-        //BENCHMARK console.log((getTimer() - FTimer) + " DrawPoly(" + points.toString() + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " DrawPoly(" + points.toString() + ");");
     }
 
     private static RIP_PUT_IMAGE(): void {
@@ -1595,9 +1594,9 @@ class RIP {
         var mode: number = parseInt(this._Buffer.substr(4, 2), 36);
         var reserved: number = parseInt(this._Buffer.substr(6, 1), 36);
 
-        //BENCHMARK FTimer = getTimer();
-        //TODO Graph.PutImage(x, y, FClipboard, mode);
-        //BENCHMARK console.log((getTimer() - FTimer) + " PutImage(" + x + ", " + y + ", " + mode + ");");
+        // BENCHMARK FTimer = getTimer();
+        Graph.PutImage(x, y, this._Clipboard, mode);
+        // BENCHMARK console.log((getTimer() - FTimer) + " PutImage(" + x + ", " + y + ", " + mode + ");");
     }
 
     private static RIP_QUERY(): void {
@@ -1605,9 +1604,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(1, 3), 36);
         var text: string = this._Buffer.substr(4, this._Buffer.length - 4);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.Query(mode, text);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Query(" + mode + ", " + text + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Query(" + mode + ", " + text + ");");
     }
 
     // Playback local .RIP file
@@ -1616,9 +1615,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(0, 8), 36);
         var filename: string = this._Buffer.substr(8, this._Buffer.length - 8);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.ReadScene(filename);
-        //BENCHMARK console.log((getTimer() - FTimer) + " ReadScene(" + filename + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " ReadScene(" + filename + ");");
     }
 
     private static RIP_RECTANGLE(): void {
@@ -1627,9 +1626,9 @@ class RIP {
         var x2: number = parseInt(this._Buffer.substr(4, 2), 36);
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.Rectangle(x1, y1, x2, y2);
-        //BENCHMARK console.log((getTimer() - FTimer) + " Rectangle(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " Rectangle(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     // Display a line of text in rectangular text region
@@ -1638,15 +1637,15 @@ class RIP {
         var justify: number = parseInt(this._Buffer.substr(0, 1), 36);
         var text: string = this._Buffer.substr(1, this._Buffer.length - 1);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.RegionText(justify, text);
-        //BENCHMARK console.log((getTimer() - FTimer) + " RegionText(" + justify + ", " + text + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " RegionText(" + justify + ", " + text + ");");
     }
 
     private static RIP_RESET_WINDOWS(): void {
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.ResetWindows();
-        //BENCHMARK console.log((getTimer() - FTimer) + " ResetWindows();");
+        // BENCHMARK console.log((getTimer() - FTimer) + " ResetWindows();");
     }
 
     private static RIP_SET_PALETTE(): void {
@@ -1667,18 +1666,18 @@ class RIP {
         var c15: number = parseInt(this._Buffer.substr(28, 2), 36);
         var c16: number = parseInt(this._Buffer.substr(30, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetAllPalette([c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16]);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetPalette(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + c9 + ", " + c10 + ", " + c11 + ", " + c12 + ", " + c13 + ", " + c14 + ", " + c15 + ", " + c16 + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetPalette(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + c9 + ", " + c10 + ", " + c11 + ", " + c12 + ", " + c13 + ", " + c14 + ", " + c15 + ", " + c16 + ");");
     }
 
     private static RIP_TEXT(): void {
         var text: string = this._Buffer;
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetTextJustify(TextJustification.Left, TextJustification.Top);
         Graph.OutText(text);
-        //BENCHMARK console.log((getTimer() - FTimer) + " OutText(" + text + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " OutText(" + text + ");");
     }
 
     private static RIP_TEXT_WINDOW(): void {
@@ -1689,9 +1688,9 @@ class RIP {
         var wrap: number = parseInt(this._Buffer.substr(8, 1), 36);
         var size: number = parseInt(this._Buffer.substr(9, 1), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetTextWindow(x1, y1, x2, y2, wrap, size);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetTextWindow(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + wrap + ", " + size + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetTextWindow(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + wrap + ", " + size + ");");
     }
 
     private static RIP_TEXT_XY(): void {
@@ -1699,10 +1698,10 @@ class RIP {
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
         var text: string = this._Buffer.substr(4, this._Buffer.length - 4);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetTextJustify(TextJustification.Left, TextJustification.Top);
         Graph.OutTextXY(x, y, text);
-        //BENCHMARK console.log((getTimer() - FTimer) + " TextXY(" + x + ", " + y + ", " + text + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " TextXY(" + x + ", " + y + ", " + text + ");");
     }
 
     private static RIP_VIEWPORT(): void {
@@ -1711,9 +1710,9 @@ class RIP {
         var x2: number = parseInt(this._Buffer.substr(4, 2), 36);
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetViewPort(x1, y1, x2, y2, true);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetViewPort(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetViewPort(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     // Write contents of the clipboard (icon) to disk
@@ -1722,17 +1721,17 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(0, 1), 36);
         var filename: string = this._Buffer.substr(1, this._Buffer.length - 1);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         this.WriteIcon(filename);
-        //BENCHMARK console.log((getTimer() - FTimer) + " WriteIcon(" + filename + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " WriteIcon(" + filename + ");");
     }
 
     private static RIP_WRITE_MODE(): void {
         var mode: number = parseInt(this._Buffer.substr(0, 2), 36);
 
-        //BENCHMARK FTimer = getTimer();
+        // BENCHMARK FTimer = getTimer();
         Graph.SetWriteMode(mode);
-        //BENCHMARK console.log((getTimer() - FTimer) + " SetWriteMode(" + mode + ");");
+        // BENCHMARK console.log((getTimer() - FTimer) + " SetWriteMode(" + mode + ");");
     }
 
     // Button style definition
@@ -1758,6 +1757,6 @@ class RIP {
     // Write contents of the clipboard (icon) to disk
     // Status: Not Implemented
     public static WriteIcon(filename: string): void {
-        console.log("WriteIcon() is not handled");
+        console.log('WriteIcon() is not handled');
     }
 }

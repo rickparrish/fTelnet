@@ -25,7 +25,7 @@ class FillSettings {
     constructor() {
         // Set default pattern
         var Offset: number = 0;
-        var Patternlength: number = this.Pattern.length; // TODO .length will fail.  Probably was a presized vector before, will need to find other problems like this
+        var Patternlength: number = 640 * 350; // TODO Would be ideal if this came from Graph.PIXELS, but it's not defined at this point
         for (var i: number = 0; i < Patternlength; i++) {
             this.Pattern[Offset++] = 15;
         }

@@ -41,7 +41,7 @@ class StrokeFont {
             var JsonUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/fonts/RIP-Strokes.json');
             JsonUrl = JsonUrl.replace('/ftelnet.debug.js', '/fonts/RIP-Strokes.json');
 
-            var xhr = new XMLHttpRequest();
+            var xhr: XMLHttpRequest = new XMLHttpRequest();
             xhr.open('get', JsonUrl, true);
             xhr.onload = (): void => { this.OnJsonLoad(xhr); }
             xhr.send();
@@ -49,8 +49,8 @@ class StrokeFont {
     }
 
     private static OnJsonLoad(xhr: XMLHttpRequest) {
-        var status = xhr.status;
-        if (status == 200) {
+        var status: number = xhr.status;
+        if (status === 200) {
             this.Strokes = JSON.parse(xhr.responseText);
             this.Loaded = true;
         } else {
