@@ -549,11 +549,11 @@ class Graph {
             BorderColour = (BorderColour << 8) + 0x000000FF;
         }
 
-        // Cache the canvas image TODO This updated logic needs testing
+        // Cache the canvas image
         var PixelData: ImageData = this._CanvasContext.getImageData(0, 0, this.PIXELS_X, this.PIXELS_Y);
         var Pixels = new Uint32Array(PixelData.data.buffer);
         
-        // Check if target point is already border colour point is in viewport
+        // Check if target point is already border colour
         if (Pixels[AX + (AY * this.PIXELS_X)] === BorderColour) return;
 
         var ProcessPoints: number[] = [];
@@ -608,7 +608,7 @@ class Graph {
                     var R = (NewColour & 0xFF0000) >> 16;
                     var G = (NewColour & 0x00FF00) >> 8;
                     var B = (NewColour & 0x0000FF) >> 0;
-                    NewColour = (0xFF << 24) + (B << 16) + (G << 8) + (R << 0);
+                    NewColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
                 } else {
                     // Need to shift and add 0xFF for alpha channel
                     NewColour = (NewColour << 8) + 0x000000FF;
@@ -642,8 +642,6 @@ class Graph {
             }
         }
 
-        //TODO Needed? var Pixels = new Uint32Array(PixelData.data.buffer);
-        //TODO Needed? PixelData.data.set(buf8);
         this._CanvasContext.putImageData(PixelData, 0, 0);
     }
 
@@ -726,6 +724,7 @@ class Graph {
         }
 
         // TODO This new logic needs testing
+        // TODO I'm thinking it needs the IsLittleEndian check as well
         // Get the CanvasPixelArray from the given coordinates and dimensions.
         var PixelData: ImageData = this._CanvasContext.getImageData(0, 0, this.PIXELS_X, this.PIXELS_Y);
         var Pixels = PixelData.data;
@@ -1995,10 +1994,12 @@ class Graph {
         if (this.CURRENT_PALETTE[ACurrentPaletteIndex] !== this.EGA_PALETTE[AEGAPaletteIndex]) {
             // Update the screen if requested
             if (AUpdateScreen) {
+                // TODO Flip and add alpha based on endian
                 var OldColour: number = this.CURRENT_PALETTE[ACurrentPaletteIndex];
                 var NewColour: number = this.EGA_PALETTE[AEGAPaletteIndex];
 
                 // TODO Test this new logic
+                // TODO This needs to use a uint32 array
                 var PixelData: ImageData = this._CanvasContext.getImageData(0, 0, this.PIXELS_X, this.PIXELS_Y);
                 var Pixels = PixelData.data;
 

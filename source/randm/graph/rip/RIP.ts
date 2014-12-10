@@ -507,10 +507,10 @@ class RIP {
         for (var i: number = 0; i < ADatalength; i++) {
             this._InputBuffer.push(AData.charCodeAt(i));
         }
-        this.OnEnterFrame(null); // TODO
+        this.OnEnterFrame(null); // TODO hackish way to get the processing done
     }
 
-    public static OnEnterFrame(e: Event): void // TODO public
+    private static OnEnterFrame(e: Event): void
     {
         while (this._InputBuffer.length > 0) {
             // Don't process anything if we're waiting on an icon to load from the HTTP server
