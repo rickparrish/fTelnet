@@ -23,7 +23,17 @@ class BitmapFont {
     public static Pixels: any[] = [];
 
     public static Init(): void {
-        // TODO Strokes array initializes itself with blank fonts to avoid crashing.  BitmapFont should do the same in case the font fails to laod
+        // This initializes the pixels array so that all 256 chars are blank
+        // This is so if we fail loading the pixels array from the HTTP server, the client won't crash (but it means the bitmap font text won't display)
+        for (var char: number = 0; char < 256; char++) {
+            this.Pixels[char] = [];
+            for (var y: number = 0; y < 8; y++) {
+                this.Pixels[char][y] = [];
+                for (var x: number = 0; x < 8; x++) {
+                    this.Pixels[char][y][x] = 0;
+                }
+            }
+        }
 
         if (document.getElementById('fTelnetScript') !== null) {
             // TODO This logic is also in CrtFonts -- Should create a helper function so we don't have to duplicate this

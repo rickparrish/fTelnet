@@ -26,7 +26,7 @@ class StrokeFont {
 
     public static Init(): void {
         // This initializes the strokes array so that all 256 chars in all 10 fonts are blank
-        // This is so if we fail loading the strokes array from the HTTP server, the client won't crash (but it means stroke font text won't display)
+        // This is so if we fail loading the strokes array from the HTTP server, the client won't crash (but it means stroke fonts text won't display)
         for (var Stroke: number = 0; Stroke < 10; Stroke++) {
             var Chars: any[] = [];
             for (var Char: number = 0; Char < 256; Char++) {

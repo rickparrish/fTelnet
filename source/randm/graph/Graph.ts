@@ -74,7 +74,7 @@ class Graph {
     private static _Container: HTMLElement = null;
     private static _CursorPosition: Point = new Point(0, 0);
     private static _FillEllipse: Boolean = false;
-    private static _FillPolyMap: any = [];
+    private static _FillPolyMap: boolean[][] = [];
     private static _TextWindow: Rectangle = null;
     private static _WriteMode: number = WriteMode.Normal;
 
@@ -159,18 +159,25 @@ class Graph {
             this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(Colour.toString(16), '0', 6);
 
             // Fill all the pixels with the specified colour TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
-            for (y = AY1; y <= AY2; y++) {
-                for (x = AX1; x <= AX2; x++) {
-                    this._CanvasContext.fillRect(x, y, 1, 1);
-                }
-            }
+            // TODO Confirm that this doesn't cause anti-aliasing
+            this._CanvasContext.fillRect(AX1, AY1, AX2 - AX1 + 1, AY2 - AY1 + 1);
+            //for (y = AY1; y <= AY2; y++) {
+            //    for (x = AX1; x <= AX2; x++) {
+            //        this._CanvasContext.fillRect(x, y, 1, 1);
+            //    }
+            //}
         } else {
             // Need to do a pattern lookup since the condition for a patternless fill wasn't met
             var XOffset: number = AX1 + (AY1 * this.PIXELS_X);
             var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1)
+
+            // Precalculate the "on" and "off" colours
+            var ColourOn = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._FillSettings.Colour].toString(16), '0', 6);
+            var ColourOff = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[0].toString(16), '0', 6); // TODO Should 0 be this._BackColour?
+
             for (y = AY1; y <= AY2; y++) {
                 for (x = AX1; x <= AX2; x++) {
-                    this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[XOffset++]].toString(16), '0', 6);
+                    this._CanvasContext.fillStyle = (this._FillSettings.Pattern[y][x] ? ColourOn : ColourOff);
                     this._CanvasContext.fillRect(x, y, 1, 1);
                 }
                 XOffset += RowSkip;
@@ -213,12 +220,14 @@ class Graph {
 
         this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._BackColour].toString(16), '0', 6);
 
-        // Reset the pixels behind the text window TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
-        for (var y: number = y1; y <= y2; y++) {
-            for (var x: number = x1; x <= x2; x++) {
-                this._CanvasContext.fillRect(x, y, 1, 1);
-            }
-        }
+        // Reset the pixels behind the text window
+        // TODO Need to confirm this won't anti-alias
+        this._CanvasContext.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+        //for (var y: number = y1; y <= y2; y++) {
+        //    for (var x: number = x1; x <= x2; x++) {
+        //        this._CanvasContext.fillRect(x, y, 1, 1);
+        //    }
+        //}
 
         // Clear the Crt screen
         Crt.ClrScr();
@@ -428,13 +437,10 @@ class Graph {
     public static FillPoly(APoints: Point[]): void {
         // Reset the pixel map (which records which pixels were set since the last time the map was reset)
         this._FillPolyMap = [];
-        for (var x: number = 0; x <= this.PIXELS_X; x++) {
-            this._FillPolyMap[x] = [];
-            for (var y: number = 0; y <= this.PIXELS_Y; y++) {
-                this._FillPolyMap[x][y] = 0;
-            }
+        for (var y: number = 0; y <= this.PIXELS_Y; y++) {
+            this._FillPolyMap[y] = [];
         }
-
+        
         // Draw the polygon (override this.PutPixel() to the version that records pixel locations first)
         this.PutPixel = this.PutPixelPoly;
         this.DrawPoly(APoints);
@@ -474,7 +480,7 @@ class Graph {
 
             for (var x: number = Bounds.left; x <= Bounds.right; x++) {
                 // Check if the current pixel is an edge
-                if (this._FillPolyMap[x][y] === 1) {
+                if (this._FillPolyMap[y][x]) {
                     // Yep, check if the previous pixel was an edge
                     if (LastWasEdge) {
                         // Yep, ignore since it just means we hit two edge pixels in a row (could happen with horizontal lines for example, or thick lines)
@@ -543,16 +549,31 @@ class Graph {
             IsLittleEndian = false;
         }
 
+        // Precalculate the "on" and "off" colours
         var BorderColour = this.CURRENT_PALETTE[ABorder];
+        var ColourOn = this.CURRENT_PALETTE[this._FillSettings.Colour];
+        var ColourOff = this.CURRENT_PALETTE[0]; // TODO Should 0 be this._BackColour?
         if (IsLittleEndian) {
             // Need to flip the colours for little endian machines
             var R = (BorderColour & 0xFF0000) >> 16;
             var G = (BorderColour & 0x00FF00) >> 8;
             var B = (BorderColour & 0x0000FF) >> 0;
             BorderColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
+
+            var R = (ColourOn & 0xFF0000) >> 16;
+            var G = (ColourOn & 0x00FF00) >> 8;
+            var B = (ColourOn & 0x0000FF) >> 0;
+            ColourOn = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
+
+            var R = (ColourOff & 0xFF0000) >> 16;
+            var G = (ColourOff & 0x00FF00) >> 8;
+            var B = (ColourOff & 0x0000FF) >> 0;
+            ColourOff = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
         } else {
             // Need to shift and add 0xFF for alpha channel
             BorderColour = (BorderColour << 8) + 0x000000FF;
+            ColourOn = (ColourOn << 8) + 0x000000FF;
+            ColourOff = (ColourOff << 8) + 0x000000FF;
         }
 
         // Cache the canvas image
@@ -599,7 +620,7 @@ class Graph {
             RightStop = ThisPoint;
             while ((RightStop <= RightEdge) && (Pixels[RightStop] !== BorderColour)) RightStop += 1;
             RightStop -= 1;
-
+            
             DidTop = false;
             DidBottom = false;
             DoNorth = ThisPoint >= this.PIXELS_X;
@@ -607,19 +628,8 @@ class Graph {
             DoSouth = ThisPoint <= ((this.PIXELS - 1) - this.PIXELS_X);
             if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) DoSouth = (ThisPoint <= ((this.PIXELS - 1) - ((this._ViewPortSettings.FromBottom + 1) * this.PIXELS_X)));
             for (var i: number = LeftStop; i <= RightStop; i++) {
-                // TODO This seems very inefficient
-                var NewColour = this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(i, this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]);
-                if (IsLittleEndian) {
-                    // Need to flip the colours for little endian machines
-                    var R = (NewColour & 0xFF0000) >> 16;
-                    var G = (NewColour & 0x00FF00) >> 8;
-                    var B = (NewColour & 0x0000FF) >> 0;
-                    NewColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
-                } else {
-                    // Need to shift and add 0xFF for alpha channel
-                    NewColour = (NewColour << 8) + 0x000000FF;
-                }
-                Pixels[i] = NewColour;
+                // TODO Pixels[i] = (this._FillSettings.Pattern[i] ? ColourOn : ColourOff);
+                Pixels[i] = ColourOn; // TODO Need to get the above working with a 2d array
                 VisitedPoints[i] = 1;
 
                 // Check above
@@ -1827,7 +1837,7 @@ class Graph {
         this.PutPixelDefault(AX, AY, APaletteIndex);
 
         // Record the (non-viewport-modified) pixel location if we're filling a polygon
-        this._FillPolyMap[AX][AY] = 1;
+        this._FillPolyMap[AY][AX] = true;
     }
 
     // Directly puts the specified colour into the pixel vector
@@ -1905,16 +1915,16 @@ class Graph {
         // Fill pattern vector's first 8 lines
         var XOffset: number = 0;
         for (var y: number = 0; y < 8; y++) {
-            for (var x: number = 0; x < this.PIXELS_X; x++) {
-                this._FillSettings.Pattern[XOffset++] = ((APattern[y] & ANDArray[x & 7]) === 0) ? 0 : 15; // OPTIMIZATION: AND 7 is the same as MOD 8, but faster!
+            for (var x: number = 0; x < 8; x++) {
+                this._FillSettings.Pattern[y][x] = ((APattern[y] & ANDArray[x]) === 0) ? false : true;
             }
         }
 
-        // Fill the rest of the pattern vector with the repeating pattern
-        XOffset = 0;
-        for (var i: number = 640 * 8; i < this.PIXELS; i++) {
-            this._FillSettings.Pattern[i] = this._FillSettings.Pattern[XOffset++];
-        }
+        //// Fill the rest of the pattern vector with the repeating pattern
+        //XOffset = 0;
+        //for (var i: number = 640 * 8; i < this.PIXELS; i++) {
+        //    this._FillSettings.Pattern[i] = this._FillSettings.Pattern[XOffset++];
+        //}
 
         if ((AColour < 0) || (AColour > 15)) {
             // TODO trace("Invalid fill colour: " + AColour);

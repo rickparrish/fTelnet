@@ -32,6 +32,7 @@
 /// <reference path='../../crt/Crt.ts' />
 class RIP {
     /* Private variables */
+    private static _Benchmark: Benchmark = new Benchmark();
     private static _Buffer: string = '';
     private static _ButtonInverted: boolean = false;
     private static _ButtonPressed: number = -1;
@@ -273,7 +274,7 @@ class RIP {
 
         // Store mouse button, if necessary
         if ((this._ButtonStyle.flags & 1024) === 1024) {
-            this._MouseFields.push(new MouseButton(InvertCoords, hostcommand, this._ButtonStyle.flags, String.fromCharCode(hotkey)));
+            //TODO this._MouseFields.push(new MouseButton(InvertCoords, hostcommand, this._ButtonStyle.flags, String.fromCharCode(hotkey)));
         }
     }
 
@@ -520,8 +521,8 @@ class RIP {
 
             // Don't process anything if we're waiting for the stroke font to load from the HTTP server
             // Need to do this in case we want to write in stroke font mode, since the fonts are loaded remotely
-            if (!BitmapFont.Loaded) return;
-            if (!StrokeFont.Loaded) return;
+            //TODO if (!BitmapFont.Loaded) return;
+            //TODO if (!StrokeFont.Loaded) return;
 
             var Code: number = this._InputBuffer.shift();
             var Ch: string = String.fromCharCode(Code);
@@ -1135,9 +1136,9 @@ class RIP {
         var endangle: number = parseInt(this._Buffer.substr(6, 2), 36);
         var radius: number = parseInt(this._Buffer.substr(8, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Arc(xcenter, ycenter, startangle, endangle, radius);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Arc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
+        console.log(this._Benchmark.Elapsed + " Arc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
     }
 
     private static RIP_BAR(): void {
@@ -1146,9 +1147,9 @@ class RIP {
         var x2: number = parseInt(this._Buffer.substr(4, 2), 36);
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Bar(x1, y1, x2, y2);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Bar(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + " Bar(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     private static RIP_BEGIN_TEXT(): void {
@@ -1158,9 +1159,9 @@ class RIP {
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
         var reserved: number = parseInt(this._Buffer.substr(8, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.BeginText(x1, y1, x2, y2);
-        // BENCHMARK console.log((getTimer() - FTimer) + " BeginText(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + " BeginText(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     private static RIP_BEZIER(): void {
@@ -1174,9 +1175,9 @@ class RIP {
         var y4: number = parseInt(this._Buffer.substr(14, 2), 36);
         var count: number = parseInt(this._Buffer.substr(16, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Bezier(x1, y1, x2, y2, x3, y3, x4, y4, count);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Bezier(" + x1 + ", " + y1 + ", " +  x2 + ", " +  y2 + ", " +  x3 + ", " +  y3 + ", " +  x4 + ", " +  y4 + ", " + count + ");");
+        console.log(this._Benchmark.Elapsed + " Bezier(" + x1 + ", " + y1 + ", " +  x2 + ", " +  y2 + ", " +  x3 + ", " +  y3 + ", " +  x4 + ", " +  y4 + ", " + count + ");");
     }
 
     private static RIP_BUTTON(): void {
@@ -1189,9 +1190,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(11, 1), 36);
         var text: string = this._Buffer.substr(12, this._Buffer.length - 12);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.Button(x1, y1, x2, y2, hotkey, flags, text);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Button(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + hotkey + ", " + flags + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + " Button(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + hotkey + ", " + flags + ", " + text + ");");
     }
 
     private static RIP_BUTTON_STYLE(): void {
@@ -1211,9 +1212,9 @@ class RIP {
         var cornercolour: number = parseInt(this._Buffer.substr(28, 2), 36);
         var reserved: number = parseInt(this._Buffer.substr(30, 6), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.SetButtonStyle(width, height, orientation, flags, bevelsize, dfore, dback, bright, dark, surface, groupid, flags2, underlinecolour, cornercolour);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetButtonStyle(" + width + ", " + height + ", " + orientation + ", " + flags + ", " + bevelsize + ", " + dfore + ", " + dback + ", " + bright + ", " + dark + ", " + surface + ", " + groupid + ", " + flags2 + ", " + underlinecolour + ", " + cornercolour + ");");
+        console.log(this._Benchmark.Elapsed + " SetButtonStyle(" + width + ", " + height + ", " + orientation + ", " + flags + ", " + bevelsize + ", " + dfore + ", " + dback + ", " + bright + ", " + dark + ", " + surface + ", " + groupid + ", " + flags2 + ", " + underlinecolour + ", " + cornercolour + ");");
     }
 
     private static RIP_CIRCLE(): void {
@@ -1221,17 +1222,17 @@ class RIP {
         var ycenter: number = parseInt(this._Buffer.substr(2, 2), 36);
         var radius: number = parseInt(this._Buffer.substr(4, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Circle(xcenter, ycenter, radius);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Circle(" + xcenter + ", " + ycenter + ", " + radius + ");");
+        console.log(this._Benchmark.Elapsed + " Circle(" + xcenter + ", " + ycenter + ", " + radius + ");");
     }
 
     private static RIP_COLOUR(): void {
         var colour: number = parseInt(this._Buffer.substr(0, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetColour(colour);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetColour(" + colour + ");");
+        console.log(this._Benchmark.Elapsed + " SetColour(" + colour + ");");
     }
 
     private static RIP_COPY_REGION(): void {
@@ -1242,9 +1243,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(8, 2), 36);
         var desty: number = parseInt(this._Buffer.substr(10, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.CopyRegion(x1, y1, x2, y2, desty);
-        // BENCHMARK console.log((getTimer() - FTimer) + " CopyRegion(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + desty + ");");
+        console.log(this._Benchmark.Elapsed + " CopyRegion(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + desty + ");");
     }
 
     // Define a text variable
@@ -1254,15 +1255,15 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(3, 2), 36);
         var text: string = this._Buffer.substr(5, this._Buffer.length - 5);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.Define(flags, text);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Define(" + flags + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + " Define(" + flags + ", " + text + ");");
     }
 
     private static RIP_END_TEXT(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.EndText();
-        // BENCHMARK console.log((getTimer() - FTimer) + " EndText();");
+        console.log(this._Benchmark.Elapsed + " EndText();");
     }
 
     // Enter block transfer mode with host
@@ -1274,27 +1275,27 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(4, 4), 36);
         var filename: string = this._Buffer.substr(8, this._Buffer.length - 8);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.EnterBlockMode(mode, protocol, filetype, filename);
-        // BENCHMARK console.log((getTimer() - FTimer) + " EnterBlockMode(" + mode + ", " + protocol + ", " + filetype + ", " + filename + ");");
+        console.log(this._Benchmark.Elapsed + " EnterBlockMode(" + mode + ", " + protocol + ", " + filetype + ", " + filename + ");");
     }
 
     private static RIP_ERASE_EOL(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.EraseEOL();
-        // BENCHMARK console.log((getTimer() - FTimer) + " EraseEOL();");
+        console.log(this._Benchmark.Elapsed + " EraseEOL();");
     }
 
     private static RIP_ERASE_VIEW(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.ClearViewPort();
-        // BENCHMARK console.log((getTimer() - FTimer) + " EraseView();");
+        console.log(this._Benchmark.Elapsed + " EraseView();");
     }
 
     private static RIP_ERASE_WINDOW(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.ClearTextWindow();
-        // BENCHMARK console.log((getTimer() - FTimer) + " EraseWindow();");
+        console.log(this._Benchmark.Elapsed + " EraseWindow();");
     }
 
     // Query existing information on a particular file
@@ -1304,9 +1305,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(2, 4), 36);
         var filename: string = this._Buffer.substr(6, this._Buffer.length - 6);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.FileQuery(mode, filename);
-        // BENCHMARK console.log((getTimer() - FTimer) + " FileQuery(" + mode + ", " + filename + ");");
+        console.log(this._Benchmark.Elapsed + " FileQuery(" + mode + ", " + filename + ");");
     }
 
     private static RIP_FILL(): void {
@@ -1314,9 +1315,9 @@ class RIP {
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
         var border: number = parseInt(this._Buffer.substr(4, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.FloodFill(x, y, border);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Fill(" + x + ", " + y + ", " + border + ");");
+        console.log(this._Benchmark.Elapsed + " Fill(" + x + ", " + y + ", " + border + ");");
     }
 
     private static RIP_FILL_PATTERN(): void {
@@ -1330,19 +1331,19 @@ class RIP {
         var c8: number = parseInt(this._Buffer.substr(14, 2), 36);
         var colour: number = parseInt(this._Buffer.substr(16, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetFillStyle(FillStyle.User, colour);
         Graph.SetFillPattern([c1, c2, c3, c4, c5, c6, c7, c8], colour);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetFillPattern(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + colour + ");");
+        console.log(this._Benchmark.Elapsed + " SetFillPattern(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + colour + ");");
     }
 
     private static RIP_FILL_STYLE(): void {
         var pattern: number = parseInt(this._Buffer.substr(0, 2), 36);
         var colour: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetFillStyle(pattern, colour);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetFillStyle(" + pattern + ", " + colour + ");");
+        console.log(this._Benchmark.Elapsed + " SetFillStyle(" + pattern + ", " + colour + ");");
     }
 
     private static RIP_FILLED_OVAL(): void {
@@ -1351,13 +1352,13 @@ class RIP {
         var xradius: number = parseInt(this._Buffer.substr(4, 2), 36);
         var yradius: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.FillEllipse(xcenter, ycenter, xradius, yradius);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Graph.FillEllipse(" + xcenter + ", " + ycenter + ", " + xradius + ", " + yradius + ");");
+        console.log(this._Benchmark.Elapsed + " Graph.FillEllipse(" + xcenter + ", " + ycenter + ", " + xradius + ", " + yradius + ");");
     }
 
     private static RIP_FILLED_POLYGON(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         var count: number = parseInt(this._Buffer.substr(0, 2), 36);
         var points: Point[] = []; // TODO new Vector.<Point>(count);
 
@@ -1368,7 +1369,7 @@ class RIP {
             points.push(new Point(points[0].x, points[0].y));
 
             Graph.FillPoly(points);
-            // BENCHMARK console.log((getTimer() - FTimer) + " FillPoly(" + points.toString() + ");");
+            console.log(this._Benchmark.Elapsed + " FillPoly(" + points.toString() + ");");
         } else {
             console.log('RIP_FILLED_POLYGON with ' + count + ' points is not allowed');
         }
@@ -1380,9 +1381,9 @@ class RIP {
         var size: number = parseInt(this._Buffer.substr(4, 2), 36);
         var reserved: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetTextStyle(font, direction, size);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetFontStyle(" + font + ", " + direction + ", " + size + ");");
+        console.log(this._Benchmark.Elapsed + " SetFontStyle(" + font + ", " + direction + ", " + size + ");");
     }
 
     private static RIP_GET_IMAGE(): void {
@@ -1397,30 +1398,30 @@ class RIP {
             return;
         }
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this._Clipboard = Graph.GetImage(x1, y1, x2, y2);
-        // BENCHMARK console.log((getTimer() - FTimer) + " GetImage(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + " GetImage(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     private static RIP_GOTOXY(): void {
         var x: number = parseInt(this._Buffer.substr(0, 2), 36);
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Crt.GotoXY(x, y);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Crt.GotoXY(" + x + ", " + y + ");");
+        console.log(this._Benchmark.Elapsed + " Crt.GotoXY(" + x + ", " + y + ");");
     }
 
     private static RIP_HOME(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Crt.GotoXY(1, 1);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Crt.GotoXY(1, 1);");
+        console.log(this._Benchmark.Elapsed + " Crt.GotoXY(1, 1);");
     }
 
     private static RIP_KILL_MOUSE_FIELDS(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.KillMouseFields();
-        // BENCHMARK console.log((getTimer() - FTimer) + " KillMouseFields();");
+        console.log(this._Benchmark.Elapsed + " KillMouseFields();");
     }
 
     private static RIP_LINE(): void {
@@ -1429,9 +1430,9 @@ class RIP {
         var x2: number = parseInt(this._Buffer.substr(4, 2), 36);
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Line(x1, y1, x2, y2);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Line(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + " Line(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     private static RIP_LINE_STYLE(): void {
@@ -1439,9 +1440,9 @@ class RIP {
         var userpattern: number = parseInt(this._Buffer.substr(2, 4), 36);
         var thickness: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetLineStyle(style, userpattern, thickness);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetLineStyle(" + style + ", " + userpattern + ", " + thickness + ");");
+        console.log(this._Benchmark.Elapsed + " SetLineStyle(" + style + ", " + userpattern + ", " + thickness + ");");
     }
 
     private static RIP_LOAD_ICON(): void {
@@ -1452,9 +1453,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(7, 2), 36);
         var filename: string = this._Buffer.substr(9, this._Buffer.length - 9);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.LoadIcon(x, y, mode, clipboard, filename);
-        // BENCHMARK console.log((getTimer() - FTimer) + " LoadIcon(" + x + ", " + y + ", " + mode + ", " + clipboard + ", " + filename + ");");
+        console.log(this._Benchmark.Elapsed + " LoadIcon(" + x + ", " + y + ", " + mode + ", " + clipboard + ", " + filename + ");");
     }
 
     // Defines a rectangular hot mouse region
@@ -1470,22 +1471,22 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(12, 5), 36);
         var hostcommand: string = this._Buffer.substr(17, this._Buffer.length - 17);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         // TODO Move this into a function
         var flags: number = 0;
         if (invert === 1) flags |= 2;
         if (clear === 1) flags |= 4;
         this._MouseFields.push(new MouseButton(new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1), hostcommand, flags, ''));
-        // BENCHMARK console.log((getTimer() - FTimer) + " this._MouseFields.push(new MouseButton(new Rectangle(" + x1 + ", " + y1 + ", " + (x2 - x1 + 1) + ", " + (y2 - y1 + 1) + "), " + hostcommand + ", " + flags + ", " + "''));");
+        console.log(this._Benchmark.Elapsed + " this._MouseFields.push(new MouseButton(new Rectangle(" + x1 + ", " + y1 + ", " + (x2 - x1 + 1) + ", " + (y2 - y1 + 1) + "), " + hostcommand + ", " + flags + ", " + "''));");
     }
 
     private static RIP_MOVE(): void {
         var x: number = parseInt(this._Buffer.substr(0, 2), 36);
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.MoveTo(x, y);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Graph.MoveTo(" + x + ", " + y + ");");
+        console.log(this._Benchmark.Elapsed + " Graph.MoveTo(" + x + ", " + y + ");");
     }
 
     private static RIP_NO_MORE(): void {
@@ -1496,9 +1497,9 @@ class RIP {
         var colour: number = parseInt(this._Buffer.substr(0, 2), 36);
         var value: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetPalette(colour, value);
-        // BENCHMARK console.log((getTimer() - FTimer) + " OnePalette(" + colour + ", " + value + ");");
+        console.log(this._Benchmark.Elapsed + " OnePalette(" + colour + ", " + value + ");");
     }
 
     private static RIP_OVAL(): void {
@@ -1509,9 +1510,9 @@ class RIP {
         var xradius: number = parseInt(this._Buffer.substr(8, 2), 36);
         var yradius: number = parseInt(this._Buffer.substr(10, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Ellipse(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Oval(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        console.log(this._Benchmark.Elapsed + " Oval(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
     }
 
     private static RIP_OVAL_ARC(): void {
@@ -1522,9 +1523,9 @@ class RIP {
         var xradius: number = parseInt(this._Buffer.substr(8, 2), 36);
         var yradius: number = parseInt(this._Buffer.substr(10, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Ellipse(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        // BENCHMARK console.log((getTimer() - FTimer) + " OvalArc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        console.log(this._Benchmark.Elapsed + " OvalArc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
     }
 
     private static RIP_OVAL_PIE_SLICE(): void {
@@ -1535,9 +1536,9 @@ class RIP {
         var xradius: number = parseInt(this._Buffer.substr(8, 2), 36);
         var yradius: number = parseInt(this._Buffer.substr(10, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Sector(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Graph.Sector(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        console.log(this._Benchmark.Elapsed + " Graph.Sector(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
     }
 
     private static RIP_PIE_SLICE(): void {
@@ -1547,22 +1548,22 @@ class RIP {
         var endangle: number = parseInt(this._Buffer.substr(6, 2), 36);
         var radius: number = parseInt(this._Buffer.substr(8, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.PieSlice(xcenter, ycenter, startangle, endangle, radius);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Graph.PieSlice(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
+        console.log(this._Benchmark.Elapsed + " Graph.PieSlice(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
     }
 
     private static RIP_PIXEL(): void {
         var x: number = parseInt(this._Buffer.substr(0, 2), 36);
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.PutPixel(x, y, Graph.GetColour());
-        // BENCHMARK console.log((getTimer() - FTimer) + " Pixel(" + x + ", " + y + ");");
+        console.log(this._Benchmark.Elapsed + " Pixel(" + x + ", " + y + ");");
     }
 
     private static RIP_POLYGON(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         var count: number = parseInt(this._Buffer.substr(0, 2), 36);
         var points: Point[] = []; // TODO new Vector.<Point>(count);
 
@@ -1572,11 +1573,11 @@ class RIP {
         points.push(new Point(points[0].x, points[0].y));
 
         Graph.DrawPoly(points);
-        // BENCHMARK console.log((getTimer() - FTimer) + " DrawPoly(" + points.toString() + ");");
+        console.log(this._Benchmark.Elapsed + " DrawPoly(" + points.toString() + ");");
     }
 
     private static RIP_POLYLINE(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         var count: number = parseInt(this._Buffer.substr(0, 2), 36);
         var points: Point[] = []; // TODO new Vector.<Point>(count);
 
@@ -1585,7 +1586,7 @@ class RIP {
         }
 
         Graph.DrawPoly(points);
-        // BENCHMARK console.log((getTimer() - FTimer) + " DrawPoly(" + points.toString() + ");");
+        console.log(this._Benchmark.Elapsed + " DrawPoly(" + points.toString() + ");");
     }
 
     private static RIP_PUT_IMAGE(): void {
@@ -1594,9 +1595,9 @@ class RIP {
         var mode: number = parseInt(this._Buffer.substr(4, 2), 36);
         var reserved: number = parseInt(this._Buffer.substr(6, 1), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.PutImage(x, y, this._Clipboard, mode);
-        // BENCHMARK console.log((getTimer() - FTimer) + " PutImage(" + x + ", " + y + ", " + mode + ");");
+        console.log(this._Benchmark.Elapsed + " PutImage(" + x + ", " + y + ", " + mode + ");");
     }
 
     private static RIP_QUERY(): void {
@@ -1604,9 +1605,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(1, 3), 36);
         var text: string = this._Buffer.substr(4, this._Buffer.length - 4);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.Query(mode, text);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Query(" + mode + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + " Query(" + mode + ", " + text + ");");
     }
 
     // Playback local .RIP file
@@ -1615,9 +1616,9 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(0, 8), 36);
         var filename: string = this._Buffer.substr(8, this._Buffer.length - 8);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.ReadScene(filename);
-        // BENCHMARK console.log((getTimer() - FTimer) + " ReadScene(" + filename + ");");
+        console.log(this._Benchmark.Elapsed + " ReadScene(" + filename + ");");
     }
 
     private static RIP_RECTANGLE(): void {
@@ -1626,9 +1627,9 @@ class RIP {
         var x2: number = parseInt(this._Buffer.substr(4, 2), 36);
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.Rectangle(x1, y1, x2, y2);
-        // BENCHMARK console.log((getTimer() - FTimer) + " Rectangle(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + " Rectangle(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     // Display a line of text in rectangular text region
@@ -1637,15 +1638,15 @@ class RIP {
         var justify: number = parseInt(this._Buffer.substr(0, 1), 36);
         var text: string = this._Buffer.substr(1, this._Buffer.length - 1);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.RegionText(justify, text);
-        // BENCHMARK console.log((getTimer() - FTimer) + " RegionText(" + justify + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + " RegionText(" + justify + ", " + text + ");");
     }
 
     private static RIP_RESET_WINDOWS(): void {
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.ResetWindows();
-        // BENCHMARK console.log((getTimer() - FTimer) + " ResetWindows();");
+        console.log(this._Benchmark.Elapsed + " ResetWindows();");
     }
 
     private static RIP_SET_PALETTE(): void {
@@ -1666,18 +1667,18 @@ class RIP {
         var c15: number = parseInt(this._Buffer.substr(28, 2), 36);
         var c16: number = parseInt(this._Buffer.substr(30, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetAllPalette([c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16]);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetPalette(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + c9 + ", " + c10 + ", " + c11 + ", " + c12 + ", " + c13 + ", " + c14 + ", " + c15 + ", " + c16 + ");");
+        console.log(this._Benchmark.Elapsed + " SetPalette(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + c9 + ", " + c10 + ", " + c11 + ", " + c12 + ", " + c13 + ", " + c14 + ", " + c15 + ", " + c16 + ");");
     }
 
     private static RIP_TEXT(): void {
         var text: string = this._Buffer;
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetTextJustify(TextJustification.Left, TextJustification.Top);
         Graph.OutText(text);
-        // BENCHMARK console.log((getTimer() - FTimer) + " OutText(" + text + ");");
+        console.log(this._Benchmark.Elapsed + " OutText(" + text + ");");
     }
 
     private static RIP_TEXT_WINDOW(): void {
@@ -1688,9 +1689,9 @@ class RIP {
         var wrap: number = parseInt(this._Buffer.substr(8, 1), 36);
         var size: number = parseInt(this._Buffer.substr(9, 1), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetTextWindow(x1, y1, x2, y2, wrap, size);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetTextWindow(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + wrap + ", " + size + ");");
+        console.log(this._Benchmark.Elapsed + " SetTextWindow(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + wrap + ", " + size + ");");
     }
 
     private static RIP_TEXT_XY(): void {
@@ -1698,10 +1699,10 @@ class RIP {
         var y: number = parseInt(this._Buffer.substr(2, 2), 36);
         var text: string = this._Buffer.substr(4, this._Buffer.length - 4);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetTextJustify(TextJustification.Left, TextJustification.Top);
         Graph.OutTextXY(x, y, text);
-        // BENCHMARK console.log((getTimer() - FTimer) + " TextXY(" + x + ", " + y + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + " TextXY(" + x + ", " + y + ", " + text + ");");
     }
 
     private static RIP_VIEWPORT(): void {
@@ -1710,9 +1711,9 @@ class RIP {
         var x2: number = parseInt(this._Buffer.substr(4, 2), 36);
         var y2: number = parseInt(this._Buffer.substr(6, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetViewPort(x1, y1, x2, y2, true);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetViewPort(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + " SetViewPort(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
     }
 
     // Write contents of the clipboard (icon) to disk
@@ -1721,17 +1722,17 @@ class RIP {
         var reserved: number = parseInt(this._Buffer.substr(0, 1), 36);
         var filename: string = this._Buffer.substr(1, this._Buffer.length - 1);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         this.WriteIcon(filename);
-        // BENCHMARK console.log((getTimer() - FTimer) + " WriteIcon(" + filename + ");");
+        console.log(this._Benchmark.Elapsed + " WriteIcon(" + filename + ");");
     }
 
     private static RIP_WRITE_MODE(): void {
         var mode: number = parseInt(this._Buffer.substr(0, 2), 36);
 
-        // BENCHMARK FTimer = getTimer();
+        this._Benchmark.Start();
         Graph.SetWriteMode(mode);
-        // BENCHMARK console.log((getTimer() - FTimer) + " SetWriteMode(" + mode + ");");
+        console.log(this._Benchmark.Elapsed + " SetWriteMode(" + mode + ");");
     }
 
     // Button style definition

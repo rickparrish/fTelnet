@@ -33,6 +33,7 @@
     <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
     <TypeScriptCompile Include="source\randm\actionscript\Rectangle.ts" />
     <None Include="source\randm\graph\rip\PopUp.ts.exclude" />
+    <TypeScriptCompile Include="source\randm\Benchmark.ts" />
     <TypeScriptCompile Include="source\randm\graph\StrokeFont.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginNegotiationState.ts" />

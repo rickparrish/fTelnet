@@ -1,4 +1,4 @@
-/*
+﻿/*
   fTelnet: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -17,18 +17,14 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-class FillSettings {
-    public Colour: number = 15;
-    public Pattern: boolean[][] = [];
-    public Style: number = FillStyle.Solid;
+class Benchmark {
+    private _StartTime: Date = null;
 
-    constructor() {
-        // Set default pattern
-        for (var y: number = 0; y < 8; y++) {
-            this.Pattern[y] = [];
-            for (var x: number = 0; x < 8; x++) {
-                this.Pattern[y][x] = true;
-            }
-        }
+    public get Elapsed(): number {
+        return (new Date()).getTime() - this._StartTime.getTime();
+    }
+
+    public Start(): void {
+        this._StartTime = new Date();
     }
 }
