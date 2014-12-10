@@ -177,7 +177,7 @@ class Graph {
 
             for (y = AY1; y <= AY2; y++) {
                 for (x = AX1; x <= AX2; x++) {
-                    this._CanvasContext.fillStyle = (this._FillSettings.Pattern[y][x] ? ColourOn : ColourOff);
+                    this._CanvasContext.fillStyle = (this._FillSettings.Pattern[y & 7][x & 7] ? ColourOn : ColourOff);
                     this._CanvasContext.fillRect(x, y, 1, 1);
                 }
                 XOffset += RowSkip;
@@ -528,6 +528,121 @@ class Graph {
     // seed point is within an enclosed area, then the inside will be filled. If
     // the seed is outside the enclosed area, then the exterior will be filled.
     public static FloodFill(AX: number, AY: number, ABorder: number): void {
+        // Adjust for modified viewport, if necessary
+        if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
+            // Convert to global coordinates
+            AX += this._ViewPortSettings.x1;
+            AY += this._ViewPortSettings.y1;
+
+            // Ensure that x and y are in the visible viewport
+            if ((AX < this._ViewPortSettings.x1) || (AX > this._ViewPortSettings.x2) || (AY < this._ViewPortSettings.y1) || (AY > this._ViewPortSettings.y2)) return;
+        }
+
+        // Determine whether Uint32 is little- or big-endian (FROM: http://jsfiddle.net/andrewjbaker/Fnx2w/)
+        // TODO Put this in Init so we don't have to recalcualte each time
+        var IsLittleEndian = true;
+        var EndianBuffer = new ArrayBuffer(4);
+        var Endian8 = new Uint8Array(EndianBuffer);
+        var Endian32 = new Uint32Array(EndianBuffer);
+        Endian32[0] = 0x0a0b0c0d;
+        if (Endian8[0] === 0x0a && Endian8[1] === 0x0b && Endian8[2] === 0x0c && Endian8[3] === 0x0d) {
+            IsLittleEndian = false;
+        }
+
+        // Precalculate the "on" and "off" colours
+        var BorderColour = this.CURRENT_PALETTE[ABorder];
+        var ColourOn = this.CURRENT_PALETTE[this._FillSettings.Colour];
+        var ColourOff = this.CURRENT_PALETTE[0]; // TODO Should 0 be this._BackColour?
+        if (IsLittleEndian) {
+            // Need to flip the colours for little endian machines
+            var R = (BorderColour & 0xFF0000) >> 16;
+            var G = (BorderColour & 0x00FF00) >> 8;
+            var B = (BorderColour & 0x0000FF) >> 0;
+            BorderColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
+
+            var R = (ColourOn & 0xFF0000) >> 16;
+            var G = (ColourOn & 0x00FF00) >> 8;
+            var B = (ColourOn & 0x0000FF) >> 0;
+            ColourOn = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
+
+            var R = (ColourOff & 0xFF0000) >> 16;
+            var G = (ColourOff & 0x00FF00) >> 8;
+            var B = (ColourOff & 0x0000FF) >> 0;
+            ColourOff = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
+        } else {
+            // Need to shift and add 0xFF for alpha channel
+            BorderColour = (BorderColour << 8) + 0x000000FF;
+            ColourOn = (ColourOn << 8) + 0x000000FF;
+            ColourOff = (ColourOff << 8) + 0x000000FF;
+        }
+
+        // Cache the canvas image
+        var PixelData: ImageData = this._CanvasContext.getImageData(0, 0, this.PIXELS_X, this.PIXELS_Y);
+        var Pixels = new Uint32Array(PixelData.data.buffer);
+
+        // Check if target point is already border colour
+        if (Pixels[AX + (AY * this.PIXELS_X)] === BorderColour) return;
+
+        var Visited: boolean[] = [];
+
+        // FROM: http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
+        var pixelStack: any[] = [[AX, AY]];
+        while (pixelStack.length) {
+            var newPos, x, y, pixelPos, reachLeft, reachRight;
+            newPos = pixelStack.pop();
+            x = newPos[0];
+            y = newPos[1];
+
+            pixelPos = (y * this.PIXELS_X + x);
+            while (y-- >= this._ViewPortSettings.y1 && (Pixels[pixelPos] !== BorderColour)) {
+                pixelPos -= this.PIXELS_X;
+            }
+            pixelPos += this.PIXELS_X;
+            ++y;
+            reachLeft = false;
+            reachRight = false;
+            while (y++ < this._ViewPortSettings.y2 - 1 && (Pixels[pixelPos] !== BorderColour)) {
+                Pixels[pixelPos] = (this._FillSettings.Pattern[y & 7][x & 7] ? ColourOn : ColourOff);
+                Visited[pixelPos] = true;
+
+                if ((x > this._ViewPortSettings.x1) && (!Visited[pixelPos - 1])) {
+                    if (Pixels[pixelPos - 1] !== BorderColour) {
+                        if (!reachLeft) {
+                            pixelStack.push([x - 1, y]); // Only look left from here TODO Not going to work
+                            reachLeft = true;
+                        }
+                    }
+                    else if (reachLeft) {
+                        reachLeft = false;
+                    }
+                }
+
+                if ((x < this._ViewPortSettings.x2 - 1) && (!Visited[pixelPos + 1])) {
+                    if (Pixels[pixelPos + 1] !== BorderColour) {
+                        if (!reachRight) {
+                            pixelStack.push([x + 1, y]); // Only look right from here TODO Not going to work
+                            reachRight = true;
+                        }
+                    }
+                    else if (reachRight) {
+                        reachRight = false;
+                    }
+                }
+
+                pixelPos += this.PIXELS_X;
+            }
+        }
+
+        this._CanvasContext.putImageData(PixelData, 0, 0);
+    }
+    
+    // Fills a bounded region with the current fill pattern and color.
+    // Fills an enclosed area on bitmap devices. (X, Y) is a seed within the
+    // enclosed area to be filled. The current fill pattern, as set by SetFillStyle
+    // or SetFillPattern, is used to flood the area bounded by Border color. If the
+    // seed point is within an enclosed area, then the inside will be filled. If
+    // the seed is outside the enclosed area, then the exterior will be filled.
+    public static OldFloodFill(AX: number, AY: number, ABorder: number): void {
         // Adjust for modified viewport, if necessary
         if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
             // Convert to global coordinates
