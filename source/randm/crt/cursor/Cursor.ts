@@ -41,7 +41,7 @@ class Cursor {
         this._BlinkRate = 500;
         this._BlinkState = BlinkState.Hide;
         // this._Canvas
-        this._Colour = '#' + colour.toString(16);
+        this._Colour = '#' + StringUtils.PadLeft(colour.toString(16), '0', 6);
         // this._Context
         this._Position = new Point(1, 1);
         this._Size = size;

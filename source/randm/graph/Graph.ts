@@ -156,7 +156,7 @@ class Graph {
             // Check which colour to use
             var Colour: number = (this._FillSettings.Style === FillStyle.Solid) ? this._FillSettings.Colour : this._BackColour;
             Colour = this.CURRENT_PALETTE[Colour];
-            this._CanvasContext.fillStyle = '#' + Colour.toString(16);
+            this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(Colour.toString(16), '0', 6);
 
             // Fill all the pixels with the specified colour TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
             for (y = AY1; y <= AY2; y++) {
@@ -170,7 +170,7 @@ class Graph {
             var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1)
             for (y = AY1; y <= AY2; y++) {
                 for (x = AX1; x <= AX2; x++) {
-                    this._CanvasContext.fillStyle = '#' + this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[XOffset++]].toString(16);
+                    this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[XOffset++]].toString(16), '0', 6);
                     this._CanvasContext.fillRect(x, y, 1, 1);
                 }
                 XOffset += RowSkip;
@@ -211,7 +211,7 @@ class Graph {
         var y1: number = parseInt(Crt.Canvas.style.top.replace('px', ''), 10);
         var y2: number = y1 + Crt.Canvas.height - 1;
 
-        this._CanvasContext.fillStyle = '#' + this.CURRENT_PALETTE[this._BackColour].toString(16);
+        this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._BackColour].toString(16), '0', 6);
 
         // Reset the pixels behind the text window TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
         for (var y: number = y1; y <= y2; y++) {
@@ -395,7 +395,7 @@ class Graph {
         var y1: number = parseInt(Crt.Canvas.style.top.replace('px', ''), 10) + ((Crt.WhereY() - 1) * Crt.Font.Height);
         var y2: number = y1 + Crt.Font.Height;
 
-        this._CanvasContext.fillStyle = '#' + this.CURRENT_PALETTE[this._BackColour].toString(16);
+        this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._BackColour].toString(16), '0', 6);
 
         // Reset the pixels behind the text window TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
         for (var y: number = y1; y <= y2; y++) {
@@ -526,12 +526,35 @@ class Graph {
             if ((AX < this._ViewPortSettings.x1) || (AX > this._ViewPortSettings.x2) || (AY < this._ViewPortSettings.y1) || (AY > this._ViewPortSettings.y2)) return;
         }
 
+        // Determine whether Uint32 is little- or big-endian (FROM: http://jsfiddle.net/andrewjbaker/Fnx2w/)
+        // TODO Put this in Init so we don't have to recalcualte each time
+        var IsLittleEndian = true;
+        var EndianBuffer = new ArrayBuffer(4);
+        var Endian8 = new Uint8Array(EndianBuffer);
+        var Endian32 = new Uint32Array(EndianBuffer);
+        Endian32[0] = 0x0a0b0c0d;
+        if (Endian8[0] === 0x0a && Endian8[1] === 0x0b && Endian8[2] === 0x0c && Endian8[3] === 0x0d) {
+            IsLittleEndian = false;
+        }
+
+        var BorderColour = this.CURRENT_PALETTE[ABorder];
+        if (IsLittleEndian) {
+            // Need to flip the colours for little endian machines
+            var R = (BorderColour & 0xFF0000) >> 16;
+            var G = (BorderColour & 0x00FF00) >> 8;
+            var B = (BorderColour & 0x0000FF) >> 0;
+            BorderColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
+        } else {
+            // Need to shift and add 0xFF for alpha channel
+            BorderColour = (BorderColour << 8) + 0x000000FF;
+        }
+
         // Cache the canvas image TODO This updated logic needs testing
         var PixelData: ImageData = this._CanvasContext.getImageData(0, 0, this.PIXELS_X, this.PIXELS_Y);
         var Pixels = new Uint32Array(PixelData.data.buffer);
         
         // Check if target point is already border colour point is in viewport
-        if ((Pixels[AX + (AY * this.PIXELS_X)] & 0x00FFFFFF) === this.CURRENT_PALETTE[ABorder]) return;
+        if (Pixels[AX + (AY * this.PIXELS_X)] === BorderColour) return;
 
         var ProcessPoints: number[] = [];
         var VisitedPoints: number[] = [];
@@ -562,13 +585,13 @@ class Graph {
             LeftEdge = Math.floor(ThisPoint / this.PIXELS_X) * this.PIXELS_X;
             if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) LeftEdge += this._ViewPortSettings.FromLeft;
             LeftStop = ThisPoint;
-            while ((LeftStop >= LeftEdge) && ((Pixels[LeftStop] & 0x00FFFFFF) !== this.CURRENT_PALETTE[ABorder])) LeftStop -= 1;
+            while ((LeftStop >= LeftEdge) && (Pixels[LeftStop] !== BorderColour)) LeftStop -= 1;
             LeftStop += 1;
 
             RightEdge = (Math.floor(ThisPoint / this.PIXELS_X) * this.PIXELS_X) + this.PIXELS_X - 1;
             if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) RightEdge -= this._ViewPortSettings.FromRight;
             RightStop = ThisPoint;
-            while ((RightStop <= RightEdge) && ((Pixels[RightStop] & 0x00FFFFFF) !== this.CURRENT_PALETTE[ABorder])) RightStop += 1;
+            while ((RightStop <= RightEdge) && (Pixels[RightStop] !== BorderColour)) RightStop += 1;
             RightStop -= 1;
 
             DidTop = false;
@@ -578,13 +601,25 @@ class Graph {
             DoSouth = ThisPoint <= ((this.PIXELS - 1) - this.PIXELS_X);
             if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) DoSouth = (ThisPoint <= ((this.PIXELS - 1) - ((this._ViewPortSettings.FromBottom + 1) * this.PIXELS_X)));
             for (var i: number = LeftStop; i <= RightStop; i++) {
-                Pixels[i] = 0xFF000000 | this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(i, this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]);
+                // TODO This seems very inefficient
+                var NewColour = this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(i, this.CURRENT_PALETTE[this._FillSettings.Colour & this._FillSettings.Pattern[i]]);
+                if (IsLittleEndian) {
+                    // Need to flip the colours for little endian machines
+                    var R = (NewColour & 0xFF0000) >> 16;
+                    var G = (NewColour & 0x00FF00) >> 8;
+                    var B = (NewColour & 0x0000FF) >> 0;
+                    NewColour = (0xFF << 24) + (B << 16) + (G << 8) + (R << 0);
+                } else {
+                    // Need to shift and add 0xFF for alpha channel
+                    NewColour = (NewColour << 8) + 0x000000FF;
+                }
+                Pixels[i] = NewColour;
                 VisitedPoints[i] = 1;
 
                 // Check above
                 if (DoNorth) {
                     NorthPoint = i - this.PIXELS_X;
-                    WantTop = ((VisitedPoints[NorthPoint] === 0) && ((Pixels[NorthPoint] & 0x00FFFFFF) !== this.CURRENT_PALETTE[ABorder]));
+                    WantTop = ((VisitedPoints[NorthPoint] === 0) && (Pixels[NorthPoint] !== BorderColour));
                     if (WantTop && !DidTop) {
                         ProcessPoints.push(NorthPoint);
                         DidTop = true;
@@ -596,7 +631,7 @@ class Graph {
                 // Check below
                 if (DoSouth) {
                     SouthPoint = i + this.PIXELS_X;
-                    WantBottom = ((VisitedPoints[SouthPoint] === 0) && ((Pixels[SouthPoint] & 0x00FFFFFF) !== this.CURRENT_PALETTE[ABorder]));
+                    WantBottom = ((VisitedPoints[SouthPoint] === 0) && (Pixels[SouthPoint] !== BorderColour));
                     if (WantBottom && !DidBottom) {
                         ProcessPoints.push(SouthPoint);
                         DidBottom = true;
@@ -1772,7 +1807,7 @@ class Graph {
         var Pos: number = AX + (AY * this.PIXELS_X);
         if ((Pos >= 0) && (Pos < this.PIXELS)) {
             // Indicate that we need to repaint
-            this._CanvasContext.fillStyle = '#' + this.CURRENT_PALETTE[APaletteIndex].toString(16);
+            this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[APaletteIndex].toString(16), '0', 6);
             this._CanvasContext.fillRect(AX, AY, 1, 1);
         }
     }

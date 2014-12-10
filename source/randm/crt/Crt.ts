@@ -912,7 +912,7 @@ class Crt {
         }
 
         // Blank -- TODO Hasn't been tested yet
-        this._CanvasContext.fillStyle = '#' + CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16);
+        this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
         Left = (left - 1) * this._Font.Width;
         Top = (top - 1) * this._Font.Height;
         Width = (right - left + 1) * this._Font.Width;
@@ -998,7 +998,7 @@ class Crt {
             }
 
             // Blank
-            this._CanvasContext.fillStyle = '#' + CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16);
+            this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
             Left = (left - 1) * this._Font.Width;
             Top = (bottom - count) * this._Font.Height;
             Width = (right - left + 1) * this._Font.Width;
