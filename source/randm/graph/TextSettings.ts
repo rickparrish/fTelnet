@@ -17,6 +17,7 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
+/// <reference path='TextOrientation.ts' />
 class TextSettings {
     public Direction: number = TextOrientation.Horizontal;
     public Font: number = 0;

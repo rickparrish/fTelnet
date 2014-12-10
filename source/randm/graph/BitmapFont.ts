@@ -19,9 +19,12 @@
 */
 class BitmapFont {
     // TODO Figure out a better way to do this, or load on demand like other fonts
-    public static Pixels: any[];
+    public static Loaded: boolean = false;
+    public static Pixels: any[] = [];
 
     public static Init(): void {
+        // TODO Strokes array initializes itself with blank fonts to avoid crashing.  BitmapFont should do the same in case the font fails to laod
+
         if (document.getElementById('fTelnetScript') !== null) {
             // TODO This logic is also in CrtFonts -- Should create a helper function so we don't have to duplicate this
             var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
@@ -39,6 +42,7 @@ class BitmapFont {
         var status = xhr.status;
         if (status == 200) {
             this.Pixels = JSON.parse(xhr.responseText)
+            this.Loaded = true;
         } else {
             alert('fTelnet Error: Unable to load RIP bitmap font');
             // TODO Retry with remote embed.ftelnet.ca url

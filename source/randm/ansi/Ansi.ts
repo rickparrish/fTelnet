@@ -17,6 +17,8 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
+/// <reference path='AnsiParserState.ts' />
+/// <reference path='../../3rdparty/TypedEvent.ts' />
 class Ansi {
     // Events
     public static onesc5n: IEvent = new TypedEvent();

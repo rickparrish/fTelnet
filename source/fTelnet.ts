@@ -18,6 +18,7 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path="randm/tcp/rlogin/RLoginConnection.ts" />
+/// <reference path="randm/graph/rip/RIP.ts" />
 class fTelnet {
     // Private variables
     private static _ButtonBar: HTMLDivElement = null;
@@ -114,7 +115,7 @@ class fTelnet {
         this._Container.appendChild(this._FocusWarningBar);
 
         // Seup the crt window
-        if ((this._RIP && Graph.Init(this._Container)) && Crt.Init(this._Container)) {
+        if (Crt.Init(this._Container) && (this._RIP && Graph.Init(this._Container))) {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
@@ -163,7 +164,11 @@ class fTelnet {
             Ansi.onesc255n.on((): void => { this.OnAnsiESC255n(); });
             Ansi.onescQ.on((font: string): void => { this.OnAnsiESCQ(font); });
 
-            Ansi.Write(atob(this._SplashScreen));
+            if (this._RIP) {
+                RIP.Parse(atob(this._SplashScreen));
+            } else {
+                Ansi.Write(atob(this._SplashScreen));
+            }
         } else {
             this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
             this._ButtonBar.style.display = 'none';

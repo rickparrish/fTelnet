@@ -88,7 +88,7 @@
     <TypeScriptCompile Include="source\randm\graph\Graph.ts" />
     <TypeScriptCompile Include="source\randm\graph\LineStyle.ts" />
     <TypeScriptCompile Include="source\randm\graph\LineThickness.ts" />
-    <None Include="source\randm\graph\rip\RIP.ts.exclude" />
+    <TypeScriptCompile Include="source\randm\graph\rip\RIP.ts" />
     <TypeScriptCompile Include="source\randm\graph\rip\RIPParserState.ts" />
     <TypeScriptCompile Include="source\randm\graph\rip\ButtonStyle.ts" />
     <TypeScriptCompile Include="source\randm\graph\rip\MouseButton.ts" />

@@ -23,6 +23,8 @@
 /// <reference path='StrokeFont.ts' />
 /// <reference path='TextSettings.ts' />
 /// <reference path='ViewPortSettings.ts' />
+/// <reference path='WriteMode.ts' />
+/// <reference path='../actionscript/Point.ts' />
 
 // doors menu club on card
 // user setup position of characters on buttons
@@ -73,7 +75,7 @@ class Graph {
     private static _CursorPosition: Point = new Point(0, 0);
     private static _FillEllipse: Boolean = false;
     private static _FillPolyMap: any = [];
-    private static _TextWindow: Rectangle = new Rectangle(0, 0, Crt.ScreenCols, Crt.ScreenRows);
+    private static _TextWindow: Rectangle = null;
     private static _WriteMode: number = WriteMode.Normal;
 
     public static PutPixel: IPutPixelFunction = Graph.PutPixelDefault;
@@ -81,8 +83,11 @@ class Graph {
     public static Init(container: HTMLElement): boolean {
         this._Container = container;
 
-        // Init BitmapFont.Pixels
+        this._TextWindow = new Rectangle(0, 0, Crt.ScreenCols, Crt.ScreenRows);
+
+        // Init fonts
         BitmapFont.Init();
+        StrokeFont.Init();
 
         // Create the canvas
         this._Canvas = document.createElement('canvas');

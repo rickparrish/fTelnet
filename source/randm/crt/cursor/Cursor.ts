@@ -17,6 +17,8 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
+/// <reference path='BlinkState.ts' />
+/// <reference path='../../../3rdparty/Offset.ts' />
 class Cursor {
     // Events
     public onhide: IEvent = new TypedEvent();

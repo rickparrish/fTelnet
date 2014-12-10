@@ -24,9 +24,7 @@ class StrokeFont {
     public static Strokes: any[] = [];
     public static Loaded: Boolean = false;
 
-    //TODO private static _StrokeLoader: URLLoader;
-
-    private static InitStrokesArray(): void {
+    public static Init(): void {
         // This initializes the strokes array so that all 256 chars in all 10 fonts are blank
         // This is so if we fail loading the strokes array from the HTTP server, the client won't crash (but it means stroke font text won't display)
         for (var Stroke: number = 0; Stroke < 10; Stroke++) {
@@ -36,36 +34,28 @@ class StrokeFont {
             }
             this.Strokes.push(Chars);
         }
+
+        if (document.getElementById('fTelnetScript') !== null) {
+            // TODO This logic is also in CrtFonts -- Should create a helper function so we don't have to duplicate this
+            var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
+            var JsonUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/fonts/RIP-Strokes.json');
+            JsonUrl = JsonUrl.replace('/ftelnet.debug.js', '/fonts/RIP-Strokes.json');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('get', JsonUrl, true);
+            xhr.onload = (): void => { this.OnJsonLoad(xhr); }
+            xhr.send();
+        }
     }
 
-    //TODO
-    //private static OnStrokeLoaderComplete(e: Event): void {
-    //    var File: ZipFile = new ZipFile(e.target.data);
-    //    var BA: ByteArray = File.getInput(File.entries[0]);
-    //    Strokes = com.adobe.serialization.json.JSON.decode(BA.readMultiByte(BA.length, "ascii"));
-    //    Loaded = true;
-    //}
-
-    //private static OnStrokeLoaderIOError(ioe: IOErrorEvent): void {
-    //    trace("Error loading StrokeFont.zip: " + ioe);
-    //    Loaded = true;
-    //}
-
-    //	// Static constructor
-    //	{
-    //// Initialize to empty strokes array
-    //InitStrokesArray();
-
-    //// Load the Stokes.json
-    //FStrokeLoader = new URLLoader();
-    //FStrokeLoader.addEventListener(Event.COMPLETE, OnStrokeLoaderComplete);
-    //FStrokeLoader.addEventListener(IOErrorEvent.IO_ERROR, OnStrokeLoaderIOError);
-    //FStrokeLoader.dataFormat = URLLoaderDataFormat.BINARY;
-    //try {
-    //    FStrokeLoader.load(new URLRequest("http://www.ftelnet.ca/ftelnet-resources/fonts/StrokeFont.zip"));
-    //} catch (e: Error) {
-    //    // Probably try to load via file://
-    //    OnStrokeLoaderIOError(new IOErrorEvent("LoadError"));
-    //}
-    //	}
+    private static OnJsonLoad(xhr: XMLHttpRequest) {
+        var status = xhr.status;
+        if (status == 200) {
+            this.Strokes = JSON.parse(xhr.responseText);
+            this.Loaded = true;
+        } else {
+            alert('fTelnet Error: Unable to load RIP stroke fonts');
+            // TODO Retry with remote embed.ftelnet.ca url
+        }
+    }
 }
