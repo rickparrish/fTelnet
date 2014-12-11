@@ -22,9 +22,10 @@
 class fTelnet {
     // Private variables
     private static _ButtonBar: HTMLDivElement = null;
+    private static _ClientContainer: HTMLDivElement = null;
     private static _Connection: WebSocketConnection = null;
-    private static _Container: HTMLElement = null;
     private static _FocusWarningBar: HTMLDivElement = null;
+    private static _fTelnetContainer: HTMLElement = null;
     private static _HasFocus: boolean = true;
     private static _InitMessageBar: HTMLDivElement = null;
     private static _LastTimer: number = 0;
@@ -64,13 +65,13 @@ class fTelnet {
             alert('fTelnet Error: Element with id="fTelnetContainer" was not found');
             return false;
         }
-        this._Container = document.getElementById('fTelnetContainer');
+        this._fTelnetContainer = document.getElementById('fTelnetContainer');
 
         // Add init message
         this._InitMessageBar = document.createElement('div');
         this._InitMessageBar.id = 'fTelnetInitMessage';
         this._InitMessageBar.innerHTML = 'Initializing fTelnet...';
-        this._Container.appendChild(this._InitMessageBar);
+        this._fTelnetContainer.appendChild(this._InitMessageBar);
 
         // IE less than 9.0 will throw script errors and not even load
         if (navigator.appName === 'Microsoft Internet Explorer') {
@@ -93,7 +94,7 @@ class fTelnet {
         '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a> | ' +
         '<a href="#" onclick="fTelnet.FullScreenToggle();">Full&nbsp;Screen<a/>';
         this._ButtonBar.style.display = (this._ButtonBarVisible ? 'block' : 'none');
-        this._Container.appendChild(this._ButtonBar);
+        this._fTelnetContainer.appendChild(this._ButtonBar);
 
         // Create the scrollback bar
         this._ScrollbackBar = document.createElement('div');
@@ -104,7 +105,7 @@ class fTelnet {
         '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' +
         '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a>';
         this._ScrollbackBar.style.display = 'none';
-        this._Container.appendChild(this._ScrollbackBar);
+        this._fTelnetContainer.appendChild(this._ScrollbackBar);
         // TODO Also have a span to hold the current line number
 
         // Create the focus bar
@@ -112,10 +113,15 @@ class fTelnet {
         this._FocusWarningBar.id = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO GIVE fTelnet FOCUS ***';
         this._FocusWarningBar.style.display = 'none';
-        this._Container.appendChild(this._FocusWarningBar);
+        this._fTelnetContainer.appendChild(this._FocusWarningBar);
+
+        // Create the client container (crt/graph)
+        this._ClientContainer = document.createElement('div');
+        this._ClientContainer.id = 'fTelnetClientContainer';
+        this._fTelnetContainer.appendChild(this._ClientContainer);
 
         // Seup the crt window
-        if (Crt.Init(this._Container) && (!this._RIP || Graph.Init(this._Container))) {
+        if (Crt.Init(this._ClientContainer) && (!this._RIP || Graph.Init(this._ClientContainer))) {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
@@ -150,10 +156,10 @@ class fTelnet {
             this._StatusBar.id = 'fTelnetStatusBar';
             this._StatusBar.innerHTML = 'Not connected';
             this._StatusBar.style.display = (this._StatusBarVisible ? 'block' : 'none');
-            this._Container.appendChild(this._StatusBar);
+            this._fTelnetContainer.appendChild(this._StatusBar);
 
             // Create the virtual keyboard
-            VirtualKeyboard.Init(this._Container);
+            VirtualKeyboard.Init(this._fTelnetContainer);
 
             // Size the scrollback and button divs
             this.OnCrtScreenSizeChanged();
@@ -189,7 +195,7 @@ class fTelnet {
         fTelnetUpload.id = 'fTelnetUpload';
         fTelnetUpload.onchange = (): void => { this.OnUploadFileSelected(); };
         fTelnetUpload.style.display = 'none';
-        this._Container.appendChild(fTelnetUpload);
+        this._fTelnetContainer.appendChild(fTelnetUpload);
 
         return true;
     }
@@ -347,14 +353,14 @@ class fTelnet {
 
     public static FullScreenToggle(): void {
         if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-            if (this._Container.requestFullscreen) {
-                this._Container.requestFullscreen();
-            } else if (this._Container.msRequestFullscreen) {
-                this._Container.msRequestFullscreen();
-            } else if (this._Container.mozRequestFullScreen) {
-                this._Container.mozRequestFullScreen();
-            } else if (this._Container.webkitRequestFullscreen) {
-                this._Container.webkitRequestFullscreen((<any>Element).ALLOW_KEYBOARD_INPUT);
+            if (this._fTelnetContainer.requestFullscreen) {
+                this._fTelnetContainer.requestFullscreen();
+            } else if (this._fTelnetContainer.msRequestFullscreen) {
+                this._fTelnetContainer.msRequestFullscreen();
+            } else if (this._fTelnetContainer.mozRequestFullScreen) {
+                this._fTelnetContainer.mozRequestFullScreen();
+            } else if (this._fTelnetContainer.webkitRequestFullscreen) {
+                this._fTelnetContainer.webkitRequestFullscreen((<any>Element).ALLOW_KEYBOARD_INPUT);
             }
         } else {
             if (document.exitFullscreen) {

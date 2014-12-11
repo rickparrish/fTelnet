@@ -1,7 +1,11 @@
-﻿#fTelnetContainer canvas {
-    display: block;
+﻿#fTelnetContainer {
     margin: auto;
 }
+
+    #fTelnetContainer canvas {
+        display: block;
+        margin: auto;
+    }
 
 #fTelnetButtons {
     background-color: green;
@@ -16,7 +20,12 @@
         color: white;
         text-decoration: none;
     }
-    
+
+#fTelnetClientContainer {
+    position: relative;
+    margin: auto;
+}
+
 #fTelnetFocusWarning {
     background-color: red;
     color: white;

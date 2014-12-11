@@ -53,6 +53,7 @@ class Cursor {
         this._Canvas = document.createElement('canvas');
         if (this._Canvas.getContext) {
             this._Canvas.style.position = 'absolute';
+            this._Canvas.style.zIndex = '100'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
             this._Context = this._Canvas.getContext('2d');
             parent.appendChild(this._Canvas);
 

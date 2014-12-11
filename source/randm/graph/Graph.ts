@@ -93,8 +93,13 @@ class Graph {
         this._Canvas = document.createElement('canvas');
         this._Canvas.id = 'fTelnetGraphCanvas';
         this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
+        this._Canvas.style.position = 'absolute';
+        this._Canvas.style.zIndex = '0';
         this._Canvas.width = this.PIXELS_X;
         this._Canvas.height = this.PIXELS_Y;
+
+        // Adjust container to fixed width
+        this._Container.style.width = this.PIXELS_X.toString(10) + 'px';
 
         // Check for Canvas support
         if (!this._Canvas.getContext) {
