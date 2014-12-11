@@ -204,8 +204,8 @@ class Graph {
             usquared = u * u;
             ucubed = usquared * u;
 
-            nextx = ucubed * (x4 + 3 * (x2 - x3) - x1) + 3 * usquared * (x1 - 2 * x2 + x3) + 3 * u * (x2 - x1) + x1;
-            nexty = ucubed * (y4 + 3 * (y2 - y3) - y1) + 3 * usquared * (y1 - 2 * y2 + y3) + 3 * u * (y2 - y1) + y1;
+            nextx = Math.round(ucubed * (x4 + 3 * (x2 - x3) - x1) + 3 * usquared * (x1 - 2 * x2 + x3) + 3 * u * (x2 - x1) + x1); // TODO floor or round?
+            nexty = Math.round(ucubed * (y4 + 3 * (y2 - y3) - y1) + 3 * usquared * (y1 - 2 * y2 + y3) + 3 * u * (y2 - y1) + y1); // TODO floor or round?
             this.Line(lastx, lasty, nextx, nexty);
 
             lastx = nextx;
