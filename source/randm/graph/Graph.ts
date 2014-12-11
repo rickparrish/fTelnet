@@ -101,6 +101,7 @@ class Graph {
         // Adjust container to fixed width and height
         this._Container.style.width = this.PIXELS_X.toString(10) + 'px';
         this._Container.style.height = this.PIXELS_Y.toString(10) + 'px';
+        Crt.Canvas.style.position = 'absolute';
 
         // Check for Canvas support
         if (!this._Canvas.getContext) {
