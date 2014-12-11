@@ -43,12 +43,12 @@ class StrokeFont {
 
             var xhr: XMLHttpRequest = new XMLHttpRequest();
             xhr.open('get', JsonUrl, true);
-            xhr.onload = (): void => { this.OnJsonLoad(xhr); }
+            xhr.onload = (): void => { this.OnJsonLoad(xhr); };
             xhr.send();
         }
     }
 
-    private static OnJsonLoad(xhr: XMLHttpRequest) {
+    private static OnJsonLoad(xhr: XMLHttpRequest): void {
         var status: number = xhr.status;
         if (status === 200) {
             this.Strokes = JSON.parse(xhr.responseText);

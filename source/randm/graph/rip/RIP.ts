@@ -54,8 +54,8 @@ class RIP {
 
     // TODO OnEnterFrame is where action happens, and MouseDown is for buttons
     //// Add the enter frame event listener, where the real parsing happens
-    //Graph.Canvas.addEventListener(Event.ENTER_FRAME, OnEnterFrame);
-    //Graph.Canvas.addEventListener(MouseEvent.MOUSE_DOWN, OnMouseDown);
+    // Graph.Canvas.addEventListener(Event.ENTER_FRAME, OnEnterFrame);
+    // Graph.Canvas.addEventListener(MouseEvent.MOUSE_DOWN, OnMouseDown);
 
     // Define a rectangular text region
     // Status: Not Implemented
@@ -87,9 +87,9 @@ class RIP {
         var label: string = '';
         var hostcommand: string = '';
         var textarray: string[] = text.split('<>');
-        if (textarray.length >= 3) hostcommand = this.HandleCtrlKeys(textarray[2]);
-        if (textarray.length >= 2) label = textarray[1];
-        if (textarray.length >= 1) iconfile = textarray[0];
+        if (textarray.length >= 3) { hostcommand = this.HandleCtrlKeys(textarray[2]); }
+        if (textarray.length >= 2) { label = textarray[1]; }
+        if (textarray.length >= 1) { iconfile = textarray[0]; }
 
         if ((this._ButtonStyle.flags & 128) === 128) {
             console.log('Button() doesn\'t support the icon type');
@@ -120,10 +120,10 @@ class RIP {
         Graph.SetFillSettings(OldFillSettings);
 
         // Add bevel, if necessary
-        //var BevelSize: number = 0;
+        // var BevelSize: number = 0;
         if ((this._ButtonStyle.flags & 512) === 512) {
-            Graph.SetLineStyle(LineStyle.Solid, 0, 1);// TODO Must restore at end
-            Graph.SetFillStyle(FillStyle.Solid, this._ButtonStyle.bright);// TODO Must restore at end
+            Graph.SetLineStyle(LineStyle.Solid, 0, 1); // TODO Must restore at end
+            Graph.SetFillStyle(FillStyle.Solid, this._ButtonStyle.bright); // TODO Must restore at end
             Graph.SetColour(this._ButtonStyle.bright);
 
             var Trapezoid: Point[] = [];
@@ -393,7 +393,7 @@ class RIP {
 
         // Ensure the filename ends with .ICN
         filename = filename.toUpperCase();
-        if (filename.indexOf('.') === -1) filename += '.ICN';
+        if (filename.indexOf('.') === -1) { filename += '.ICN'; }
 
         // Load from remote server since it's not in the cache
         // TODO
@@ -512,18 +512,17 @@ class RIP {
         this.OnEnterFrame(null); // TODO hackish way to get the processing done
     }
 
-    private static OnEnterFrame(e: Event): void
-    {
+    private static OnEnterFrame(e: Event): void {
         while (this._InputBuffer.length > 0) {
             // Don't process anything if we're waiting on an icon to load from the HTTP server
             // Need to do this in case we load an icon in clipboard mode, since the call to 
             // PutImage() will not work right since we don't have the data in the clipboard yet
-            if (this._IconsLoading > 0) return;
+            if (this._IconsLoading > 0) { return; }
 
             // Don't process anything if we're waiting for the stroke font to load from the HTTP server
             // Need to do this in case we want to write in stroke font mode, since the fonts are loaded remotely
-            //TODO if (!BitmapFont.Loaded) return;
-            //TODO if (!StrokeFont.Loaded) return;
+            if (!BitmapFont.Loaded) { return; }
+            if (!StrokeFont.Loaded) { return; }
 
             var Code: number = this._InputBuffer.shift();
             var Ch: string = String.fromCharCode(Code);
@@ -542,7 +541,7 @@ class RIP {
                         this._RIPParserState = RIPParserState.GotPipe;
                     } else {
                         this._LineStarting = (Code === 10);
-                        if (this._LineStarting) this._LineStartedWithRIP = false;
+                        if (this._LineStarting) { this._LineStartedWithRIP = false; }
                         Ansi.Write(Ch);
                     }
                     break;
@@ -647,7 +646,9 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_TEXT_XY();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case '#': // no more
@@ -813,7 +814,9 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_TEXT();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'V': // oval arc
@@ -879,7 +882,9 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_QUERY();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'B': // button style
@@ -898,7 +903,9 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_DEFINE();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'E': // end text
@@ -909,7 +916,9 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_FILE_QUERY();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'G': // copy region
@@ -922,7 +931,9 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_LOAD_ICON();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'K': // kill mouse fields
@@ -933,7 +944,9 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_MOUSE();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'P': // put image
@@ -946,7 +959,9 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_READ_SCENE();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'T': // begin text
@@ -959,21 +974,27 @@ class RIP {
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_REGION_TEXT();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'U': // button
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_BUTTON();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                             case 'W': // write icon
                                 if (this._DoTextCommand) {
                                     this._DoTextCommand = false;
                                     this.RIP_WRITE_ICON();
-                                    if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                    if (this._RIPParserState === RIPParserState.GotCommand) {
+                                        this._RIPParserState = RIPParserState.None;
+                                    }
                                 }
                                 break;
                         }
@@ -983,7 +1004,9 @@ class RIP {
                             if (this._DoTextCommand) {
                                 this._DoTextCommand = false;
                                 this.RIP_ENTER_BLOCK_MODE();
-                                if (this._RIPParserState === RIPParserState.GotCommand) this._RIPParserState = RIPParserState.None;
+                                if (this._RIPParserState === RIPParserState.GotCommand) {
+                                    this._RIPParserState = RIPParserState.None;
+                                }
                             }
                         }
                         break;
@@ -1139,7 +1162,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Arc(xcenter, ycenter, startangle, endangle, radius);
-        console.log(this._Benchmark.Elapsed + " Arc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
+        console.log(this._Benchmark.Elapsed + ' Arc(' + xcenter + ', ' + ycenter + ', ' + startangle + ', ' + endangle + ', ' + radius + ');');
     }
 
     private static RIP_BAR(): void {
@@ -1150,7 +1173,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Bar(x1, y1, x2, y2);
-        console.log(this._Benchmark.Elapsed + " Bar(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + ' Bar(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ');');
     }
 
     private static RIP_BEGIN_TEXT(): void {
@@ -1162,7 +1185,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.BeginText(x1, y1, x2, y2);
-        console.log(this._Benchmark.Elapsed + " BeginText(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + ' BeginText(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ');');
     }
 
     private static RIP_BEZIER(): void {
@@ -1178,7 +1201,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Bezier(x1, y1, x2, y2, x3, y3, x4, y4, count);
-        console.log(this._Benchmark.Elapsed + " Bezier(" + x1 + ", " + y1 + ", " +  x2 + ", " +  y2 + ", " +  x3 + ", " +  y3 + ", " +  x4 + ", " +  y4 + ", " + count + ");");
+        console.log(this._Benchmark.Elapsed + ' Bezier(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ', ' + x3 + ', ' + y3 + ', ' + x4 + ', ' + y4 + ', ' + count + ');');
     }
 
     private static RIP_BUTTON(): void {
@@ -1193,7 +1216,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.Button(x1, y1, x2, y2, hotkey, flags, text);
-        console.log(this._Benchmark.Elapsed + " Button(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + hotkey + ", " + flags + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + ' Button(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ', ' + hotkey + ', ' + flags + ', ' + text + ');');
     }
 
     private static RIP_BUTTON_STYLE(): void {
@@ -1215,7 +1238,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.SetButtonStyle(width, height, orientation, flags, bevelsize, dfore, dback, bright, dark, surface, groupid, flags2, underlinecolour, cornercolour);
-        console.log(this._Benchmark.Elapsed + " SetButtonStyle(" + width + ", " + height + ", " + orientation + ", " + flags + ", " + bevelsize + ", " + dfore + ", " + dback + ", " + bright + ", " + dark + ", " + surface + ", " + groupid + ", " + flags2 + ", " + underlinecolour + ", " + cornercolour + ");");
+        console.log(this._Benchmark.Elapsed + ' SetButtonStyle(' + width + ', ' + height + ', ' + orientation + ', ' + flags + ', ' + bevelsize + ', ' + dfore + ', ' + dback + ', ' + bright + ', ' + dark + ', ' + surface + ', ' + groupid + ', ' + flags2 + ', ' + underlinecolour + ', ' + cornercolour + ');');
     }
 
     private static RIP_CIRCLE(): void {
@@ -1225,7 +1248,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Circle(xcenter, ycenter, radius);
-        console.log(this._Benchmark.Elapsed + " Circle(" + xcenter + ", " + ycenter + ", " + radius + ");");
+        console.log(this._Benchmark.Elapsed + ' Circle(' + xcenter + ', ' + ycenter + ', ' + radius + ');');
     }
 
     private static RIP_COLOUR(): void {
@@ -1233,7 +1256,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetColour(colour);
-        console.log(this._Benchmark.Elapsed + " SetColour(" + colour + ");");
+        console.log(this._Benchmark.Elapsed + ' SetColour(' + colour + ');');
     }
 
     private static RIP_COPY_REGION(): void {
@@ -1246,7 +1269,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.CopyRegion(x1, y1, x2, y2, desty);
-        console.log(this._Benchmark.Elapsed + " CopyRegion(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + desty + ");");
+        console.log(this._Benchmark.Elapsed + ' CopyRegion(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ', ' + desty + ');');
     }
 
     // Define a text variable
@@ -1258,13 +1281,13 @@ class RIP {
 
         this._Benchmark.Start();
         this.Define(flags, text);
-        console.log(this._Benchmark.Elapsed + " Define(" + flags + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + ' Define(' + flags + ', ' + text + ');');
     }
 
     private static RIP_END_TEXT(): void {
         this._Benchmark.Start();
         this.EndText();
-        console.log(this._Benchmark.Elapsed + " EndText();");
+        console.log(this._Benchmark.Elapsed + ' EndText();');
     }
 
     // Enter block transfer mode with host
@@ -1278,25 +1301,25 @@ class RIP {
 
         this._Benchmark.Start();
         this.EnterBlockMode(mode, protocol, filetype, filename);
-        console.log(this._Benchmark.Elapsed + " EnterBlockMode(" + mode + ", " + protocol + ", " + filetype + ", " + filename + ");");
+        console.log(this._Benchmark.Elapsed + ' EnterBlockMode(' + mode + ', ' + protocol + ', ' + filetype + ', ' + filename + ');');
     }
 
     private static RIP_ERASE_EOL(): void {
         this._Benchmark.Start();
         Graph.EraseEOL();
-        console.log(this._Benchmark.Elapsed + " EraseEOL();");
+        console.log(this._Benchmark.Elapsed + ' EraseEOL();');
     }
 
     private static RIP_ERASE_VIEW(): void {
         this._Benchmark.Start();
         Graph.ClearViewPort();
-        console.log(this._Benchmark.Elapsed + " EraseView();");
+        console.log(this._Benchmark.Elapsed + ' EraseView();');
     }
 
     private static RIP_ERASE_WINDOW(): void {
         this._Benchmark.Start();
         Graph.ClearTextWindow();
-        console.log(this._Benchmark.Elapsed + " EraseWindow();");
+        console.log(this._Benchmark.Elapsed + ' EraseWindow();');
     }
 
     // Query existing information on a particular file
@@ -1308,7 +1331,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.FileQuery(mode, filename);
-        console.log(this._Benchmark.Elapsed + " FileQuery(" + mode + ", " + filename + ");");
+        console.log(this._Benchmark.Elapsed + ' FileQuery(' + mode + ', ' + filename + ');');
     }
 
     private static RIP_FILL(): void {
@@ -1318,7 +1341,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.FloodFill(x, y, border);
-        console.log(this._Benchmark.Elapsed + " Fill(" + x + ", " + y + ", " + border + ");");
+        console.log(this._Benchmark.Elapsed + ' Fill(' + x + ', ' + y + ', ' + border + ');');
     }
 
     private static RIP_FILL_PATTERN(): void {
@@ -1335,7 +1358,7 @@ class RIP {
         this._Benchmark.Start();
         Graph.SetFillStyle(FillStyle.User, colour);
         Graph.SetFillPattern([c1, c2, c3, c4, c5, c6, c7, c8], colour);
-        console.log(this._Benchmark.Elapsed + " SetFillPattern(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + colour + ");");
+        console.log(this._Benchmark.Elapsed + ' SetFillPattern(' + c1 + ', ' + c2 + ', ' + c3 + ', ' + c4 + ', ' + c5 + ', ' + c6 + ', ' + c7 + ', ' + c8 + ', ' + colour + ');');
     }
 
     private static RIP_FILL_STYLE(): void {
@@ -1344,7 +1367,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetFillStyle(pattern, colour);
-        console.log(this._Benchmark.Elapsed + " SetFillStyle(" + pattern + ", " + colour + ");");
+        console.log(this._Benchmark.Elapsed + ' SetFillStyle(' + pattern + ', ' + colour + ');');
     }
 
     private static RIP_FILLED_OVAL(): void {
@@ -1355,7 +1378,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.FillEllipse(xcenter, ycenter, xradius, yradius);
-        console.log(this._Benchmark.Elapsed + " Graph.FillEllipse(" + xcenter + ", " + ycenter + ", " + xradius + ", " + yradius + ");");
+        console.log(this._Benchmark.Elapsed + ' Graph.FillEllipse(' + xcenter + ', ' + ycenter + ', ' + xradius + ', ' + yradius + ');');
     }
 
     private static RIP_FILLED_POLYGON(): void {
@@ -1370,7 +1393,7 @@ class RIP {
             points.push(new Point(points[0].x, points[0].y));
 
             Graph.FillPoly(points);
-            console.log(this._Benchmark.Elapsed + " FillPoly(" + points.toString() + ");");
+            console.log(this._Benchmark.Elapsed + ' FillPoly(' + points.toString() + ');');
         } else {
             console.log('RIP_FILLED_POLYGON with ' + count + ' points is not allowed');
         }
@@ -1384,7 +1407,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetTextStyle(font, direction, size);
-        console.log(this._Benchmark.Elapsed + " SetFontStyle(" + font + ", " + direction + ", " + size + ");");
+        console.log(this._Benchmark.Elapsed + ' SetFontStyle(' + font + ', ' + direction + ', ' + size + ');');
     }
 
     private static RIP_GET_IMAGE(): void {
@@ -1401,7 +1424,7 @@ class RIP {
 
         this._Benchmark.Start();
         this._Clipboard = Graph.GetImage(x1, y1, x2, y2);
-        console.log(this._Benchmark.Elapsed + " GetImage(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + ' GetImage(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ');');
     }
 
     private static RIP_GOTOXY(): void {
@@ -1410,19 +1433,19 @@ class RIP {
 
         this._Benchmark.Start();
         Crt.GotoXY(x, y);
-        console.log(this._Benchmark.Elapsed + " Crt.GotoXY(" + x + ", " + y + ");");
+        console.log(this._Benchmark.Elapsed + ' Crt.GotoXY(' + x + ', ' + y + ');');
     }
 
     private static RIP_HOME(): void {
         this._Benchmark.Start();
         Crt.GotoXY(1, 1);
-        console.log(this._Benchmark.Elapsed + " Crt.GotoXY(1, 1);");
+        console.log(this._Benchmark.Elapsed + ' Crt.GotoXY(1, 1);');
     }
 
     private static RIP_KILL_MOUSE_FIELDS(): void {
         this._Benchmark.Start();
         this.KillMouseFields();
-        console.log(this._Benchmark.Elapsed + " KillMouseFields();");
+        console.log(this._Benchmark.Elapsed + ' KillMouseFields();');
     }
 
     private static RIP_LINE(): void {
@@ -1433,7 +1456,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Line(x1, y1, x2, y2);
-        console.log(this._Benchmark.Elapsed + " Line(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + ' Line(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ');');
     }
 
     private static RIP_LINE_STYLE(): void {
@@ -1443,7 +1466,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetLineStyle(style, userpattern, thickness);
-        console.log(this._Benchmark.Elapsed + " SetLineStyle(" + style + ", " + userpattern + ", " + thickness + ");");
+        console.log(this._Benchmark.Elapsed + ' SetLineStyle(' + style + ', ' + userpattern + ', ' + thickness + ');');
     }
 
     private static RIP_LOAD_ICON(): void {
@@ -1456,7 +1479,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.LoadIcon(x, y, mode, clipboard, filename);
-        console.log(this._Benchmark.Elapsed + " LoadIcon(" + x + ", " + y + ", " + mode + ", " + clipboard + ", " + filename + ");");
+        console.log(this._Benchmark.Elapsed + ' LoadIcon(' + x + ', ' + y + ', ' + mode + ', ' + clipboard + ', ' + filename + ');');
     }
 
     // Defines a rectangular hot mouse region
@@ -1475,10 +1498,10 @@ class RIP {
         this._Benchmark.Start();
         // TODO Move this into a function
         var flags: number = 0;
-        if (invert === 1) flags |= 2;
-        if (clear === 1) flags |= 4;
+        if (invert === 1) { flags |= 2; }
+        if (clear === 1) { flags |= 4; }
         this._MouseFields.push(new MouseButton(new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1), hostcommand, flags, ''));
-        console.log(this._Benchmark.Elapsed + " this._MouseFields.push(new MouseButton(new Rectangle(" + x1 + ", " + y1 + ", " + (x2 - x1 + 1) + ", " + (y2 - y1 + 1) + "), " + hostcommand + ", " + flags + ", " + "''));");
+        console.log(this._Benchmark.Elapsed + ' this._MouseFields.push(new MouseButton(new Rectangle(' + x1 + ', ' + y1 + ', ' + (x2 - x1 + 1) + ', ' + (y2 - y1 + 1) + '), ' + hostcommand + ', ' + flags + ', \'\')');
     }
 
     private static RIP_MOVE(): void {
@@ -1487,7 +1510,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.MoveTo(x, y);
-        console.log(this._Benchmark.Elapsed + " Graph.MoveTo(" + x + ", " + y + ");");
+        console.log(this._Benchmark.Elapsed + ' Graph.MoveTo(' + x + ', ' + y + ');');
     }
 
     private static RIP_NO_MORE(): void {
@@ -1500,7 +1523,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetPalette(colour, value);
-        console.log(this._Benchmark.Elapsed + " OnePalette(" + colour + ", " + value + ");");
+        console.log(this._Benchmark.Elapsed + ' OnePalette(' + colour + ', ' + value + ');');
     }
 
     private static RIP_OVAL(): void {
@@ -1513,7 +1536,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Ellipse(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        console.log(this._Benchmark.Elapsed + " Oval(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        console.log(this._Benchmark.Elapsed + ' Oval(' + xcenter + ', ' + ycenter + ', ' + startangle + ', ' + endangle + ', ' + xradius + ', ' + yradius + ');');
     }
 
     private static RIP_OVAL_ARC(): void {
@@ -1526,7 +1549,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Ellipse(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        console.log(this._Benchmark.Elapsed + " OvalArc(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        console.log(this._Benchmark.Elapsed + ' OvalArc(' + xcenter + ', ' + ycenter + ', ' + startangle + ', ' + endangle + ', ' + xradius + ', ' + yradius + ');');
     }
 
     private static RIP_OVAL_PIE_SLICE(): void {
@@ -1539,7 +1562,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Sector(xcenter, ycenter, startangle, endangle, xradius, yradius);
-        console.log(this._Benchmark.Elapsed + " Graph.Sector(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  xradius + ", " +  yradius + ");");
+        console.log(this._Benchmark.Elapsed + ' Graph.Sector(' + xcenter + ', ' + ycenter + ', ' + startangle + ', ' + endangle + ', ' + xradius + ', ' + yradius + ');');
     }
 
     private static RIP_PIE_SLICE(): void {
@@ -1551,7 +1574,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.PieSlice(xcenter, ycenter, startangle, endangle, radius);
-        console.log(this._Benchmark.Elapsed + " Graph.PieSlice(" + xcenter + ", " + ycenter + ", " +  startangle + ", " +  endangle + ", " +  radius + ");");
+        console.log(this._Benchmark.Elapsed + ' Graph.PieSlice(' + xcenter + ', ' + ycenter + ', ' + startangle + ', ' + endangle + ', ' + radius + ');');
     }
 
     private static RIP_PIXEL(): void {
@@ -1560,7 +1583,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.PutPixel(x, y, Graph.GetColour());
-        console.log(this._Benchmark.Elapsed + " Pixel(" + x + ", " + y + ");");
+        console.log(this._Benchmark.Elapsed + ' Pixel(' + x + ', ' + y + ');');
     }
 
     private static RIP_POLYGON(): void {
@@ -1574,7 +1597,7 @@ class RIP {
         points.push(new Point(points[0].x, points[0].y));
 
         Graph.DrawPoly(points);
-        console.log(this._Benchmark.Elapsed + " DrawPoly(" + points.toString() + ");");
+        console.log(this._Benchmark.Elapsed + ' DrawPoly(' + points.toString() + ');');
     }
 
     private static RIP_POLYLINE(): void {
@@ -1587,7 +1610,7 @@ class RIP {
         }
 
         Graph.DrawPoly(points);
-        console.log(this._Benchmark.Elapsed + " DrawPoly(" + points.toString() + ");");
+        console.log(this._Benchmark.Elapsed + ' DrawPoly(' + points.toString() + ');');
     }
 
     private static RIP_PUT_IMAGE(): void {
@@ -1598,7 +1621,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.PutImage(x, y, this._Clipboard, mode);
-        console.log(this._Benchmark.Elapsed + " PutImage(" + x + ", " + y + ", " + mode + ");");
+        console.log(this._Benchmark.Elapsed + ' PutImage(' + x + ', ' + y + ', ' + mode + ');');
     }
 
     private static RIP_QUERY(): void {
@@ -1608,7 +1631,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.Query(mode, text);
-        console.log(this._Benchmark.Elapsed + " Query(" + mode + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + ' Query(' + mode + ', ' + text + ');');
     }
 
     // Playback local .RIP file
@@ -1619,7 +1642,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.ReadScene(filename);
-        console.log(this._Benchmark.Elapsed + " ReadScene(" + filename + ");");
+        console.log(this._Benchmark.Elapsed + ' ReadScene(' + filename + ');');
     }
 
     private static RIP_RECTANGLE(): void {
@@ -1630,7 +1653,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.Rectangle(x1, y1, x2, y2);
-        console.log(this._Benchmark.Elapsed + " Rectangle(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + ' Rectangle(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ');');
     }
 
     // Display a line of text in rectangular text region
@@ -1641,13 +1664,13 @@ class RIP {
 
         this._Benchmark.Start();
         this.RegionText(justify, text);
-        console.log(this._Benchmark.Elapsed + " RegionText(" + justify + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + ' RegionText(' + justify + ', ' + text + ');');
     }
 
     private static RIP_RESET_WINDOWS(): void {
         this._Benchmark.Start();
         this.ResetWindows();
-        console.log(this._Benchmark.Elapsed + " ResetWindows();");
+        console.log(this._Benchmark.Elapsed + ' ResetWindows();');
     }
 
     private static RIP_SET_PALETTE(): void {
@@ -1670,7 +1693,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetAllPalette([c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16]);
-        console.log(this._Benchmark.Elapsed + " SetPalette(" + c1 + ", " + c2 + ", " + c3 + ", " + c4 + ", " + c5 + ", " + c6 + ", " + c7 + ", " + c8 + ", " + c9 + ", " + c10 + ", " + c11 + ", " + c12 + ", " + c13 + ", " + c14 + ", " + c15 + ", " + c16 + ");");
+        console.log(this._Benchmark.Elapsed + ' SetPalette(' + c1 + ', ' + c2 + ', ' + c3 + ', ' + c4 + ', ' + c5 + ', ' + c6 + ', ' + c7 + ', ' + c8 + ', ' + c9 + ', ' + c10 + ', ' + c11 + ', ' + c12 + ', ' + c13 + ', ' + c14 + ', ' + c15 + ', ' + c16 + ');');
     }
 
     private static RIP_TEXT(): void {
@@ -1679,7 +1702,7 @@ class RIP {
         this._Benchmark.Start();
         Graph.SetTextJustify(TextJustification.Left, TextJustification.Top);
         Graph.OutText(text);
-        console.log(this._Benchmark.Elapsed + " OutText(" + text + ");");
+        console.log(this._Benchmark.Elapsed + ' OutText(' + text + ');');
     }
 
     private static RIP_TEXT_WINDOW(): void {
@@ -1692,7 +1715,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetTextWindow(x1, y1, x2, y2, wrap, size);
-        console.log(this._Benchmark.Elapsed + " SetTextWindow(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", " + wrap + ", " + size + ");");
+        console.log(this._Benchmark.Elapsed + ' SetTextWindow(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ', ' + wrap + ', ' + size + ');');
     }
 
     private static RIP_TEXT_XY(): void {
@@ -1703,7 +1726,7 @@ class RIP {
         this._Benchmark.Start();
         Graph.SetTextJustify(TextJustification.Left, TextJustification.Top);
         Graph.OutTextXY(x, y, text);
-        console.log(this._Benchmark.Elapsed + " TextXY(" + x + ", " + y + ", " + text + ");");
+        console.log(this._Benchmark.Elapsed + ' TextXY(' + x + ', ' + y + ', ' + text + ');');
     }
 
     private static RIP_VIEWPORT(): void {
@@ -1714,7 +1737,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetViewPort(x1, y1, x2, y2, true);
-        console.log(this._Benchmark.Elapsed + " SetViewPort(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ");");
+        console.log(this._Benchmark.Elapsed + ' SetViewPort(' + x1 + ', ' + y1 + ', ' + x2 + ', ' + y2 + ');');
     }
 
     // Write contents of the clipboard (icon) to disk
@@ -1725,7 +1748,7 @@ class RIP {
 
         this._Benchmark.Start();
         this.WriteIcon(filename);
-        console.log(this._Benchmark.Elapsed + " WriteIcon(" + filename + ");");
+        console.log(this._Benchmark.Elapsed + ' WriteIcon(' + filename + ');');
     }
 
     private static RIP_WRITE_MODE(): void {
@@ -1733,7 +1756,7 @@ class RIP {
 
         this._Benchmark.Start();
         Graph.SetWriteMode(mode);
-        console.log(this._Benchmark.Elapsed + " SetWriteMode(" + mode + ");");
+        console.log(this._Benchmark.Elapsed + ' SetWriteMode(' + mode + ');');
     }
 
     // Button style definition
