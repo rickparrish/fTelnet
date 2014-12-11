@@ -146,8 +146,21 @@ class CrtFont {
     }
 
     public Load(font: string, maxWidth: number, maxHeight: number): boolean {
-        // Find the biggest instance of the given font
-        var BestFit: Point = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
+        var BestFit: Point = null;
+        if (font.indexOf('_') >= 0) {
+            // Passed in a specific font size (ie RIP_8x8), so don't use GetBestFit
+            if (CrtFonts.HasFont(font)) {
+                var NameSize = font.split('_');
+                var WidthHeight = NameSize[1].split('x');
+                BestFit = new Point(parseInt(WidthHeight[0], 10), parseInt(WidthHeight[1], 10));
+                font = NameSize[0];
+            }
+        } else {
+            // Find the biggest instance of the given font
+            BestFit = CrtFonts.GetBestFit(font, maxWidth, maxHeight);
+        }
+
+        // Confirm a match was found
         if (BestFit === null) {
             console.log('fTelnet Error: Font CP=' + font + ' does not exist');
             return false;
@@ -190,25 +203,31 @@ class CrtFont {
         this._Png.onload = (): void => { this.OnPngLoad(); };
         this._Png.onerror = (): void => {
             alert('fTelnet Error: Unable to load requested font');
+            this._Loading -= 1;
         };
         this._Png.src = CrtFonts.GetRemoteUrl(this._NewName, this._NewSize.x, this._NewSize.y);
     }
 
     private OnPngLoad(): void {
-        this._Name = this._NewName;
-        this._Size = this._NewSize;
+        if (this._Loading === 1) {
+            this._Name = this._NewName;
+            this._Size = this._NewSize;
 
-        // Reset Canvas
-        this._Canvas.width = this._Png.width;
-        this._Canvas.height = this._Png.height;
-        this._CanvasContext.drawImage(this._Png, 0, 0);
+            // Reset Canvas
+            this._Canvas.width = this._Png.width;
+            this._Canvas.height = this._Png.height;
+            this._CanvasContext.drawImage(this._Png, 0, 0);
 
-        // Reset CharMap
-        this._CharMap = [];
+            // Reset CharMap
+            this._CharMap = [];
 
-        // Raise change event
-        this._Loading -= 1;
-        this.onchange.trigger();
+            // Raise change event
+            this._Loading -= 1;
+            this.onchange.trigger();
+        } else {
+            // Others are still loading, just indicate this one finished
+            this._Loading -= 1;
+        }
     }
 
     public get Size(): Point {

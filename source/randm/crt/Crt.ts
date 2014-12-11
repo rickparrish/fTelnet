@@ -75,6 +75,7 @@ class Crt {
     public static PETSCII_LIGHTGRAY: number = 15;
 
     /* Private variables */
+    private static _AllowDynamicFontResize: Boolean = true;
     private static _Atari: boolean = false;
     private static _ATASCIIEscaped: boolean = false;
     private static _BareLFtoCRLF: boolean = false;
@@ -797,7 +798,9 @@ class Crt {
 
     private static OnResize(): void {
         // See if we can switch to a different font size
-        Crt.SetFont(this._Font.Name);
+        if (this._AllowDynamicFontResize) {
+            Crt.SetFont(this._Font.Name);
+        }
     }
 
     public static PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
@@ -1127,6 +1130,10 @@ class Crt {
 
         // Reset the screen buffer 
         this.InitBuffers(false);
+
+        // Update the canvas
+        this._Canvas.height = this._Font.Height * this._ScreenSize.y;
+        this._Canvas.width = this._Font.Width * this._ScreenSize.x;
 
         // Restore the screen contents
         // TODO If new screen is smaller than old screen, restore bottom portion not top portion

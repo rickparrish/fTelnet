@@ -17,6 +17,7 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
+/// <reference path="randm/ansi/Ansi.ts" />
 /// <reference path="randm/tcp/rlogin/RLoginConnection.ts" />
 /// <reference path="randm/graph/rip/RIP.ts" />
 class fTelnet {
@@ -41,6 +42,7 @@ class fTelnet {
     private static _Blink: boolean = true;
     private static _ButtonBarVisible: boolean = true;
     private static _ConnectionType: string = 'telnet';
+    private static _Emulation: string = 'ansi-bbs';
     private static _Enter: string = '\r';
     private static _Font: string = 'CP437';
     private static _Hostname: string = 'bbs.ftelnet.ca';
@@ -49,7 +51,6 @@ class fTelnet {
     private static _ProxyHostname: string = '';
     private static _ProxyPort: number = 1123;
     private static _ProxyPortSecure: number = 11235;
-    private static _RIP: boolean = false;
     private static _RLoginClientUsername: string = '';
     private static _RLoginServerUsername: string = '';
     private static _RLoginTerminalType: string = '';
@@ -121,7 +122,7 @@ class fTelnet {
         this._fTelnetContainer.appendChild(this._ClientContainer);
 
         // Seup the crt window
-        if (Crt.Init(this._ClientContainer) && (!this._RIP || Graph.Init(this._ClientContainer))) {
+        if (Crt.Init(this._ClientContainer) && ((this._Emulation !== 'RIP') || Graph.Init(this._ClientContainer))) {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
@@ -173,7 +174,7 @@ class fTelnet {
             Ansi.onripdisable.on((): void => { this.OnAnsiRIPDisable(); });
             Ansi.onripenable.on((): void => { this.OnAnsiRIPEnable(); });
 
-            if (this._RIP) {
+            if (this._Emulation === 'RIP') {
                 RIP.Parse(atob(this._SplashScreen));
             } else {
                 Ansi.Write(atob(this._SplashScreen));
@@ -321,6 +322,23 @@ class fTelnet {
         this._YModemReceive.Download();
     }
 
+    public static get Emulation(): string {
+        return this._Emulation;
+    }
+
+    public static set Emulation(value: string) {
+        switch (value) {
+            case 'RIP':
+                this._Emulation = 'RIP';
+                this._Font = 'RIP_8x8';
+                this._ScreenRows = 43;
+                break;
+            default:
+                this._Emulation = 'ansi-bbs';
+                break;
+        }
+    }
+
     public static get Enter(): string {
         return this._Enter;
     }
@@ -440,7 +458,7 @@ class fTelnet {
         if (this._ConnectionType === 'rlogin') {
             var TerminalType: string = this._RLoginTerminalType;
             if (TerminalType === '') {
-                TerminalType = 'ansi-bbs/' + this._BitsPerSecond; // TODO ansi-bbs can be this._Emulation, once its added
+                TerminalType = this._Emulation + '/' + this._BitsPerSecond;
             }
             this._Connection.writeString(String.fromCharCode(0) + this._RLoginClientUsername + String.fromCharCode(0) + this._RLoginServerUsername + String.fromCharCode(0) + TerminalType + String.fromCharCode(0));
             this._Connection.flush();
@@ -517,7 +535,7 @@ class fTelnet {
             // Read the number of bytes we want
             var Data: string = this._Connection.readString(BytesToRead);
             if (Data.length > 0) {
-                if (this._RIP) {
+                if (this._Emulation === 'RIP') {
                     RIP.Parse(Data);
                 } else {
                     Ansi.Write(Data);
@@ -597,14 +615,6 @@ class fTelnet {
 
     public static set ProxyPortSecure(value: number) {
         this._ProxyPortSecure = value;
-    }
-
-    public static get RIP(): boolean {
-        return this._RIP;
-    }
-
-    public static set RIP(value: boolean) {
-        this._RIP = value;
     }
 
     public static get RLoginClientUsername(): string {

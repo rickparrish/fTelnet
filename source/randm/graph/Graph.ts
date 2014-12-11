@@ -98,8 +98,9 @@ class Graph {
         this._Canvas.width = this.PIXELS_X;
         this._Canvas.height = this.PIXELS_Y;
 
-        // Adjust container to fixed width
+        // Adjust container to fixed width and height
         this._Container.style.width = this.PIXELS_X.toString(10) + 'px';
+        this._Container.style.height = this.PIXELS_Y.toString(10) + 'px';
 
         // Check for Canvas support
         if (!this._Canvas.getContext) {
@@ -2198,27 +2199,27 @@ class Graph {
                     case 0:
                         Crt.Canvas.style.left = (AX1 * 8) + 'px';
                         Crt.Canvas.style.top = (AY1 * 8) + 'px';
-                        // TODO Crt.SetFont("RIP", 8, 8);
+                        Crt.SetFont("RIP_8x8");
                         break;
                     case 1:
                         Crt.Canvas.style.left = (AX1 * 7) + 'px';
                         Crt.Canvas.style.top = (AY1 * 8) + 'px';
-                        // TODO Crt.SetFont("RIP", 7, 8);
+                        Crt.SetFont("RIP_7x8");
                         break;
                     case 2:
                         Crt.Canvas.style.left = (AX1 * 8) + 'px';
                         Crt.Canvas.style.top = (AY1 * 14) + 'px';
-                        // TODO Crt.SetFont("RIP", 8, 14);
+                        Crt.SetFont("RIP_8x14");
                         break;
                     case 3:
                         Crt.Canvas.style.left = (AX1 * 7) + 'px';
                         Crt.Canvas.style.top = (AY1 * 14) + 'px';
-                        // TODO Crt.SetFont("RIP", 7, 14);
+                        Crt.SetFont("RIP_7x14");
                         break;
                     case 4:
                         Crt.Canvas.style.left = (AX1 * 16) + 'px';
                         Crt.Canvas.style.top = (AY1 * 14) + 'px';
-                        // TODO Crt.SetFont("RIP", 16, 14);
+                        Crt.SetFont("RIP_16x14");
                         break;
                 }
                 Crt.TextAttr = 15;

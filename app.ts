@@ -5,6 +5,7 @@
 // Add method for writing data to remote server
 // Add ability to hide virtual keyboard
 // Add ability to show virtual keyboard (if hidden)
+// RIP fonts need to be optimized
 
 // Testing results:
 

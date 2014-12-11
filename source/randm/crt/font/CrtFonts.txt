@@ -58,6 +58,11 @@ CP865_8x13.png
 CP865_9x16.png
 CP866_9x16.png
 CP869_9x16.png
+RIP_7x8.png
+RIP_7x14.png
+RIP_8x8.png
+RIP_8x14.png
+RIP_16x14.png
 SyncTerm-0_8x14.png
 SyncTerm-0_8x16.png
 SyncTerm-0_8x8.png
