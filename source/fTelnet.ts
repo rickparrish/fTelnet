@@ -269,8 +269,12 @@ class fTelnet {
         this._Connection.onsecurityerror.on((): void => { this.OnConnectionSecurityError(); });
 
         // Reset display
-        Crt.NormVideo();
-        Crt.ClrScr();
+        if (this._Emulation === 'RIP') {
+            RIP.ResetWindows();
+        } else {
+            Crt.NormVideo();
+            Crt.ClrScr();
+        }
 
         // Make connection
         if (this._ProxyHostname === '') {

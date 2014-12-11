@@ -30,6 +30,7 @@
 /// <reference path='../../actionscript/Rectangle.ts' />
 /// <reference path='../../ansi/Ansi.ts' />
 /// <reference path='../../crt/Crt.ts' />
+/// <reference path='../../Benchmark.ts' />
 class RIP {
     /* Private variables */
     private static _Benchmark: Benchmark = new Benchmark();

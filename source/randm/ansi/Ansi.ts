@@ -19,6 +19,7 @@
 */
 /// <reference path='AnsiParserState.ts' />
 /// <reference path='../../3rdparty/TypedEvent.ts' />
+/// <reference path='../actionscript/Point.ts' />
 class Ansi {
     // Events
     public static onesc5n: IEvent = new TypedEvent();
