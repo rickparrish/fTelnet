@@ -764,7 +764,7 @@ class Crt {
 
         var keyString: string = '';
 
-        if (ke.ctrlKey) { return; } // This is only meant for regular keypresses
+        if (ke.altKey || ke.ctrlKey) { return; } // This is only meant for regular keypresses
 
         // Opera doesn't give us the charCode, so try which in that case
         var which: number = (ke.charCode !== null) ? ke.charCode : ke.which;
@@ -783,7 +783,9 @@ class Crt {
                 keyString = String.fromCharCode(which).toUpperCase();
             }
         } else {
-            if ((which >= 33) && (which <= 126)) {
+            // TODO This breaks input of French accented chars.  Is there a problem with the simplified check?
+            // if ((which >= 33) && (which <= 126)) {
+            if (which >= 33) {
                 keyString = String.fromCharCode(which);
             }
         }
