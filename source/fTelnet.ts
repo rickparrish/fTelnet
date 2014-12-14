@@ -21,6 +21,9 @@
 /// <reference path="randm/tcp/rlogin/RLoginConnection.ts" />
 /// <reference path="randm/graph/rip/RIP.ts" />
 class fTelnet {
+    // Events
+    public static ondata: IMessageEvent = new TypedEvent();
+
     // Private variables
     private static _ButtonBar: HTMLDivElement = null;
     private static _ClientContainer: HTMLDivElement = null;
@@ -539,6 +542,7 @@ class fTelnet {
             // Read the number of bytes we want
             var Data: string = this._Connection.readString(BytesToRead);
             if (Data.length > 0) {
+                this.ondata.trigger(Data);
                 if (this._Emulation === 'RIP') {
                     RIP.Parse(Data);
                 } else {
@@ -678,6 +682,12 @@ class fTelnet {
 
         if (this._StatusBar != null) {
             this._StatusBar.style.display = (value ? 'block' : 'none');
+        }
+    }
+
+    public static StuffInputBuffer(text: string): void {
+        for (var i: number = 0; i < text.length; i++) {
+            Crt.PushKeyPress(text.charCodeAt(i), 0, false, false, false);
         }
     }
 
