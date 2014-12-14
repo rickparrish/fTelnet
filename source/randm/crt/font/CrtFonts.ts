@@ -84,7 +84,7 @@ class CrtFonts {
     }
 
     public static GetRemoteUrl(font: string, width: number, height: number): string {
-        var PngUrl: string = 'http://embed.ftelnet.ca/ftelnet/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png';
+        var PngUrl: string = '//embed.ftelnet.ca/ftelnet/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png';
         return PngUrl;
     }
 
