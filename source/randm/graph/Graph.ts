@@ -119,6 +119,9 @@ class Graph {
 
         this.GraphDefaults();
 
+        // TODO Should RIP.Init call Graph.Init?
+        RIP.Init();
+
         return true;
     }
 
@@ -165,8 +168,8 @@ class Graph {
             Colour = this.CURRENT_PALETTE[Colour];
             this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(Colour.toString(16), '0', 6);
 
-            // Fill all the pixels with the specified colour TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
-            // TODO Confirm that this doesn't cause anti-aliasing
+            // Fill all the pixels with the specified colour
+            // TODO Confirm that this doesn't cause anti-aliasing in any browsers (Firefox seems OK)
             this._CanvasContext.fillRect(AX1, AY1, AX2 - AX1 + 1, AY2 - AY1 + 1);
             //for (y = AY1; y <= AY2; y++) {
             //    for (x = AX1; x <= AX2; x++) {
@@ -216,6 +219,10 @@ class Graph {
 
         // Let the curve end on the second anchorPoint
         this.Line(lastx, lasty, x4, y4);
+    }
+
+    public static get Canvas(): HTMLCanvasElement {
+        return this._Canvas;
     }
 
     // Clears the text window with the current background colour and homes the cursor
@@ -447,7 +454,7 @@ class Graph {
         for (var y: number = 0; y <= this.PIXELS_Y; y++) {
             this._FillPolyMap[y] = [];
         }
-        
+
         // Draw the polygon (override this.PutPixel() to the version that records pixel locations first)
         this.PutPixel = this.PutPixelPoly;
         this.DrawPoly(APoints);
@@ -615,7 +622,7 @@ class Graph {
                 if ((x > this._ViewPortSettings.x1) && (!Visited[pixelPos - 1])) {
                     if (Pixels[pixelPos - 1] !== BorderColour) {
                         if (!reachLeft) {
-                            pixelStack.push([x - 1, y]); // Only look left from here TODO Not going to work
+                            pixelStack.push([x - 1, y]); // Only look left from here
                             reachLeft = true;
                         }
                     }
@@ -627,7 +634,7 @@ class Graph {
                 if ((x < this._ViewPortSettings.x2 - 1) && (!Visited[pixelPos + 1])) {
                     if (Pixels[pixelPos + 1] !== BorderColour) {
                         if (!reachRight) {
-                            pixelStack.push([x + 1, y]); // Only look right from here TODO Not going to work
+                            pixelStack.push([x + 1, y]); // Only look right from here
                             reachRight = true;
                         }
                     }
@@ -637,146 +644,6 @@ class Graph {
                 }
 
                 pixelPos += this.PIXELS_X;
-            }
-        }
-
-        this._CanvasContext.putImageData(PixelData, 0, 0);
-    }
-    
-    // Fills a bounded region with the current fill pattern and color.
-    // Fills an enclosed area on bitmap devices. (X, Y) is a seed within the
-    // enclosed area to be filled. The current fill pattern, as set by SetFillStyle
-    // or SetFillPattern, is used to flood the area bounded by Border color. If the
-    // seed point is within an enclosed area, then the inside will be filled. If
-    // the seed is outside the enclosed area, then the exterior will be filled.
-    public static OldFloodFill(AX: number, AY: number, ABorder: number): void {
-        // Adjust for modified viewport, if necessary
-        if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
-            // Convert to global coordinates
-            AX += this._ViewPortSettings.x1;
-            AY += this._ViewPortSettings.y1;
-
-            // Ensure that x and y are in the visible viewport
-            if ((AX < this._ViewPortSettings.x1) || (AX > this._ViewPortSettings.x2) || (AY < this._ViewPortSettings.y1) || (AY > this._ViewPortSettings.y2)) return;
-        }
-
-        // Determine whether Uint32 is little- or big-endian (FROM: http://jsfiddle.net/andrewjbaker/Fnx2w/)
-        // TODO Put this in Init so we don't have to recalcualte each time
-        var IsLittleEndian = true;
-        var EndianBuffer = new ArrayBuffer(4);
-        var Endian8 = new Uint8Array(EndianBuffer);
-        var Endian32 = new Uint32Array(EndianBuffer);
-        Endian32[0] = 0x0a0b0c0d;
-        if (Endian8[0] === 0x0a && Endian8[1] === 0x0b && Endian8[2] === 0x0c && Endian8[3] === 0x0d) {
-            IsLittleEndian = false;
-        }
-
-        // Precalculate the "on" and "off" colours
-        var BorderColour = this.CURRENT_PALETTE[ABorder];
-        var ColourOn = this.CURRENT_PALETTE[this._FillSettings.Colour];
-        var ColourOff = this.CURRENT_PALETTE[0]; // TODO Should 0 be this._BackColour?
-        if (IsLittleEndian) {
-            // Need to flip the colours for little endian machines
-            var R = (BorderColour & 0xFF0000) >> 16;
-            var G = (BorderColour & 0x00FF00) >> 8;
-            var B = (BorderColour & 0x0000FF) >> 0;
-            BorderColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
-
-            var R = (ColourOn & 0xFF0000) >> 16;
-            var G = (ColourOn & 0x00FF00) >> 8;
-            var B = (ColourOn & 0x0000FF) >> 0;
-            ColourOn = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
-
-            var R = (ColourOff & 0xFF0000) >> 16;
-            var G = (ColourOff & 0x00FF00) >> 8;
-            var B = (ColourOff & 0x0000FF) >> 0;
-            ColourOff = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
-        } else {
-            // Need to shift and add 0xFF for alpha channel
-            BorderColour = (BorderColour << 8) + 0x000000FF;
-            ColourOn = (ColourOn << 8) + 0x000000FF;
-            ColourOff = (ColourOff << 8) + 0x000000FF;
-        }
-
-        // Cache the canvas image
-        var PixelData: ImageData = this._CanvasContext.getImageData(0, 0, this.PIXELS_X, this.PIXELS_Y);
-        var Pixels = new Uint32Array(PixelData.data.buffer);
-        
-        // Check if target point is already border colour
-        if (Pixels[AX + (AY * this.PIXELS_X)] === BorderColour) return;
-
-        var ProcessPoints: number[] = [];
-        var VisitedPoints: number[] = [];
-        for (var i: number = 0; i < this.PIXELS; i++) {
-            VisitedPoints[i] = 0;
-        }
-
-        ProcessPoints.push(AX + (AY * this.PIXELS_X));
-
-        var ThisPoint: number;
-        var NorthPoint: number;
-        var SouthPoint: number;
-        var EastPoint: number;
-        var WestPoint: number;
-        var LeftEdge: number;
-        var RightEdge: number;
-        var LeftStop: number;
-        var RightStop: number;
-        var WantTop: Boolean;
-        var WantBottom: Boolean;
-        var DidTop: Boolean;
-        var DidBottom: Boolean;
-        var DoNorth: Boolean;
-        var DoSouth: Boolean;
-        while (ProcessPoints.length > 0) {
-            ThisPoint = ProcessPoints.pop();
-
-            LeftEdge = Math.floor(ThisPoint / this.PIXELS_X) * this.PIXELS_X;
-            if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) LeftEdge += this._ViewPortSettings.FromLeft;
-            LeftStop = ThisPoint;
-            while ((LeftStop >= LeftEdge) && (Pixels[LeftStop] !== BorderColour)) LeftStop -= 1;
-            LeftStop += 1;
-
-            RightEdge = (Math.floor(ThisPoint / this.PIXELS_X) * this.PIXELS_X) + this.PIXELS_X - 1;
-            if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) RightEdge -= this._ViewPortSettings.FromRight;
-            RightStop = ThisPoint;
-            while ((RightStop <= RightEdge) && (Pixels[RightStop] !== BorderColour)) RightStop += 1;
-            RightStop -= 1;
-            
-            DidTop = false;
-            DidBottom = false;
-            DoNorth = ThisPoint >= this.PIXELS_X;
-            if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) DoNorth = (ThisPoint >= (this._ViewPortSettings.FromTop + 1) * this.PIXELS_X);
-            DoSouth = ThisPoint <= ((this.PIXELS - 1) - this.PIXELS_X);
-            if (this._ViewPortSettings.Clip && !this._ViewPortSettings.FullScreen) DoSouth = (ThisPoint <= ((this.PIXELS - 1) - ((this._ViewPortSettings.FromBottom + 1) * this.PIXELS_X)));
-            for (var i: number = LeftStop; i <= RightStop; i++) {
-                // TODO Pixels[i] = (this._FillSettings.Pattern[i] ? ColourOn : ColourOff);
-                Pixels[i] = ColourOn; // TODO Need to get the above working with a 2d array
-                VisitedPoints[i] = 1;
-
-                // Check above
-                if (DoNorth) {
-                    NorthPoint = i - this.PIXELS_X;
-                    WantTop = ((VisitedPoints[NorthPoint] === 0) && (Pixels[NorthPoint] !== BorderColour));
-                    if (WantTop && !DidTop) {
-                        ProcessPoints.push(NorthPoint);
-                        DidTop = true;
-                    } else if (!WantTop && DidTop) {
-                        DidTop = false;
-                    }
-                }
-
-                // Check below
-                if (DoSouth) {
-                    SouthPoint = i + this.PIXELS_X;
-                    WantBottom = ((VisitedPoints[SouthPoint] === 0) && (Pixels[SouthPoint] !== BorderColour));
-                    if (WantBottom && !DidBottom) {
-                        ProcessPoints.push(SouthPoint);
-                        DidBottom = true;
-                    } else if (!WantBottom && DidBottom) {
-                        DidBottom = false;
-                    }
-                }
             }
         }
 
@@ -848,8 +715,8 @@ class Graph {
         // Adjust for modified viewport, if necessary
         if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
             // Convert to global coordinates
-            AX1 += this._ViewPortSettings.x1
-				AY1 += this._ViewPortSettings.y1;
+            AX1 += this._ViewPortSettings.x1;
+            AY1 += this._ViewPortSettings.y1;
             AX2 += this._ViewPortSettings.x1;
             AY2 += this._ViewPortSettings.y1;
 
@@ -868,11 +735,13 @@ class Graph {
         var Pixels = PixelData.data;
 
         // Loop over each pixel and invert the color.
-        for (var i = 0, n = Pixels.length; i < n; i += 4) {
-            Pixels[i] = 255 - Pixels[i]; // red
-            Pixels[i + 1] = 255 - Pixels[i + 1]; // green
-            Pixels[i + 2] = 255 - Pixels[i + 2]; // blue
-            // i+3 is alpha (the fourth element)
+        for (var y: number = AY1; y <= AY2; y++) {
+            for (var i = (y * this.PIXELS_X * 4) + (AX1 * 4), n = (y * this.PIXELS_X * 4) + (AX2 * 4); i <= n; i += 4) {
+                Pixels[i] = 255 - Pixels[i]; // red
+                Pixels[i + 1] = 255 - Pixels[i + 1]; // green
+                Pixels[i + 2] = 255 - Pixels[i + 2]; // blue
+                // i+3 is alpha (the fourth element)
+            }
         }
 
         // Draw the ImageData at the given (x,y) coordinates.
@@ -2069,7 +1938,6 @@ class Graph {
     // user-defined pattern (set by a call to SetFillPattern) becomes the active
     // pattern.
     public static SetFillStyle(AStyle: number, AColour: number): void {
-        // TODO Should only need to set the pattern if the style is changing, but there was a bug in that somewhere so we're doing it this way for now
         switch (AStyle) {
             // TODO Test each of the fill patterns to ensure they match
             case 0: this.SetFillPattern([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], AColour); break;

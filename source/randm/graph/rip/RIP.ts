@@ -52,10 +52,12 @@ class RIP {
     private static _RIPParserState: number = RIPParserState.None;
     private static _SubLevel: number = 0;
 
-    // TODO OnEnterFrame is where action happens, and MouseDown is for buttons
-    //// Add the enter frame event listener, where the real parsing happens
-    // Graph.Canvas.addEventListener(Event.ENTER_FRAME, OnEnterFrame);
-    // Graph.Canvas.addEventListener(MouseEvent.MOUSE_DOWN, OnMouseDown);
+    public static Init(): void {
+        // TODO OnEnterFrame is where action happens, and MouseDown is for buttons
+        //// Add the enter frame event listener, where the real parsing happens
+        // Graph.Canvas.addEventListener(Event.ENTER_FRAME, OnEnterFrame);
+        Graph.Canvas.addEventListener('mousedown', RIP.OnGraphCanvasMouseDown);
+    }
 
     // Define a rectangular text region
     // Status: Not Implemented
@@ -275,7 +277,7 @@ class RIP {
 
         // Store mouse button, if necessary
         if ((this._ButtonStyle.flags & 1024) === 1024) {
-            //TODO this._MouseFields.push(new MouseButton(InvertCoords, hostcommand, this._ButtonStyle.flags, String.fromCharCode(hotkey)));
+            this._MouseFields.push(new MouseButton(InvertCoords, hostcommand, this._ButtonStyle.flags, String.fromCharCode(hotkey)));
         }
     }
 
@@ -322,18 +324,21 @@ class RIP {
         return Result;
     }
 
-    private static HandleMouseButton(AButton: MouseButton): void {
+    private static HandleMouseButton(button: MouseButton): void {
         // Check if we should reset the window
-        if (AButton.DoResetScreen()) {
+        if (button.DoResetScreen()) {
             this.ResetWindows();
         }
 
         // Check for a host command
-        if (AButton.HostCommand !== '') {
-            if ((AButton.HostCommand.length > 2) && (AButton.HostCommand.substr(0, 2) === '((') && (AButton.HostCommand.substr(AButton.HostCommand.length - 2, 2) === '))')) {
+        if (button.HostCommand !== '') {
+            if ((button.HostCommand.length > 2) && (button.HostCommand.substr(0, 2) === '((') && (button.HostCommand.substr(button.HostCommand.length - 2, 2) === '))')) {
                 // TODO PopUp.show(AButton.HostCommand, OnPopUpClick); 
+                alert("show popup " + button.HostCommand);
             } else {
-                for (var i: number = 0; i < AButton.HostCommand.length; i++) {
+                for (var i: number = 0; i < button.HostCommand.length; i++) {
+                    // TODO This will need to push to the internal buffer later I think
+                    Crt.PushKeyPress(button.HostCommand.charCodeAt(i), 0, false, false, false);
                     // TODO this._KeyBuf.push(new KeyPressEvent(KEY_PRESSED, new KeyboardEvent(KeyboardEvent.KEY_DOWN), AButton.HostCommand.charAt(i)));
                 }
             }
@@ -1016,74 +1021,74 @@ class RIP {
         }
     }
 
-    private static OnMouseDown(me: MouseEvent): void {
-        // TODO
-        //for (var i: number = this._MouseFields.length - 1; i >= 0; i--) {
-        //	var MB: MouseButton = this._MouseFields[i];
-        //	
-        //	// Hit test for this button
-        //	if (me.localX < MB.Coords.left) continue;
-        //	if (me.localX > MB.Coords.right) continue;
-        //	if (me.localY < MB.Coords.top) continue;
-        //	if (me.localY > MB.Coords.bottom) continue;
-        //	
-        //	// We're in the region, add events
-        //	Graph.Canvas.removeEventListener(MouseEvent.MOUSE_DOWN, OnMouseDown);
-        //	Graph.Canvas.addEventListener(MouseEvent.MOUSE_MOVE, OnMouseMove);
-        //	Graph.Canvas.addEventListener(MouseEvent.MOUSE_UP, OnMouseUp);
-        //	
-        //	// Invert button
-        //	if (MB.IsInvertable()) {
-        //		Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
-        //	}
-        //	FButtonInverted = true;
-        //	this._ButtonPressed = i;
-        //	break;
-        //}
+    // Can't use this since it isn't referring to RIP (no fat arrow used to call)
+    private static OnGraphCanvasMouseDown(me: MouseEvent): void {
+        for (var i: number = RIP._MouseFields.length - 1; i >= 0; i--) {
+        	var MB: MouseButton = RIP._MouseFields[i];
+        	
+        	// Hit test for this button
+        	if (me.offsetX < MB.Coords.left) continue;
+            if (me.offsetX > MB.Coords.right) continue;
+            if (me.offsetY < MB.Coords.top) continue;
+            if (me.offsetY > MB.Coords.bottom) continue;
+        	
+        	// We're in the region, add events
+            Graph.Canvas.removeEventListener('mousedown', RIP.OnGraphCanvasMouseDown);
+            Graph.Canvas.addEventListener('mousemove', RIP.OnGraphCanvasMouseMove);
+            Graph.Canvas.addEventListener('mouseup', RIP.OnGraphCanvasMouseUp);
+        	
+        	// Invert button
+        	if (MB.IsInvertable()) {
+        		Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
+        	}
+        	RIP._ButtonInverted = true;
+        	RIP._ButtonPressed = i;
+        	break;
+        }
     }
 
-    private static OnMouseMove(me: MouseEvent): void {
-        // TODO
-        //var MB: MouseButton = this._MouseFields[this._ButtonPressed];
-        //
-        //// Hit test for this button
-        //var Over: boolean = true;
-        //if (me.localX < MB.Coords.left) Over = false;
-        //if (me.localX > MB.Coords.right) Over = false;
-        //if (me.localY < MB.Coords.top) Over = false;
-        //if (me.localY > MB.Coords.bottom) Over = false;
+    // Can't use this since it isn't referring to RIP (no fat arrow used to call)
+    private static OnGraphCanvasMouseMove(me: MouseEvent): void {
+        var MB: MouseButton = RIP._MouseFields[RIP._ButtonPressed];
+        
+        // Hit test for this button
+        var Over: boolean = true;
+        if (me.offsetX < MB.Coords.left) Over = false;
+        if (me.offsetX > MB.Coords.right) Over = false;
+        if (me.offsetY < MB.Coords.top) Over = false;
+        if (me.offsetY > MB.Coords.bottom) Over = false;
 
-        //// Check if we need to change the inversion
-        //if ((MB.IsInvertable()) && (Over !== FButtonInverted)) {
-        //	Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
-        //	FButtonInverted = Over;
-        //}
+        // Check if we need to change the inversion
+        if ((MB.IsInvertable()) && (Over !== RIP._ButtonInverted)) {
+        	Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
+        	RIP._ButtonInverted = Over;
+        }
     }
 
-    private static OnMouseUp(me: MouseEvent): void {
-        // TODO
-        //Graph.Canvas.removeEventListener(MouseEvent.MOUSE_UP, OnMouseUp);
-        //Graph.Canvas.removeEventListener(MouseEvent.MOUSE_MOVE, OnMouseMove);
-        //Graph.Canvas.addEventListener(MouseEvent.MOUSE_DOWN, OnMouseDown);
-        //
-        //var MB: MouseButton = this._MouseFields[this._ButtonPressed];
-        //
-        //// Hit test for this button
-        //var Over: boolean = true;
-        //if (me.localX < MB.Coords.left) Over = false;
-        //if (me.localX > MB.Coords.right) Over = false;
-        //if (me.localY < MB.Coords.top) Over = false;
-        //if (me.localY > MB.Coords.bottom) Over = false;
-        //
-        //if (Over) {
-        //	if (MB.IsInvertable() && FButtonInverted) {
-        //		Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
-        //	}
-        //	FButtonInverted = false;
-        //	this._ButtonPressed = -1;
-        //	
-        //	HandleMouseButton(MB);				
-        //}
+    // Can't use this since it isn't referring to RIP (no fat arrow used to call)
+    private static OnGraphCanvasMouseUp(me: MouseEvent): void {
+        Graph.Canvas.removeEventListener('mouseup', RIP.OnGraphCanvasMouseUp);
+        Graph.Canvas.removeEventListener('mousemove', RIP.OnGraphCanvasMouseMove);
+        Graph.Canvas.addEventListener('mousedown', RIP.OnGraphCanvasMouseDown);
+        
+        var MB: MouseButton = RIP._MouseFields[RIP._ButtonPressed];
+        
+        // Hit test for this button
+        var Over: boolean = true;
+        if (me.offsetX < MB.Coords.left) Over = false;
+        if (me.offsetX > MB.Coords.right) Over = false;
+        if (me.offsetY < MB.Coords.top) Over = false;
+        if (me.offsetY > MB.Coords.bottom) Over = false;
+        
+        if (Over) {
+        	if (MB.IsInvertable() && RIP._ButtonInverted) {
+        		Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
+        	}
+        	RIP._ButtonInverted = false;
+        	RIP._ButtonPressed = -1;
+        	
+        	RIP.HandleMouseButton(MB);				
+        }
     }
 
     private static OnPopUpClick(AResponse: string): void {
