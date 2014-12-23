@@ -28,6 +28,7 @@ class fTelnet {
     private static _ButtonBar: HTMLDivElement = null;
     private static _ClientContainer: HTMLDivElement = null;
     private static _Connection: WebSocketConnection = null;
+    private static _DataTimer: number = null;
     private static _FocusWarningBar: HTMLDivElement = null;
     private static _fTelnetContainer: HTMLElement = null;
     private static _HasFocus: boolean = true;
@@ -482,15 +483,13 @@ class fTelnet {
         // If the timer is disabled then we're transferring data and don't want to process it here
         if (this._Timer !== null) {
             if ((this._Connection !== null) && (this._Connection.connected)) {
-                //// Determine how long it took between frames
-                //var MSecElapsed: number = new Date().getTime() - this._LastTimer;
-                //if (MSecElapsed < 1) { MSecElapsed = 1; }
+                // Determine how long it took between frames
+                var MSecElapsed: number = new Date().getTime() - this._LastTimer;
+                if (MSecElapsed < 1) { MSecElapsed = 1; }
 
-                //// Determine how many bytes we need to read to achieve the requested BitsPerSecond rate
-                //var BytesToRead: number = Math.floor(this._BitsPerSecond / 8 / (1000 / MSecElapsed));
-                //if (BytesToRead < 1) { BytesToRead = 1; }
-
-                var BytesToRead: number = 1000000; // TODO
+                // Determine how many bytes we need to read to achieve the requested BitsPerSecond rate
+                var BytesToRead: number = Math.floor(this._BitsPerSecond / 8 / (1000 / MSecElapsed));
+                if (BytesToRead < 1) { BytesToRead = 1; }
 
                 // Read the number of bytes we want
                 var Data: string = this._Connection.readString(BytesToRead);
@@ -502,8 +501,16 @@ class fTelnet {
                         Ansi.Write(Data);
                     }
                 }
+
+                // If we have data leftover, schedule a new timer
+                if (this._Connection.bytesAvailable > 0) {
+                    // Restart timer to handle the end of the screen
+                    clearTimeout(this._DataTimer);
+                    this._DataTimer = setTimeout((): void => { this.OnConnectionData(); }, 50);
+                }
             }
         }
+        this._LastTimer = new Date().getTime();
     }
     
     private static OnConnectionLocalEcho(value: boolean): void {
@@ -622,7 +629,7 @@ class fTelnet {
             //    }
             //}
         }
-        this._LastTimer = new Date().getTime();
+        //this._LastTimer = new Date().getTime();
     }
 
     private static OnUploadComplete(): void {
