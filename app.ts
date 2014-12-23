@@ -4,6 +4,7 @@
 // Add ability to hide virtual keyboard
 // Add ability to show virtual keyboard (if hidden)
 // RIP fonts need to be optimized
+// Resize window in RIP mode changed font size, and it shouldn't do that
 
 // Testing results:
 

@@ -32,6 +32,7 @@ class Crt {
 
     // Events
     public static onfontchange: IEvent = new TypedEvent();
+    public static onkeypressed: IEvent = new TypedEvent();
     public static onscreensizechange: IEvent = new TypedEvent();
 
     /*  Color Constants
@@ -753,6 +754,7 @@ class Crt {
 
         if ((keyString) || (ke.ctrlKey)) {
             ke.preventDefault();
+            this.onkeypressed.trigger();
         }
     }
 
@@ -794,6 +796,7 @@ class Crt {
 
         if (keyString) {
             ke.preventDefault();
+            this.onkeypressed.trigger();
         }
     }
 

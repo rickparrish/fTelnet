@@ -30,6 +30,7 @@ class WebSocketConnection {
     // Events
     public onclose: IEvent = new TypedEvent();
     public onconnect: IEvent = new TypedEvent();
+    public ondata: IEvent = new TypedEvent();
     public onlocalecho: IBooleanEvent = new TypedEvent();
     public onioerror: IEvent = new TypedEvent();
     public onsecurityerror: IEvent = new TypedEvent();
@@ -183,6 +184,9 @@ class WebSocketConnection {
 
         // Restore the old buffer position
         this._InputBuffer.position = OldPosition;
+
+        // Raise ondata event
+        this.ondata.trigger();
     }
 
     // Remap all the read* functions to operate on our input buffer instead

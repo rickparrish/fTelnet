@@ -129,6 +129,7 @@ class fTelnet {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
+            Crt.onkeypressed.on((): void => { this.OnCrtKeyPressed(); });
             Crt.onscreensizechange.on((): void => { this.OnCrtScreenSizeChanged(); });
             Crt.BareLFtoCRLF = this._BareLFtoCRLF;
             Crt.Blink = this._Blink;
@@ -268,6 +269,7 @@ class fTelnet {
 
         this._Connection.onclose.on((): void => { this.OnConnectionClose(); });
         this._Connection.onconnect.on((): void => { this.OnConnectionConnect(); });
+        this._Connection.ondata.on((): void => { this.OnConnectionData(); });
         this._Connection.onioerror.on((): void => { this.OnConnectionIOError(); });
         this._Connection.onsecurityerror.on((): void => { this.OnConnectionSecurityError(); });
 
@@ -301,6 +303,7 @@ class fTelnet {
         if (!prompt || confirm('Are you sure you want to disconnect?')) {
             this._Connection.onclose.off();
             this._Connection.onconnect.off();
+            this._Connection.ondata.off();
             this._Connection.onioerror.off();
             this._Connection.onlocalecho.off();
             this._Connection.onsecurityerror.off();
@@ -323,6 +326,7 @@ class fTelnet {
 
         // Setup listeners for during transfer
         clearInterval(this._Timer);
+        this._Timer = null;
         this._YModemReceive.ontransfercomplete.on((): void => { this.OnDownloadComplete(); });
 
         // Download the file
@@ -474,6 +478,34 @@ class fTelnet {
         // TODO If telnet, old fTelnet used to send will sga, wont linemode, and will/wont echo based on localecho
     }
 
+    private static OnConnectionData(): void {
+        // If the timer is disabled then we're transferring data and don't want to process it here
+        if (this._Timer !== null) {
+            if ((this._Connection !== null) && (this._Connection.connected)) {
+                //// Determine how long it took between frames
+                //var MSecElapsed: number = new Date().getTime() - this._LastTimer;
+                //if (MSecElapsed < 1) { MSecElapsed = 1; }
+
+                //// Determine how many bytes we need to read to achieve the requested BitsPerSecond rate
+                //var BytesToRead: number = Math.floor(this._BitsPerSecond / 8 / (1000 / MSecElapsed));
+                //if (BytesToRead < 1) { BytesToRead = 1; }
+
+                var BytesToRead: number = 1000000; // TODO
+
+                // Read the number of bytes we want
+                var Data: string = this._Connection.readString(BytesToRead);
+                if (Data.length > 0) {
+                    this.ondata.trigger(Data);
+                    if (this._Emulation === 'RIP') {
+                        RIP.Parse(Data);
+                    } else {
+                        Ansi.Write(Data);
+                    }
+                }
+            }
+        }
+    }
+    
     private static OnConnectionLocalEcho(value: boolean): void {
         this._LocalEcho = value;
         Crt.LocalEcho = value;
@@ -489,6 +521,30 @@ class fTelnet {
         } else {
             this._StatusBar.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port + ' via proxy';
         }
+    }
+
+    private static OnCrtKeyPressed(): void {
+        // If the timer is active, then handle the keypress (if it's not active then we're uploading/downloading and don't want to interrupt its handling of keypresses)
+        // TODO Maybe we should handle the CTRL-X to abort here instead of in the ymodem classes
+        if (this._Timer !== null) {
+            while (Crt.KeyPressed()) {
+                var KPE: KeyPressEvent = Crt.ReadKey();
+
+                if (KPE !== null) {
+                    if (KPE.keyString.length > 0) {
+                        if ((this._Connection !== null) && (this._Connection.connected)) {
+                            // Handle translating Enter key
+                            if (KPE.keyString === '\r\n') {
+                                this._Connection.writeString(this._Enter);
+                            } else {
+                                this._Connection.writeString(KPE.keyString);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     private static OnCrtScreenSizeChanged(): void {
@@ -531,40 +587,40 @@ class fTelnet {
                 this._FocusWarningBar.style.display = 'block';
             }
 
-            // Determine how long it took between frames
-            var MSecElapsed: number = new Date().getTime() - this._LastTimer;
-            if (MSecElapsed < 1) { MSecElapsed = 1; }
+            //// Determine how long it took between frames
+            //var MSecElapsed: number = new Date().getTime() - this._LastTimer;
+            //if (MSecElapsed < 1) { MSecElapsed = 1; }
 
-            // Determine how many bytes we need to read to achieve the requested BitsPerSecond rate
-            var BytesToRead: number = Math.floor(this._BitsPerSecond / 8 / (1000 / MSecElapsed));
-            if (BytesToRead < 1) { BytesToRead = 1; }
+            //// Determine how many bytes we need to read to achieve the requested BitsPerSecond rate
+            //var BytesToRead: number = Math.floor(this._BitsPerSecond / 8 / (1000 / MSecElapsed));
+            //if (BytesToRead < 1) { BytesToRead = 1; }
 
-            // Read the number of bytes we want
-            var Data: string = this._Connection.readString(BytesToRead);
-            if (Data.length > 0) {
-                this.ondata.trigger(Data);
-                if (this._Emulation === 'RIP') {
-                    RIP.Parse(Data);
-                } else {
-                    Ansi.Write(Data);
-                }
-            }
+            //// Read the number of bytes we want
+            //var Data: string = this._Connection.readString(BytesToRead);
+            //if (Data.length > 0) {
+            //    this.ondata.trigger(Data);
+            //    if (this._Emulation === 'RIP') {
+            //        RIP.Parse(Data);
+            //    } else {
+            //        Ansi.Write(Data);
+            //    }
+            //}
 
-            while (Crt.KeyPressed()) {
-                var KPE: KeyPressEvent = Crt.ReadKey();
+            //while (Crt.KeyPressed()) {
+            //    var KPE: KeyPressEvent = Crt.ReadKey();
 
-                // Check for upload/download
-                if (KPE !== null) {
-                    if (KPE.keyString.length > 0) {
-                        // Handle translating Enter key
-                        if (KPE.keyString === '\r\n') {
-                            this._Connection.writeString(this._Enter);
-                        } else {
-                            this._Connection.writeString(KPE.keyString);
-                        }
-                    }
-                }
-            }
+            //    // Check for upload/download
+            //    if (KPE !== null) {
+            //        if (KPE.keyString.length > 0) {
+            //            // Handle translating Enter key
+            //            if (KPE.keyString === '\r\n') {
+            //                this._Connection.writeString(this._Enter);
+            //            } else {
+            //                this._Connection.writeString(KPE.keyString);
+            //            }
+            //        }
+            //    }
+            //}
         }
         this._LastTimer = new Date().getTime();
     }
@@ -585,6 +641,7 @@ class fTelnet {
 
         // Setup the listeners
         clearInterval(this._Timer);
+        this._Timer = null;
         this._YModemSend.ontransfercomplete.on((): void => { this.OnUploadComplete(); });
 
         // Loop through the FileList and prep them for upload
