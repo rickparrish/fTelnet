@@ -443,7 +443,9 @@ class fTelnet {
     }
 
     private static OnAnsiRIPDetect(): void {
-        this._Connection.writeString('RIPSCRIP015400');
+        if (this._Emulation === 'RIP') {
+            this._Connection.writeString('RIPSCRIP015400');
+        }
     }
 
     private static OnAnsiRIPDisable(): void {
