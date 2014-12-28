@@ -10,7 +10,7 @@
 #fTelnetButtons {
     background-color: green;
     color: white;
-    font: 16px "Courier New", Courier, monospace;
+    font: 14px Arial, Helvetica, sans-serif;
     margin: auto;
     padding: 5px;
     text-align: center;
@@ -29,7 +29,7 @@
 #fTelnetFocusWarning {
     background-color: red;
     color: white;
-    font: 16px "Courier New", Courier, monospace;
+    font: 14px Arial, Helvetica, sans-serif;
     margin: auto;
     padding: 5px;
     text-align: center;
@@ -38,7 +38,7 @@
 #fTelnetScrollback {
     background-color: red;
     color: white;
-    font: 16px "Courier New", Courier, monospace;
+    font: 14px Arial, Helvetica, sans-serif;
     margin: auto;
     padding: 5px;
     text-align: center;
@@ -52,7 +52,7 @@
 #fTelnetStatusBar {
     background-color: blue;
     color: white;
-    font: 16px "Courier New", Courier, monospace;
+    font: 14px Arial, Helvetica, sans-serif;
     margin: auto;
     padding: 5px;
 }

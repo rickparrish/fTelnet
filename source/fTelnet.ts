@@ -96,6 +96,7 @@ class fTelnet {
         // '<a href="#" onclick="fTelnet.Disconnect(true);">Disconnect</a> | ' +
         '<a href="#" onclick="fTelnet.Download();">Download</a> | ' +
         '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' +
+        '<a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible;">Keyboard</a> | ' +
         '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a> | ' +
         '<a href="#" onclick="fTelnet.FullScreenToggle();">Full&nbsp;Screen<a/>';
         this._ButtonBar.style.display = (this._ButtonBarVisible ? 'block' : 'none');
@@ -514,7 +515,7 @@ class fTelnet {
         }
         this._LastTimer = new Date().getTime();
     }
-    
+
     private static OnConnectionLocalEcho(value: boolean): void {
         this._LocalEcho = value;
         Crt.LocalEcho = value;
@@ -595,43 +596,7 @@ class fTelnet {
                 this._HasFocus = false;
                 this._FocusWarningBar.style.display = 'block';
             }
-
-            //// Determine how long it took between frames
-            //var MSecElapsed: number = new Date().getTime() - this._LastTimer;
-            //if (MSecElapsed < 1) { MSecElapsed = 1; }
-
-            //// Determine how many bytes we need to read to achieve the requested BitsPerSecond rate
-            //var BytesToRead: number = Math.floor(this._BitsPerSecond / 8 / (1000 / MSecElapsed));
-            //if (BytesToRead < 1) { BytesToRead = 1; }
-
-            //// Read the number of bytes we want
-            //var Data: string = this._Connection.readString(BytesToRead);
-            //if (Data.length > 0) {
-            //    this.ondata.trigger(Data);
-            //    if (this._Emulation === 'RIP') {
-            //        RIP.Parse(Data);
-            //    } else {
-            //        Ansi.Write(Data);
-            //    }
-            //}
-
-            //while (Crt.KeyPressed()) {
-            //    var KPE: KeyPressEvent = Crt.ReadKey();
-
-            //    // Check for upload/download
-            //    if (KPE !== null) {
-            //        if (KPE.keyString.length > 0) {
-            //            // Handle translating Enter key
-            //            if (KPE.keyString === '\r\n') {
-            //                this._Connection.writeString(this._Enter);
-            //            } else {
-            //                this._Connection.writeString(KPE.keyString);
-            //            }
-            //        }
-            //    }
-            //}
         }
-        //this._LastTimer = new Date().getTime();
     }
 
     private static OnUploadComplete(): void {

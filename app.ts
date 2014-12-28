@@ -1,10 +1,9 @@
 ﻿/// <reference path='source/fTelnet.ts' />
 
 // TODO List:
-// Add ability to hide virtual keyboard
-// Add ability to show virtual keyboard (if hidden)
 // RIP fonts need to be optimized
 // Resize window in RIP mode changed font size, and it shouldn't do that
+// Chrome not clearing the screen for some users (works ok with my proxy, not with local proxy, so maybe timing related?)
 
 // Testing results:
 
@@ -32,7 +31,6 @@
 // Firefox 6.0:
 //   Download failed (DataView is not defined)
 //   Upload failed (reader.readAsArrayBuffer is not a function)
-
 
 // Chrome 39.0.2171.71 m
 //   Infrequent status updates during download
