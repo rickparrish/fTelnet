@@ -19,16 +19,6 @@
         <div id="fTelnetContainer"></div>
     </div>
 
-    <!-- Add support for WebSocket to IE9 -->
-    <!--[if lt IE 10]>
-        <script type="text/javascript" src="swfobject.js"></script>
-        <script type="text/javascript" src="web_socket.js"></script>
-        <script>
-            // Let the library know where WebSocketMain.swf is:
-            WEB_SOCKET_SWF_LOCATION = "WebSocketMain.swf";
-        </script>
-    <![endif]-->
-
     <!-- Stop IE8 and below from complaining about Object.defineProperty -->
     <!--[if lt IE 9]>
         <script>
@@ -38,7 +28,7 @@
 
     <script src="ftelnet.min.js" id="fTelnetScript"></script>
     <script>
-        fTelnet.Hostname = "sbbs.ftelnet.ca";
+        fTelnet.Hostname = "bbs.ftelnet.ca";
         fTelnet.Port = 23;
         fTelnet.ProxyHostname = "proxy-us-ga.ftelnet.ca";
         fTelnet.Init();

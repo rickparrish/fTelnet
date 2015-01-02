@@ -23,7 +23,6 @@
             <li><a href="#Install">How to install</a></li>
             <li><a href="#Use">How to use</a></li>
             <li><a href="#Customize">How to customize</a></li>
-            <li><a href="#IE9">Internet Explorer 9 support</a></li>
             <li><a href="#IE8">Internet Explorer 8 (and older) support</a></li>
             <li><a href="#Problems">Common problems</a></li>
             <li><a href="#Help">I need more help</a></li>
@@ -311,24 +310,6 @@
         <a href="#TOC">Back to top</a>
         <hr />
 
-        <h2 id="IE9">Internet Explorer 9 Support</h2>
-        <div class="well">
-            <p>Internet Explorer 9 does not support WebSockets, so fTelnet does not natively support it.  Fortunately <a href="https://github.com/gimite/web-socket-js" target="_blank">somebody implemented WebSockets in Flash</a>, so if your users have Flash Player 10+ installed, then fTelnet can still work for them.</p>
-            <p>Just make sure your page includes the following snipped (and that the paths to the 3 files are correct):</p>
-            <code>
-                &lt;!-- Add support for WebSocket to IE9 --><br />
-                &lt;!--[if lt IE 10]><br />
-                &nbsp; &nbsp; &lt;script type="text/javascript" src="swfobject.js">&lt;/script><br />
-                &nbsp; &nbsp; &lt;script type="text/javascript" src="web_socket.js">&lt;/script><br />
-                &nbsp; &nbsp; &lt;script><br />
-                &nbsp; &nbsp; &nbsp; &nbsp; // Let the library know where WebSocketMain.swf is:<br />
-                &nbsp; &nbsp; &nbsp; &nbsp; WEB_SOCKET_SWF_LOCATION = "WebSocketMain.swf";<br />
-                &nbsp; &nbsp; &lt;/script><br />
-                &lt;![endif]--><br />
-            </code>
-        </div>
-        <hr />
-
         <h2 id="IE8">Internet Explorer 8 (and older) Support</h2>
         <div class="well">
             <p>Internet Explorer 8 (and older) do not support the Canvas element, and while there are polyfills, none of them have support for the features fTelnet needs.  So unfortunately IE8 (and older) will never be supported.</p>
@@ -359,9 +340,6 @@
 
             <h3>The virtual keyboard looks ugly</h3>
             <blockquote>Did you add the placholder stylesheet element with the <strong>id="fTelnetKeyboardCss"</strong>?  And also use <strong>id="fTelnetScript"</strong> when referencing the <strong>ftelnet.min.js</strong> script?</blockquote>
-
-            <h3>I can't connect with Internet Explorer 9</h3>
-            <blockquote>Did you add the <strong>&lt;!-- Add support for WebSocket to IE9 --></strong> code to your page?  That sets up fTelnet to use a Flash object in IE9 since it doesn't have WebSocket support.  Also, did you confirm the three paths in that chunk of code are correct?  Also, do you have Flash installed?</blockquote>
 
             <h3>I get an error/don't see anything with Internet Explorer 8 and older</h3>
             <blockquote>Did you add the <strong>&lt;!-- Stop IE8 and below from complaining about Object.defineProperty --></strong> code to your page?  That fixes the error.  It still doesn't fix the client though, IE8 and older don't support Canvas, so all you'll see is "fTelnet Error: Internet Explorer < 9 is not supported."</blockquote>

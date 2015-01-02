@@ -19,8 +19,22 @@
 */
 /// <reference path="../../3rdparty/TypedEvent.ts" />
 
-// For Firefox 6.0
-window['WebSocket'] = window['WebSocket'] || window['MozWebSocket'];
+if ('WebSocket' in window) {
+    // Do nothing, we have native websocket support
+} else if ('MozWebSocket' in window) {
+    // For Firefox 6.0
+    window['WebSocket'] = window['MozWebSocket'];
+} else {
+    // For IE9 and Android < 4.4
+    var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
+    var ScriptRoot: string = ScriptUrl.replace('/ftelnet.min.js', '');
+    ScriptRoot = ScriptRoot.replace('/ftelnet.debug.js', '');
+
+    // From: https://github.com/gimite/web-socket-js
+    var WEB_SOCKET_SWF_LOCATION = ScriptRoot + "/WebSocketMain.swf";
+    document.write('<script src="' + ScriptRoot + '/swfobject.js")"><\/script>');
+    document.write('<script src="' + ScriptRoot + '/web_socket.js")"><\/script>');
+}
 
 var WebSocketProtocol: string = ('https:' === document.location.protocol ? 'wss' : 'ws');
 var WebSocketSupportsTypedArrays: boolean = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
