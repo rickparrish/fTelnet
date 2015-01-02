@@ -921,12 +921,17 @@ class Crt {
         }
 
         // Blank -- TODO Hasn't been tested yet
-        this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
-        Left = (left - 1) * this._Font.Width;
-        Top = (top - 1) * this._Font.Height;
-        Width = (right - left + 1) * this._Font.Width;
-        Height = (count * this._Font.Height);
-        this._CanvasContext.fillRect(Left, Top, Width, Height);
+        // TODO This fails for maskreet in Chrome -- looks like it sometimes decides to ignore the call to fillRect()
+        //this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
+        //Left = (left - 1) * this._Font.Width;
+        //Top = (top - 1) * this._Font.Height;
+        //Width = (right - left + 1) * this._Font.Width;
+        //Height = (count * this._Font.Height);
+        //this._CanvasContext.fillRect(Left, Top, Width, Height);
+        var Blanks: string = StringUtils.PadLeft('', ' ', right - left + 1);
+        for (var Line: number = top; Line <= bottom; Line++) {
+            this.FastWrite(Blanks, left, Line, charInfo, false);
+        }
 
         if (updateBuffer) {
             // Now to adjust the buffer
@@ -1007,6 +1012,7 @@ class Crt {
             }
 
             // Blank
+            // TODO This fails for maskreet in Chrome -- looks like it sometimes decides to ignore the call to fillRect()
             //this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
             //Left = (left - 1) * this._Font.Width;
             //Top = (bottom - count) * this._Font.Height;
