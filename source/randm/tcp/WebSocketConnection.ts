@@ -19,15 +19,8 @@
 */
 /// <reference path="../../3rdparty/TypedEvent.ts" />
 
-// Detect if we need to specially handle the broken Android browser
-// From: https://github.com/stellar/stellar-client/commit/d362075bf78b22d361e452fa638ace2502d4f5c1
-if (navigator.userAgent.match('AppleWebKit/534.30')) {
-    alert('bad android detected');
-    delete window['WebSocket'];
-}
-
 // Detect if a WebSocket workaround is required
-if ('WebSocket' in window) {
+if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30')) {
     // Do nothing, we have native websocket support
     alert('websocket in window');
 } else if ('MozWebSocket' in window) {
@@ -41,7 +34,8 @@ if ('WebSocket' in window) {
     ScriptRoot = ScriptRoot.replace('/ftelnet.debug.js', '');
 
     // From: https://github.com/gimite/web-socket-js
-    var WEB_SOCKET_SWF_LOCATION = ScriptRoot + "/WebSocketMain.swf";
+    window['WEB_SOCKET_FORCE_FLASH'] = true;
+    window['WEB_SOCKET_SWF_LOCATION'] = ScriptRoot + "/WebSocketMain.swf";
     document.write('<script src="' + ScriptRoot + '/swfobject.js")"><\/script>');
     document.write('<script src="' + ScriptRoot + '/web_socket.js")"><\/script>');
     alert('using flash workaround');
