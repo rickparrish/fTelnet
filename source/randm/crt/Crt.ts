@@ -1012,6 +1012,7 @@ class Crt {
             Top = (bottom - count) * this._Font.Height;
             Width = (right - left + 1) * this._Font.Width;
             Height = (count * this._Font.Height);
+            alert(this._CanvasContext.fillStyle + '\n' + Left + '\n' + Top + '\n' + Width + '\n' + Height);
             this._CanvasContext.fillRect(Left, Top, Width, Height);
         }
 
