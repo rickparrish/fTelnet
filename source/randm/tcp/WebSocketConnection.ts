@@ -19,6 +19,13 @@
 */
 /// <reference path="../../3rdparty/TypedEvent.ts" />
 
+// Detect if we need to specially handle the broken Android browser
+// From: https://github.com/stellar/stellar-client/commit/d362075bf78b22d361e452fa638ace2502d4f5c1
+if (navigator.userAgent.match('AppleWebKit/534.30')) {
+    delete window['WebSocket'];
+}
+
+// Detect if a WebSocket workaround is required
 if ('WebSocket' in window) {
     // Do nothing, we have native websocket support
 } else if ('MozWebSocket' in window) {
