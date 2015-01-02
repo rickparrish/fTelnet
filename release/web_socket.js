@@ -308,7 +308,7 @@
       null,
       function(e) {
         if (!e.success) {
-            alert('fTelnet Error: Your browser doesn\'t support either WebSocket or Flash, and so will be unable to connect to remote servers');
+          logger.error("[WebSocket] swfobject.embedSWF failed");
         }
       }
     );

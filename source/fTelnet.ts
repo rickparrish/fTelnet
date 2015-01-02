@@ -140,7 +140,7 @@ class fTelnet {
             Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
 
             // Test websocket support
-            if (!('WebSocket' in window)) {
+            if (!('WebSocket' in window) || navigator.userAgent.match('AppleWebKit/534.30')) {
                 Crt.WriteLn();
                 Crt.WriteLn('Sorry, but your browser doesn\'t support the WebSocket protocol!');
                 Crt.WriteLn();
