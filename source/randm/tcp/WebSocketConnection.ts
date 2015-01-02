@@ -22,11 +22,9 @@
 // Detect if a WebSocket workaround is required
 if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30')) {
     // Do nothing, we have native websocket support
-    alert('websocket in window');
 } else if ('MozWebSocket' in window) {
     // For Firefox 6.0
     window['WebSocket'] = window['MozWebSocket'];
-    alert('mozwebsocket in window');
 } else {
     // For IE9 and Android < 4.4
     var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
@@ -38,7 +36,6 @@ if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30'))
     window['WEB_SOCKET_SWF_LOCATION'] = ScriptRoot + "/WebSocketMain.swf";
     document.write('<script src="' + ScriptRoot + '/swfobject.js")"><\/script>');
     document.write('<script src="' + ScriptRoot + '/web_socket.js")"><\/script>');
-    alert('using flash workaround');
 }
 
 var WebSocketProtocol: string = ('https:' === document.location.protocol ? 'wss' : 'ws');
