@@ -3,7 +3,6 @@
 // TODO List:
 // RIP fonts need to be optimized
 // Resize window in RIP mode changed font size, and it shouldn't do that
-// Chrome not clearing the screen for some users (works ok with my proxy, not with local proxy, so maybe timing related?)
 
 // Testing results:
 

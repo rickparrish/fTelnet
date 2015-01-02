@@ -929,8 +929,8 @@ class Crt {
         //Height = (count * this._Font.Height);
         //this._CanvasContext.fillRect(Left, Top, Width, Height);
         var Blanks: string = StringUtils.PadLeft('', ' ', right - left + 1);
-        for (var Line: number = top; Line <= bottom; Line++) {
-            this.FastWrite(Blanks, left, Line, charInfo, false);
+        for (var Line: number = 0; Line < count; Line++) {
+            this.FastWrite(Blanks, left, top + Line, charInfo, false);
         }
 
         if (updateBuffer) {
@@ -1020,8 +1020,8 @@ class Crt {
             //Height = (count * this._Font.Height);
             //this._CanvasContext.fillRect(Left, Top, Width, Height);
             var Blanks: string = StringUtils.PadLeft('', ' ', right - left + 1);
-            for (var Line: number = top; Line <= bottom; Line++) {
-                this.FastWrite(Blanks, left, Line, charInfo, false);
+            for (var Line: number = 0; Line < count; Line++) {
+                this.FastWrite(Blanks, left, bottom - count + 1 + Line, charInfo, false);
             }
         }
 
