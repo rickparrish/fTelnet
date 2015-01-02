@@ -1007,7 +1007,7 @@ class Crt {
             }
 
             // Blank
-            this._CanvasContext.fillStyle = 'black';//'#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
+            this._CanvasContext.fillStyle = 'red';//'#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
             Left = (left - 1) * this._Font.Width;
             Top = (bottom - count) * this._Font.Height;
             Width = (right - left + 1) * this._Font.Width;
