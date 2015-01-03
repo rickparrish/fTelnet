@@ -485,7 +485,7 @@ class fTelnet {
     private static OnConnectionData(): void {
         // If the timer is disabled then we're transferring data and don't want to process it here
         if (this._Timer !== null) {
-            if ((this._Connection !== null) && (this._Connection.connected)) {
+            if (this._Connection !== null) {
                 // Determine how long it took between frames
                 var MSecElapsed: number = new Date().getTime() - this._LastTimer;
                 if (MSecElapsed < 1) { MSecElapsed = 1; }
