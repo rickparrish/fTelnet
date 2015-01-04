@@ -86,7 +86,7 @@ class Crt {
     private static _C64: boolean = false;
     private static _Canvas: HTMLCanvasElement = null;
     private static _CanvasContext: CanvasRenderingContext2D = null;
-    private static _CharInfo: CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
+    private static _CharInfo: CharInfo = new CharInfo(null, Crt.LIGHTGRAY);
     private static _Container: HTMLElement = null;
     private static _Cursor: Cursor = null;
     private static _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
@@ -100,6 +100,7 @@ class Crt {
     private static _ScrollBackPosition: number = -1;
     private static _ScrollBackSize: number = 1000;
     private static _ScrollBackTemp: CharInfo[][] = null;
+    private static _Transparent: Boolean = false;
     private static _WindMin: number = 0;
     private static _WindMax: number = (80 - 1) | ((25 - 1) << 8);
 
@@ -380,8 +381,24 @@ class Crt {
         if (typeof updateBuffer === 'undefined') { updateBuffer = true; }
 
         if ((x <= this._ScreenSize.x) && (y <= this._ScreenSize.y)) {
-            for (var i: number = 0; i < text.length; i++) {
-                var Char: ImageData = this._Font.GetChar(text.charCodeAt(i), charInfo);
+            var Chars = [];
+            var CharCodes = [];
+            var TextLength;
+
+            if (text === null) {
+                TextLength = 1;
+                Chars.push(null);
+                CharCodes.push(this._Transparent ? CrtFont.TRANSPARENT_CHARCODE : 32);
+            } else {
+                TextLength = text.length;
+                for (var i: number = 0; i < TextLength; i++) {
+                    Chars.push(text.charAt(i));
+                    CharCodes.push(text.charCodeAt(i));
+                }
+            }
+
+            for (var i: number = 0; i < TextLength; i++) {
+                var Char: ImageData = this._Font.GetChar(CharCodes[i], charInfo);
                 if (Char) {
                     if ((!this._InScrollBack) || (this._InScrollBack && !updateBuffer)) {
                         this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height);
@@ -389,7 +406,7 @@ class Crt {
                 }
 
                 if (updateBuffer) {
-                    this._Buffer[y][x + i].Ch = text.charAt(i);
+                    this._Buffer[y][x + i].Ch = Chars[i];
                     this._Buffer[y][x + i].Attr = charInfo.Attr;
                     this._Buffer[y][x + i].Blink = charInfo.Blink;
                     this._Buffer[y][x + i].Underline = charInfo.Underline;
@@ -411,10 +428,6 @@ class Crt {
 
     public static get Font(): CrtFont {
         return this._Font;
-    }
-
-    public static GeCharInfo(): CharInfo {
-        return this._CharInfo;
     }
 
     public static GotoXY(x: number, y: number): void {
@@ -455,7 +468,7 @@ class Crt {
         for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
             this._Buffer[Y] = [];
             for (var X: number = 1; X <= this._ScreenSize.x; X++) {
-                this._Buffer[Y][X] = new CharInfo(' ', this.LIGHTGRAY, false, false, false);
+                this._Buffer[Y][X] = new CharInfo(null, this.LIGHTGRAY, false, false, false);
             }
         }
 
@@ -1019,9 +1032,18 @@ class Crt {
             //Width = (right - left + 1) * this._Font.Width;
             //Height = (count * this._Font.Height);
             //this._CanvasContext.fillRect(Left, Top, Width, Height);
-            var Blanks: string = StringUtils.PadLeft('', ' ', right - left + 1);
-            for (var Line: number = 0; Line < count; Line++) {
-                this.FastWrite(Blanks, left, bottom - count + 1 + Line, charInfo, false);
+
+            // Doesn't handle transparency
+            //var Blanks: string = StringUtils.PadLeft('', ' ', right - left + 1);
+            //for (var Line: number = 0; Line < count; Line++) {
+            //    this.FastWrite(Blanks, left, bottom - count + 1 + Line, charInfo, false);
+            //}
+
+            // TODO If this works the other custom scroller needs to be updated too
+            for (var y: number = 0; y < count; y++) {
+                for (var x: number = left; x <= right; x++) {
+                    this.FastWrite(null, x, bottom - count + 1 + y, charInfo, false);
+                }
             }
         }
 
@@ -1092,10 +1114,6 @@ class Crt {
 
     public static SetBlinkRate(milliSeconds: number): void {
         this._Cursor.BlinkRate = milliSeconds;
-    }
-
-    public static SetCharInfo(charInfo: CharInfo): void {
-        this._CharInfo = new CharInfo(charInfo.Ch, charInfo.Attr, charInfo.Blink, charInfo.Underline, charInfo.Reverse);
     }
 
     public static SetFont(font: string): boolean {
@@ -1222,6 +1240,11 @@ class Crt {
         /// </remarks>
         /// <param name='AColor'>The colour to set the foreground to</param>
         this.TextAttr = (this.TextAttr & 0xF0) | (colour & 0x0F);
+    }
+
+    public static set Transparent(value: Boolean) {
+        this._Transparent = value;
+        // TODO Redraw
     }
 
     public static WhereX(): number {

@@ -21,6 +21,8 @@ class CrtFont {
     // Events
     public onchange: IEvent = new TypedEvent();
 
+    public static TRANSPARENT_CHARCODE: number = 1000;
+
     // Public variables
     public static ANSI_COLOURS: number[] = [
         0x000000, 0x0000A8, 0x00A800, 0x00A8A8, 0xA80000, 0xA800A8, 0xA85400, 0xA8A8A8,
@@ -79,7 +81,15 @@ class CrtFont {
         if (this._Loading > 0) { return null; }
 
         // Validate values
-        if ((charCode < 0) || (charCode > 255) || (charInfo.Attr < 0) || (charInfo.Attr > 255)) { return null; }
+        var Alpha = 255;
+        if (charCode === CrtFont.TRANSPARENT_CHARCODE) {
+            Alpha = 0;
+            charCode = 32;
+            charInfo.Attr = 0;
+            charInfo.Reverse = false;
+        } else if ((charCode < 0) || (charCode > 255) || (charInfo.Attr < 0) || (charInfo.Attr > 255)) {
+            return null;
+        }
 
         var CharMapKey: string = charCode + '-' + charInfo.Attr + '-' + charInfo.Reverse;
 
@@ -133,7 +143,7 @@ class CrtFont {
                 this._CharMap[CharMapKey].data[i] = R;
                 this._CharMap[CharMapKey].data[i + 1] = G;
                 this._CharMap[CharMapKey].data[i + 2] = B;
-                this._CharMap[CharMapKey].data[i + 3] = 255;
+                this._CharMap[CharMapKey].data[i + 3] = Alpha;
             }
         }
 
