@@ -1,4 +1,4 @@
-﻿// From: https://typescript.codeplex.com/discussions/402228
+// From: https://typescript.codeplex.com/discussions/402228
 
 // Base IEvent interface and implementation
 

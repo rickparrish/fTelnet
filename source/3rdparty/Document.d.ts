@@ -1,4 +1,4 @@
-﻿interface Document {
+interface Document {
     exitFullscreen: () => void;
     mozCancelFullScreen: () => void;
     webkitExitFullscreen: () => void;

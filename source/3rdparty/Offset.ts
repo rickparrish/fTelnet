@@ -1,4 +1,4 @@
-﻿// From: http://javascript.info/tutorial/coordinates
+// From: http://javascript.info/tutorial/coordinates
 module Offset {
     'use strict';
     function getOffsetSum(elem: HTMLElement): Point {
