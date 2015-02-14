@@ -1,4 +1,4 @@
-﻿// From: Unknown, forgot to save the url!
+// From: Unknown, forgot to save the url!
 
 // Base64 utility methods
 // Needed for: IE9-

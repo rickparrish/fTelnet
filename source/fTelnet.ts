@@ -92,24 +92,24 @@ class fTelnet {
         // Create the button bar
         this._ButtonBar = document.createElement('div');
         this._ButtonBar.id = 'fTelnetButtons';
-        this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect();">Connect</a> | ' +
-        // '<a href="#" onclick="fTelnet.Disconnect(true);">Disconnect</a> | ' +
-        '<a href="#" onclick="fTelnet.Download();">Download</a> | ' +
-        '<a href="#" onclick="fTelnet.Upload();">Upload</a> | ' +
-        '<a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible;">Keyboard</a> | ' +
-        '<a href="#" onclick="fTelnet.EnterScrollback();">Scrollback</a> | ' +
-        '<a href="#" onclick="fTelnet.FullScreenToggle();">Full&nbsp;Screen<a/>';
+        this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Connect</a> | ' +
+        // '<a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a> | ' +
+        '<a href="#" onclick="fTelnet.Download(); return false;">Download</a> | ' +
+        '<a href="#" onclick="fTelnet.Upload(); return false;">Upload</a> | ' +
+        '<a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a> | ' +
+        '<a href="#" onclick="fTelnet.EnterScrollback(); return false;">Scrollback</a> | ' +
+        '<a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen<a/>';
         this._ButtonBar.style.display = (this._ButtonBarVisible ? 'block' : 'none');
         this._fTelnetContainer.appendChild(this._ButtonBar);
 
         // Create the scrollback bar
         this._ScrollbackBar = document.createElement('div');
         this._ScrollbackBar.id = 'fTelnetScrollback';
-        this._ScrollbackBar.innerHTML = '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);">Line Up</a> | ' +
-        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);">Line Down</a> | ' +
-        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false);">Page Up</a> | ' +
-        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false);">Page Down</a> | ' +
-        '<a href="#" onclick="fTelnet.ExitScrollback();">Exit</a>';
+        this._ScrollbackBar.innerHTML = '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
+        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
+        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
+        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
+        '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
         this._ScrollbackBar.style.display = 'none';
         this._fTelnetContainer.appendChild(this._ScrollbackBar);
         // TODO Also have a span to hold the current line number

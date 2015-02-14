@@ -1,4 +1,4 @@
-﻿class VirtualKeyboard {
+class VirtualKeyboard {
     // Private variables
     private static _AltPressed: boolean = false;
     private static _CapsLockEnabled: boolean = false;
