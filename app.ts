@@ -1,4 +1,4 @@
-﻿/// <reference path='source/fTelnet.ts' />
+/// <reference path='source/fTelnet.ts' />
 
 // TODO List:
 // RIP fonts need to be optimized
