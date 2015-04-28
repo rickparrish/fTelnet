@@ -306,15 +306,6 @@
         <h2 id="IE8">Internet Explorer 8 (and older) Support</h2>
         <div class="well">
             <p>Internet Explorer 8 (and older) do not support the Canvas element, and while there are polyfills, none of them have support for the features fTelnet needs.  So unfortunately IE8 (and older) will never be supported.</p>
-            <p>To prevent javascript errors from being shown to IE8 (and older) visitors, you should include this snippet on your page:</p>
-            <code>
-                &lt;!-- Stop IE8 and below from complaining about Object.defineProperty --><br />
-                &lt;!--[if lt IE 9]><br />
-                &nbsp; &nbsp; &lt;script><br />
-                &nbsp; &nbsp; &nbsp; &nbsp; Object.defineProperty = function () { /* Do Nothing */ };<br />
-                &nbsp; &nbsp; &lt;/script><br />
-                &lt;![endif]--><br />
-            </code>
         </div>
         <hr />
 
