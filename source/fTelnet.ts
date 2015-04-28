@@ -67,10 +67,39 @@ class fTelnet {
     public static Init(): boolean {
         // Ensure we have our container
         if (document.getElementById('fTelnetContainer') === null) {
-            alert('fTelnet Error: Element with id="fTelnetContainer" was not found');
+            alert('fTelnet Error: Container element with id="fTelnetContainer" was not found');
             return false;
         }
         this._fTelnetContainer = document.getElementById('fTelnetContainer');
+
+        // Ensure the script tag includes the id we want
+        if (document.getElementById('fTelnetScript') === null) {
+            alert('fTelnet Error: Script element with id="fTelnetScript" was not found');
+            return false;
+        }
+
+        // Ensure we have tags for the client and keyboard css
+        if (document.getElementById('fTelnetCss') === null) {
+            var ScriptUrl = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
+            var CssUrl = ScriptUrl.replace('/ftelnet.min.js', '');
+            CssUrl = CssUrl.replace('/ftelnet.debug.js', '');
+            CssUrl = CssUrl + '/ftelnet.css';
+
+            var link = document.createElement('link');
+            link.id = 'fTelnetCss';
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = CssUrl;
+            document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        if (document.getElementById('fTelnetKeyboardCss') === null) {
+            var link = document.createElement('link');
+            link.id = 'fTelnetKeyboardCss';
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = '';
+            document.getElementsByTagName('head')[0].appendChild(link);
+        }
 
         // Add init message
         this._InitMessageBar = document.createElement('div');
@@ -84,7 +113,9 @@ class fTelnet {
             var RE: RegExp = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})');
             if (RE.exec(navigator.userAgent) !== null) { Version = parseFloat(RegExp.$1); }
             if (Version < 9.0) {
-                this._InitMessageBar.innerHTML = 'fTelnet Error: Internet Explorer < 9 is not supported.<br /><br />Please upgrade to IE 9 or newer, or better still would be to use Firefox or Chrome instead of IE.';
+                var IELessThan9Message = 'fTelnet Error: Internet Explorer < 9 is not supported.\n\nPlease upgrade to IE 9 or newer, or better still would be to use Firefox or Chrome instead of IE.';
+                this._InitMessageBar.innerHTML = IELessThan9Message;
+                alert(IELessThan9Message);
                 return false;
             }
         }

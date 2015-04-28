@@ -98,18 +98,11 @@
 
         <h2 id="Use">How to use</h2>
         <div class="well">
-            <p>Using fTelnet is almost as easy as installing it was.  First you need to include the correct files.  Assuming you have an index.html in your document root, and fTelnet in a subdirectory called fTelnet, you can do that by putting this in your &lt;head> section:</p>
-            <code>
-                &lt;!-- CSS used to style the buttons/statusbar/keyboard/etc --><br />
-                &lt;link href="fTelnet/fTelnet.css" rel="stylesheet"><br />
-                &lt;link href="" rel="stylesheet" id="fTelnetKeyboardCss">
-                <br />
-                &lt;!-- Javascript used to power fTelnet --><br />
-                &lt;script src="fTelnet/fTelnet.min.js" id="fTelnetScript">&lt;/script><br />
-            </code>
-            <p>Now that you have the support files loading, you need to create a placeholder where you'll render the client, and then initialize it:</p>
+            <p>Using fTelnet is almost as easy as installing it was.  First you need to include the correct files.  Assuming you have an index.html in your document root, and fTelnet in a subdirectory called fTelnet, you can do that by putting this in your &lt;body> section where you want the client to appear:</p>
             <code>
                 &lt;div id="fTelnetContainer">&lt;/div><br />
+                &lt;!-- Javascript used to power fTelnet --><br />
+                &lt;script src="fTelnet/fTelnet.min.js" id="fTelnetScript">&lt;/script><br />
                 &lt;script><br />
                 &nbsp; &nbsp; fTelnet.Init();
                 &lt;/script><br />
