@@ -1,6 +1,11 @@
 ﻿#fTelnetContainer {
+    box-sizing: content-box;
     margin: auto;
 }
+
+    #fTelnetContainer * {
+        box-sizing: content-box;
+    }
 
     #fTelnetContainer canvas {
         display: block;
