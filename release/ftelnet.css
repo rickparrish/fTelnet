@@ -3,7 +3,11 @@
     margin: auto;
 }
 
-    #fTelnetContainer * {
+    #fTelnetContainer #fTelnetButtons,
+    #fTelnetContainer #fTelnetScrollback,
+    #fTelnetContainer #fTelnetFocusWarning,
+    #fTelnetContainer #fTelnetClientContainer,
+    #fTelnetContainer #fTelnetStatusBar {
         box-sizing: content-box;
     }
 
