@@ -3,7 +3,7 @@
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
-  height: 239px;
+  height: 235px;
   width: 640px;
   margin: auto;
 }
@@ -30,23 +30,18 @@
   color: #eee;
   font: normal 14px sans-serif;
   float: left;
-  height: 39px;
+  height: 40px;
   line-height: 18px;
   margin: 1px 0 0 1px;
-  padding: 2px 0 0 5px;
+  padding: 2px 0 0 6px;
   transition: background-color 0.2s ease;
-  width: 39px;
+  width: 41px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKey:hover {
   background-color: #eee;
   color: #333;
   font-weight: bold;
   z-index: 1000;
-}
-#fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyAppMenu {
-  background-image: url("img/appmenu-key.png");
-  background-position: 6px 5px;
-  background-repeat: no-repeat;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyArrowDown {
   background-image: url("img/down-key.png");
@@ -69,61 +64,47 @@
   background-repeat: no-repeat;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyBackslash {
-  width: 60px;
+  width: 68px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyBackspace {
   background-image: url("img/backspace-key.png");
-  background-position: 5px 20px;
+  background-position: 6px 20px;
   background-repeat: no-repeat;
-  width: 80px;
+  width: 94px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyCapsLock {
-  width: 68px;
-}
-#fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyCtrl {
-  width: 50px;
+  width: 76px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyEnter {
   background-image: url("img/enter-key.png");
-  background-position: 5px 20px;
+  background-position: 6px 20px;
   background-repeat: no-repeat;
-  width: 91px;
+  width: 101px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyShiftLeft {
   background-image: url("img/shift-key.png");
-  background-position: 5px 20px;
+  background-position: 6px 20px;
   background-repeat: no-repeat;
-  width: 90px;
-}
-#fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyShiftRight {
-  background-image: url("img/shift-key.png");
-  background-position: 5px 20px;
-  background-repeat: no-repeat;
-  width: 69px;
+  width: 94px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeySpacebar {
-  width: 258px;
+  width: 346px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyTab {
   background-image: url("img/tab-key.png");
-  background-position: 5px 20px;
+  background-position: 6px 20px;
   background-repeat: no-repeat;
-  width: 59px;
-}
-#fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKeyWin {
-  background-image: url("img/windows-key.png");
-  background-position: center center;
-  background-repeat: no-repeat;
+  width: 67px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRowFunction .fTelnetKeyboardKey {
-  height: 39px;
+  height: 30px;
   margin-top: 0;
-  width: 36px;
+  width: 34px;
 }
 #fTelnetKeyboard .fTelnetKeyboardRowFunction .fTelnetKeyboardKeyEscape {
-  width: 40px;
+  width: 52px;
 }
-#fTelnetKeyboard .fTelnetKeyboardRowFunction .fTelnetKeyboardKeySPID {
-  width: 38px;
+#fTelnetKeyboard .fTelnetKeyboardRowFunction .fTelnetKeyboardKeyHomeEndInsertDelete {
+  width: 41px;
 }
 /*# sourceMappingURL=keyboard-640.css.map */

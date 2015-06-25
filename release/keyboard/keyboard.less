@@ -1,29 +1,25 @@
-@KeySize: floor(@KeyboardWidth / 16); // 16 is a magic number that gets the tab width to be roughly 1.5 keys wide
+@KeySize: floor(@KeyboardWidth / 15); // 15 is a magic number that gets the tab width to be roughly 1.5 keys wide
 @KeyPaddingLeft: floor(@KeySize / 7); // Another magic number
 @KeyWidth: @KeySize - @KeyMargin;
-@KeyHeight: @KeyWidth;
 
-@FunctionWidth: floor((@KeyboardWidth - (@KeyMargin * 16)) / 17); // 16 margins, 17 keys
-@FunctionHeight: @KeyHeight;
+@HomeEndInsertDeleteWidth: @KeyWidth;
+@FunctionWidth: floor((@KeyboardWidth - @KeyWidth - (@HomeEndInsertDeleteWidth * 4) - (@KeyMargin * 16)) / 12);
+@FunctionHeight: floor(@KeyHeight * 0.75);
+@EscWidth: @KeyboardWidth - (@FunctionWidth * 12) - (@HomeEndInsertDeleteWidth * 4) - (@KeyMargin * 16);
 
-@SPIDWidth: floor((@KeyboardWidth - (@FunctionWidth * 12) - (@KeyMargin * 16)) / 5); // 12 F-keys, 16 margins, 5 other keys (SPID + Esc)
-@EscWidth: @KeyboardWidth - (@FunctionWidth * 12) - (@SPIDWidth * 4) - (@KeyMargin * 16);
+@BackspaceWidth: @KeyboardWidth - (@KeyWidth * 13) - (@KeyMargin * 13);
 
-@BackspaceWidth: @KeyboardWidth - (@KeyWidth * 14) - (@KeyMargin * 14);
+@TabWidth: floor((@KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13)) / 2);
+@BackslashWidth: @KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13) - @TabWidth;
 
-@TabWidth: floor((@KeyboardWidth - (@KeyWidth * 13) - (@KeyMargin * 14)) / 2);
-@BackslashWidth: @KeyboardWidth - (@KeyWidth * 13) - (@KeyMargin * 14) - @TabWidth;
+@CapsLockWidth: floor((@KeyboardWidth - (@KeyWidth * 11) - (@KeyMargin * 12)) * 0.43); // CapsLock is 43% of the width of (CapsLock + Enter)
+@EnterWidth: @KeyboardWidth - (@KeyWidth * 11) - (@KeyMargin * 12) - @CapsLockWidth;
 
-@CapsLockWidth: floor((@KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13)) * 0.43); // CapsLock is 43% of the width of (CapsLock + Enter)
-@EnterWidth: @KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13) - @CapsLockWidth;
+@LeftShiftWidth: @KeyboardWidth - (@KeyWidth * 13) - (@KeyMargin * 13);
 
-@LeftShiftWidth: floor((@KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13)) * 0.57); // Left Shift is 57% of the width of (Left Shift + Right Shift)
-@RightShiftWidth: @KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13) - @LeftShiftWidth;
+@SpaceBarWidth: @KeyboardWidth - (@KeyWidth * 7) - (@KeyMargin * 7);
 
-@CtrlWidth: @LeftShiftWidth - @KeyWidth - @KeyMargin; // Ctrl is (Left Shift - Win), where Win is a regular key
-@SpaceBarWidth: @KeyboardWidth - (@KeyWidth * 7) - (@CtrlWidth * 2) - (@KeyMargin * 9);
-
-@KeyboardHeight: (@KeyHeight * 6) + (@KeyMargin * 5);
+@KeyboardHeight: @FunctionHeight + (@KeyHeight * 5) + (@KeyMargin * 5);
 
 #fTelnetKeyboard {
     background-color: black;
@@ -70,17 +66,11 @@
             width: @KeyWidth;
         }
 
-            .fTelnetKeyboardKey:hover {
-                background-color: #eee;
-                color: #333;
-                font-weight: bold;
-                z-index: 1000;
-            }
-
-        .fTelnetKeyboardKeyAppMenu {
-            background-image: url("img/appmenu-key.png");
-            background-position: @ImagePositionLeft @ImagePositionTop;
-            background-repeat: no-repeat;
+        .fTelnetKeyboardKey:hover {
+            background-color: #eee;
+            color: #333;
+            font-weight: bold;
+            z-index: 1000;
         }
 
         .fTelnetKeyboardKeyArrowDown {
@@ -122,10 +112,6 @@
             width: @CapsLockWidth;
         }
 
-        .fTelnetKeyboardKeyCtrl {
-            width: @CtrlWidth;
-        }
-
         .fTelnetKeyboardKeyEnter {
             background-image: url("img/enter-key.png");
             background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
@@ -140,13 +126,6 @@
             width: @LeftShiftWidth;
         }
 
-        .fTelnetKeyboardKeyShiftRight {
-            background-image: url("img/shift-key.png");
-            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
-            background-repeat: no-repeat;
-            width: @RightShiftWidth;
-        }
-
         .fTelnetKeyboardKeySpacebar {
             width: @SpaceBarWidth;
         }
@@ -156,12 +135,6 @@
             background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
             background-repeat: no-repeat;
             width: @TabWidth;
-        }
-
-        .fTelnetKeyboardKeyWin {
-            background-image: url("img/windows-key.png");
-            background-position: center center;
-            background-repeat: no-repeat;
         }
     }
 
@@ -176,8 +149,8 @@
             width: @EscWidth;
         }
 
-        .fTelnetKeyboardKeySPID {
-            width: @SPIDWidth;
+        .fTelnetKeyboardKeyHomeEndInsertDelete {
+            width: @HomeEndInsertDeleteWidth;
         }
     }
 }

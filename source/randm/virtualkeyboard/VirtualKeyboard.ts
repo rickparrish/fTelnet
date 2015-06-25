@@ -4,11 +4,15 @@ class VirtualKeyboard {
     private static _CapsLockEnabled: boolean = false;
     private static _CtrlPressed: boolean = false;
     private static _Div: HTMLDivElement = null;
-    private static _FnPressed: boolean = false;
     private static _ShiftPressed: boolean = false;
     private static _Visible: boolean = true;
 
     private static _ClassKeys: any = {
+        '27': 'Escape',
+        '36': 'HomeEndInsertDelete',
+        '35': 'HomeEndInsertDelete',
+        '45': 'HomeEndInsertDelete',
+        '46': 'HomeEndInsertDelete',
         '8': 'Backspace',
         '9': 'Tab',
         '220': 'Backslash',
@@ -17,7 +21,6 @@ class VirtualKeyboard {
         '1004': 'ShiftLeft',
         '38': 'ArrowUp',
         '17': 'Ctrl',
-        '1007': 'Fn',
         '18': 'Alt',
         '32': 'Spacebar',
         '37': 'ArrowLeft',
@@ -53,6 +56,25 @@ class VirtualKeyboard {
         // Rows[Row][Key][3] = CharCodeNormal (ie shift is not pressed)
         var Rows: any[] = [
             [
+                [27, 'Esc', 0, 0],
+                [112, 'F1', 0, 0],
+                [113, 'F2', 0, 0],
+                [114, 'F3', 0, 0],
+                [115, 'F4', 0, 0],
+                [116, 'F5', 0, 0],
+                [117, 'F6', 0, 0],
+                [118, 'F7', 0, 0],
+                [119, 'F8', 0, 0],
+                [120, 'F9', 0, 0],
+                [121, 'F10', 0, 0],
+                [122, 'F11', 0, 0],
+                [123, 'F12', 0, 0],
+                [36, 'Home', 0, 0],
+                [35, 'End', 0, 0],
+                [45, 'Ins', 0, 0],
+                [46, 'Del', 0, 0]
+            ],
+            [
                 [192, '~<br />`', 126, 96], //    [27, 'Esc', 0, 0],
                 [49, '!<br />1', 33, 49],   //    [112, 'F1', 0, 0],
                 [50, '@<br />2', 64, 50],   //    [113, 'F2', 0, 0],
@@ -66,7 +88,6 @@ class VirtualKeyboard {
                 [48, ')<br />0', 41, 48],   //    [121, 'F10', 0, 0],
                 [173, '_<br />-', 95, 45],  //    [122, 'F11', 0, 0],
                 [61, '+<br />=', 43, 61],   //    [123, 'F12', 0, 0],
-                [46, 'Del', 0, 0],
                 [8, 'Backspace', 0, 0]
             ],
             [
@@ -118,12 +139,10 @@ class VirtualKeyboard {
             ],
             [
                 [17, 'Ctrl', 0, 0],
-                [1007, 'Fn', 0, 0],
                 [18, 'Alt', 0, 0],
                 [32, '&nbsp;', 0, 0],
-                [45, 'Ins', 0, 0],
-                [36, 'Home', 0, 0],
-                [35, 'End', 0, 0],
+                [18, 'Alt', 0, 0],
+                [17, 'Ctrl', 0, 0],
                 [37, '', 0, 0], // Arrow left
                 [40, '', 0, 0], // Arrow down
                 [39, '', 0, 0] // Arrow right
@@ -135,7 +154,7 @@ class VirtualKeyboard {
             Html += '<div class="fTelnetKeyboardRow';
             if (Row === 0) {
                 // First row needs a second class
-                Html += ' fTelnetKeyboardRowFirst';
+                Html += ' fTelnetKeyboardRowFunction';
             }
             Html += '">';
 
@@ -232,10 +251,6 @@ class VirtualKeyboard {
                 this._CtrlPressed = !this._CtrlPressed;
                 this.ReDrawSpecialKeys();
                 break;
-            case Keyboard.FN:
-                this._FnPressed = !this._FnPressed;
-                this.ReDrawSpecialKeys();
-                break;
             case Keyboard.SHIFTLEFT:
                 this._ShiftPressed = !this._ShiftPressed;
                 this.ReDrawSpecialKeys();
@@ -259,7 +274,6 @@ class VirtualKeyboard {
         this.HighlightKey('fTelnetKeyboardKeyCapsLock', this._CapsLockEnabled);
         this.HighlightKey('fTelnetKeyboardKeyShiftLeft', this._ShiftPressed);
         this.HighlightKey('fTelnetKeyboardKeyCtrl', this._CtrlPressed);
-        this.HighlightKey('fTelnetKeyboardKeyFn', this._FnPressed);
         this.HighlightKey('fTelnetKeyboardKeyAlt', this._AltPressed);
     }
 

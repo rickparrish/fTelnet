@@ -41,7 +41,6 @@ enum Keyboard {
     F10 = 121,
     F11 = 122,
     F12 = 123,
-    FN = 1007,
     HOME = 36,
     INSERT = 45,
     LEFT = 37,
