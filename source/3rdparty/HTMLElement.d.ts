@@ -1,5 +1,9 @@
 interface HTMLElement {
     mozRequestFullScreen: () => void;
+    msExitFullscreen: () => void;
+    msFullscreenElement: () => void;
+    msRequestFullscreen: () => void;
     requestFullscreen: () => void;
-    webkitRequestFullscreen: (arg: any) => void;
+    //Make TypeScript 1.5.4 happy webkitRequestFullscreen: (arg: any) => void;
+    webkitRequestFullscreen: () => void;
 }

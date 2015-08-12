@@ -422,7 +422,8 @@ class fTelnet {
             } else if (this._fTelnetContainer.mozRequestFullScreen) {
                 this._fTelnetContainer.mozRequestFullScreen();
             } else if (this._fTelnetContainer.webkitRequestFullscreen) {
-                this._fTelnetContainer.webkitRequestFullscreen((<any>Element).ALLOW_KEYBOARD_INPUT);
+                //Make TypeScript 1.5.4 happy this._fTelnetContainer.webkitRequestFullscreen((<any>Element).ALLOW_KEYBOARD_INPUT);
+                this._fTelnetContainer.webkitRequestFullscreen();
             }
         } else {
             if (document.exitFullscreen) {

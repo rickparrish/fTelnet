@@ -1,8 +1,11 @@
 interface Document {
-    exitFullscreen: () => void;
+    //Make TypeScript 1.5.4 happy exitFullscreen: () => void;
     mozCancelFullScreen: () => void;
-    webkitExitFullscreen: () => void;
-    fullscreenElement: () => void;
+    //Make TypeScript 1.5.4 happy webkitExitFullscreen: () => void;
+    //Make TypeScript 1.5.4 happy fullscreenElement: () => void;
     mozFullScreenElement: () => void;
-    webkitFullscreenElement: () => void;
+    //Make TypeScript 1.5.4 happy webkitFullscreenElement: () => void;
+    msExitFullscreen: () => void;
+    msFullscreenElement: () => void;
+    msRequestFullscreen: () => void;
 } 

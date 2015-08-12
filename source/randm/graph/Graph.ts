@@ -20,7 +20,9 @@
 /// <reference path='IPutPixelFunction.ts' />
 /// <reference path='FillSettings.ts' />
 /// <reference path='LineSettings.ts' />
+/// <reference path='LineStyle.ts' />
 /// <reference path='StrokeFont.ts' />
+/// <reference path='TextJustification.ts' />
 /// <reference path='TextSettings.ts' />
 /// <reference path='ViewPortSettings.ts' />
 /// <reference path='WriteMode.ts' />
@@ -593,7 +595,7 @@ class Graph {
 
         // Cache the canvas image
         var PixelData: ImageData = this._CanvasContext.getImageData(0, 0, this.PIXELS_X, this.PIXELS_Y);
-        var Pixels = new Uint32Array(PixelData.data.buffer);
+        var Pixels = new Uint32Array(PixelData.data);
 
         // Check if target point is already border colour
         if (Pixels[AX + (AY * this.PIXELS_X)] === BorderColour) return;
