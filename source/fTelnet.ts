@@ -175,19 +175,21 @@ class fTelnet {
             this._FocusWarningBar.style.display = 'none';
             this._fTelnetContainer.appendChild(this._FocusWarningBar);
 
-            // Create the scrollback bar (if necessary)
-            if (DetectMobileBrowser.IsMobile) {
+            // Create the scrollback bar
                 this._ScrollbackBar = document.createElement('div');
                 this._ScrollbackBar.id = 'fTelnetScrollback';
-                this._ScrollbackBar.innerHTML = 'SCROLLBACK: <a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
-                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
-                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
-                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
-                '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
+                if (DetectMobileBrowser.IsMobile) {
+                    this._ScrollbackBar.innerHTML = 'SCROLLBACK: <a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
+                    '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
+                    '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
+                    '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
+                    '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
+                } else {
+                    this._ScrollbackBar.innerHTML = 'SCROLLBACK: Scroll back down to the bottom to exit scrollback mode';
+                }
                 this._ScrollbackBar.style.display = 'none';
                 this._fTelnetContainer.appendChild(this._ScrollbackBar);
                 // TODO Also have a span to hold the current line number
-            }
             
             // Create the status bar
             this._StatusBar = document.createElement('div');
@@ -230,7 +232,6 @@ class fTelnet {
                 + (DetectMobileBrowser.IsMobile ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
             this._MenuButtons.style.backgroundColor = 'white';
             this._MenuButtons.style.border = '1px solid #666';
-            //this._MenuButtons.style.borderRadius = '5px';
             this._MenuButtons.style.color = 'black';
             this._MenuButtons.style.display = 'none';
             this._MenuButtons.style.marginRight = '10px';
@@ -269,7 +270,7 @@ class fTelnet {
         }
 
         // Create our main timer
-        this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
+        this._Timer = setInterval((): void => { this.OnTimer(); }, 250);
 
         // Add our upload control
         var fTelnetUpload: HTMLInputElement = <HTMLInputElement>document.createElement('input');
@@ -326,7 +327,7 @@ class fTelnet {
 
     public static Connect(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        this._MenuButtons.style.display = 'none';
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
         if ((this._Connection !== null) && (this._Connection.connected)) { return; }
 
@@ -380,7 +381,7 @@ class fTelnet {
 
     public static Disconnect(prompt: boolean): boolean {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        this._MenuButtons.style.display = 'none';
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
         if (this._Connection === null) { return true; }
         if (!this._Connection.connected) { return true; }
@@ -404,7 +405,7 @@ class fTelnet {
 
     public static Download(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        this._MenuButtons.style.display = 'none';
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
@@ -448,7 +449,7 @@ class fTelnet {
 
     public static EnterScrollback(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        this._MenuButtons.style.display = 'none';
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
         if (this._ScrollbackBar !== null) {
             if (this._ScrollbackBar.style.display = 'none') {
@@ -477,7 +478,7 @@ class fTelnet {
 
     public static FullScreenToggle(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        this._MenuButtons.style.display = 'none';
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
         if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
             if (this._fTelnetContainer.requestFullscreen) {
@@ -699,7 +700,7 @@ class fTelnet {
 
     private static OnDownloadComplete(): void {
         // Restart listeners for keyboard and connection data
-        this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
+        this._Timer = setInterval((): void => { this.OnTimer(); }, 250);
     }
 
     private static OnMenuButtonClick(e: Event): boolean {
@@ -720,12 +721,29 @@ class fTelnet {
                 this._HasFocus = false;
                 this._FocusWarningBar.style.display = 'block';
             }
+
+            // Check for scrollback
+            if (!DetectMobileBrowser.IsMobile) {
+                var ScrolledUp = (this._ClientContainer.scrollHeight - this._ClientContainer.scrollTop - this._ClientContainer.clientHeight > 1);
+                if (ScrolledUp && (this._ScrollbackBar.style.display == 'none')) {
+                    this._ScrollbackBar.style.display = 'block';
+                } else if (!ScrolledUp && (this._ScrollbackBar.style.display == 'block')) {
+                    this._ScrollbackBar.style.display = 'none';
+                }
+            }
+        } else {
+            if (this._FocusWarningBar.style.display == 'block') {
+                this._FocusWarningBar.style.display = 'none';
+            }
+            if (this._ScrollbackBar.style.display == 'block') {
+                this._ScrollbackBar.style.display = 'none';
+            }
         }
     }
 
     private static OnUploadComplete(): void {
         // Restart listeners for keyboard and connection data
-        this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
+        this._Timer = setInterval((): void => { this.OnTimer(); }, 250);
     }
 
     public static OnUploadFileSelected(): void {
@@ -848,7 +866,7 @@ class fTelnet {
 
     public static Upload(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        this._MenuButtons.style.display = 'none';
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
@@ -881,7 +899,7 @@ class fTelnet {
 
     public static set VirtualKeyboardVisible(value: boolean) {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        this._MenuButtons.style.display = 'none';
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
         this._VirtualKeyboardVisible = value;
         VirtualKeyboard.Visible = value;
