@@ -17,6 +17,7 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
+/// <reference path="3rdparty/DetectMobileBrowser.ts" />
 /// <reference path="randm/ansi/Ansi.ts" />
 /// <reference path="randm/tcp/rlogin/RLoginConnection.ts" />
 /// <reference path="randm/graph/rip/RIP.ts" />
@@ -62,7 +63,7 @@ class fTelnet {
     private static _ScreenRows: number = 25;
     private static _SplashScreen: string = 'G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==';
     private static _StatusBarVisible: boolean = true;
-    private static _VirtualKeyboardVisible: boolean = true;
+    private static _VirtualKeyboardVisible: boolean = DetectMobileBrowser.IsMobile;
 
     public static Init(): boolean {
         // Ensure we have our container
@@ -125,25 +126,27 @@ class fTelnet {
         this._ButtonBar.id = 'fTelnetButtons';
         this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Connect</a> | ' +
         // '<a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a> | ' +
-        '<a href="#" onclick="fTelnet.Download(); return false;">Download</a> | ' +
-        '<a href="#" onclick="fTelnet.Upload(); return false;">Upload</a> | ' +
-        '<a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a> | ' +
-        '<a href="#" onclick="fTelnet.EnterScrollback(); return false;">Scrollback</a> | ' +
-        '<a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen<a/>';
+            '<a href="#" onclick="fTelnet.Download(); return false;">Download</a> | ' +
+            '<a href="#" onclick="fTelnet.Upload(); return false;">Upload</a> | ' +
+            '<a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a> | ' +
+            (DetectMobileBrowser.IsMobile ? '<a href="#" onclick="fTelnet.EnterScrollback(); return false;">Scrollback</a> | ' : '') +
+            '<a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen<a/>';
         this._ButtonBar.style.display = (this._ButtonBarVisible ? 'block' : 'none');
         this._fTelnetContainer.appendChild(this._ButtonBar);
 
-        // Create the scrollback bar
-        this._ScrollbackBar = document.createElement('div');
-        this._ScrollbackBar.id = 'fTelnetScrollback';
-        this._ScrollbackBar.innerHTML = '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
-        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
-        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
-        '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
-        '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
-        this._ScrollbackBar.style.display = 'none';
-        this._fTelnetContainer.appendChild(this._ScrollbackBar);
-        // TODO Also have a span to hold the current line number
+        // Create the scrollback bar (if necessary)
+        if (DetectMobileBrowser.IsMobile) {
+            this._ScrollbackBar = document.createElement('div');
+            this._ScrollbackBar.id = 'fTelnetScrollback';
+            this._ScrollbackBar.innerHTML = '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
+            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
+            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
+            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
+            '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
+            this._ScrollbackBar.style.display = 'none';
+            this._fTelnetContainer.appendChild(this._ScrollbackBar);
+            // TODO Also have a span to hold the current line number
+        }
 
         // Create the focus bar
         this._FocusWarningBar = document.createElement('div');
@@ -156,6 +159,15 @@ class fTelnet {
         this._ClientContainer = document.createElement('div');
         this._ClientContainer.id = 'fTelnetClientContainer';
         this._fTelnetContainer.appendChild(this._ClientContainer);
+
+        // Setup the client container for modern scrollback on desktop devices
+        if (!DetectMobileBrowser.IsMobile) {
+            this._ClientContainer.style.overflowX = 'hidden';
+            this._ClientContainer.style.overflowY = 'scroll';
+            this._ClientContainer.style.height = '400px'; // TODO Assumes 25 lines at 9x16
+            this._ClientContainer.style.width = '737px'; // TODO Assumes 9x16 font + 17px for scrollbar
+            this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
+        }
 
         // Seup the crt window
         if (Crt.Init(this._ClientContainer) && ((this._Emulation !== 'RIP') || Graph.Init(this._ClientContainer))) {
@@ -198,6 +210,7 @@ class fTelnet {
 
             // Create the virtual keyboard
             VirtualKeyboard.Init(this._fTelnetContainer);
+            VirtualKeyboard.Visible = this._VirtualKeyboardVisible;
 
             // Size the scrollback and button divs
             this.OnCrtScreenSizeChanged();
@@ -219,7 +232,7 @@ class fTelnet {
         } else {
             this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
             this._ButtonBar.style.display = 'none';
-            this._ScrollbackBar.style.display = 'none';
+            if (this._ScrollbackBar !== null) this._ScrollbackBar.style.display = 'none';
             this._FocusWarningBar.style.display = 'none';
             return false;
         }
@@ -392,16 +405,20 @@ class fTelnet {
     }
 
     public static EnterScrollback(): void {
-        if (this._ScrollbackBar.style.display = 'none') {
-            Crt.EnterScrollBack();
-            this._ScrollbackBar.style.display = 'block';
+        if (this._ScrollbackBar !== null) {
+            if (this._ScrollbackBar.style.display = 'none') {
+                Crt.EnterScrollBack();
+                this._ScrollbackBar.style.display = 'block';
+            }
         }
     }
 
     public static ExitScrollback(): void {
-        if (this._ScrollbackBar.style.display = 'block') {
-            Crt.PushKeyDown(Keyboard.ESCAPE, Keyboard.ESCAPE, false, false, false);
-            this._ScrollbackBar.style.display = 'none';
+        if (this._ScrollbackBar !== null) {
+            if (this._ScrollbackBar.style.display = 'block') {
+                Crt.PushKeyDown(Keyboard.ESCAPE, Keyboard.ESCAPE, false, false, false);
+                this._ScrollbackBar.style.display = 'none';
+            }
         }
     }
 
@@ -590,7 +607,17 @@ class fTelnet {
     }
 
     private static OnCrtScreenSizeChanged(): void {
-        var NewWidth: number = Crt.ScreenCols * Crt.Font.Width;
+        if (DetectMobileBrowser.IsMobile) {
+            var NewWidth: number = Crt.ScreenCols * Crt.Font.Width;
+        } else {
+            // Non-mobile means modern scrollback, which needs both width and height to be set
+            var NewWidth: number = Crt.ScreenCols * Crt.Font.Width + 17; // TODO 17 is scrollbar width
+            var NewHeight: number = Crt.ScreenRows * Crt.Font.Height;
+
+            this._ClientContainer.style.width = NewWidth + 'px';
+            this._ClientContainer.style.height = NewHeight + 'px';
+            this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
+        }
 
         // TODO -10 is 5px of left and right padding -- would be good if this wasn't hardcoded since it can be customized in the .css
         if (this._FocusWarningBar != null) { this._FocusWarningBar.style.width = NewWidth - 10 + 'px'; }
