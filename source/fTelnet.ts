@@ -215,19 +215,19 @@ class fTelnet {
             // Create the statusbar label
             this._StatusBarLabel = document.createElement('span');
             this._StatusBarLabel.id = 'fTelnetStatusBarLabel';
-            this._StatusBarLabel.innerHTML = 'Not connected';
+            this._StatusBarLabel.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Connect</a> Not connected';
             this._StatusBar.appendChild(this._StatusBarLabel);
 
             // Create the menu buttons
             this._MenuButtons = document.createElement('div');
             this._MenuButtons.id = 'fTelnetMenuButtons';
-            this._MenuButtons.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Connect</a><br />' +
-            '<a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a><br />' +
-            '<a href="#" onclick="fTelnet.Download(); return false;">Download</a><br />' +
-            '<a href="#" onclick="fTelnet.Upload(); return false;">Upload</a><br />' +
-            '<a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a><br />' +
-            (DetectMobileBrowser.IsMobile ? '<a href="#" onclick="fTelnet.EnterScrollback(); return false;">Scrollback</a><br />' : '') +
-            '<a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen<a/>';
+            this._MenuButtons.innerHTML = '<table cellpadding="5" cellspacing="1"><tr><td><a href="#" onclick="fTelnet.Connect(); return false;">Connect</a></td>'
+                + '<td><a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a></td></tr>'
+                + '<tr><td><a href="#" onclick="fTelnet.Upload(); return false;">Upload</a></td>'
+                + '<td><a href="#" onclick="fTelnet.Download(); return false;">Download</a></td></tr>'
+                + '<tr><td><a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a></td>'
+                + '<td><a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen</a></td></tr>'
+                + (DetectMobileBrowser.IsMobile ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
             this._MenuButtons.style.backgroundColor = 'white';
             this._MenuButtons.style.border = '1px solid #666';
             //this._MenuButtons.style.borderRadius = '5px';
@@ -362,9 +362,13 @@ class fTelnet {
         // Make connection
         if (this._ProxyHostname === '') {
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port;
+            this._StatusBar.style.backgroundColor = 'blue';
+            this._ClientContainer.style.opacity = '1.0';
             this._Connection.connect(this._Hostname, this._Port);
         } else {
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBar.style.backgroundColor = 'blue';
+            this._ClientContainer.style.opacity = '1.0';
             this._Connection.connect(this._Hostname, this._Port, this._ProxyHostname, this._ProxyPort, this._ProxyPortSecure);
         }
     }
@@ -551,7 +555,9 @@ class fTelnet {
     }
 
     private static OnConnectionClose(): void {
-        this._StatusBarLabel.innerHTML = 'Disconnected from ' + this._Hostname + ':' + this._Port;
+        this._StatusBarLabel.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Reconnect</a> Disconnected from ' + this._Hostname + ':' + this._Port;
+        this._StatusBar.style.backgroundColor = 'red';
+        this._ClientContainer.style.opacity = '0.5';
     }
 
     private static OnConnectionConnect(): void {
@@ -559,8 +565,12 @@ class fTelnet {
 
         if (this._ProxyHostname === '') {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port;
+            this._StatusBar.style.backgroundColor = 'blue';
+            this._ClientContainer.style.opacity = '1.0';
         } else {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBar.style.backgroundColor = 'blue';
+            this._ClientContainer.style.opacity = '1.0';
         }
 
         if (this._ConnectionType === 'rlogin') {
@@ -620,9 +630,13 @@ class fTelnet {
 
     private static OnConnectionSecurityError(): void {
         if (this._ProxyHostname === '') {
-            this._StatusBarLabel.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port;
+            this._StatusBarLabel.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Retry Connection</a> Unable to connect to ' + this._Hostname + ':' + this._Port;
+            this._StatusBar.style.backgroundColor = 'red';
+            this._ClientContainer.style.opacity = '0.5';
         } else {
-            this._StatusBarLabel.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBarLabel.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Retry Connection</a> Unable to connect to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBar.style.backgroundColor = 'red';
+            this._ClientContainer.style.opacity = '0.5';
         }
     }
 
