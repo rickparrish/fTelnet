@@ -26,7 +26,6 @@ class fTelnet {
     public static ondata: IMessageEvent = new TypedEvent();
 
     // Private variables
-    private static _ButtonBar: HTMLDivElement = null;
     private static _ClientContainer: HTMLDivElement = null;
     private static _Connection: WebSocketConnection = null;
     private static _DataTimer: number = null;
@@ -48,7 +47,6 @@ class fTelnet {
     private static _BareLFtoCRLF: boolean = false;
     private static _BitsPerSecond: number = 57600;
     private static _Blink: boolean = true;
-    private static _ButtonBarVisible: boolean = true;
     private static _ConnectionType: string = 'telnet';
     private static _Emulation: string = 'ansi-bbs';
     private static _Enter: string = '\r';
@@ -123,19 +121,6 @@ class fTelnet {
                 return false;
             }
         }
-
-        // Create the button bar
-        this._ButtonBar = document.createElement('div');
-        this._ButtonBar.id = 'fTelnetButtons';
-        this._ButtonBar.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Connect</a> | ' +
-        // '<a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a> | ' +
-            '<a href="#" onclick="fTelnet.Download(); return false;">Download</a> | ' +
-            '<a href="#" onclick="fTelnet.Upload(); return false;">Upload</a> | ' +
-            '<a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a> | ' +
-            (DetectMobileBrowser.IsMobile ? '<a href="#" onclick="fTelnet.EnterScrollback(); return false;">Scrollback</a> | ' : '') +
-            '<a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen<a/>';
-        this._ButtonBar.style.display = (this._ButtonBarVisible ? 'block' : 'none');
-        this._fTelnetContainer.appendChild(this._ButtonBar);
 
         // Create the scrollback bar (if necessary)
         if (DetectMobileBrowser.IsMobile) {
@@ -233,6 +218,28 @@ class fTelnet {
             this._StatusBarLabel.innerHTML = 'Not connected';
             this._StatusBar.appendChild(this._StatusBarLabel);
 
+            // Create the menu buttons
+            this._MenuButtons = document.createElement('div');
+            this._MenuButtons.id = 'fTelnetMenuButtons';
+            this._MenuButtons.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Connect</a><br />' +
+            '<a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a><br />' +
+            '<a href="#" onclick="fTelnet.Download(); return false;">Download</a><br />' +
+            '<a href="#" onclick="fTelnet.Upload(); return false;">Upload</a><br />' +
+            '<a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a><br />' +
+            (DetectMobileBrowser.IsMobile ? '<a href="#" onclick="fTelnet.EnterScrollback(); return false;">Scrollback</a><br />' : '') +
+            '<a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen<a/>';
+            this._MenuButtons.style.backgroundColor = 'white';
+            this._MenuButtons.style.border = '1px solid #666';
+            //this._MenuButtons.style.borderRadius = '5px';
+            this._MenuButtons.style.color = 'black';
+            this._MenuButtons.style.display = 'none';
+            this._MenuButtons.style.marginRight = '10px';
+            this._MenuButtons.style.padding = '8px 12px';
+            this._MenuButtons.style.position = 'absolute';
+            this._MenuButtons.style.textDecoration = 'none';
+            this._MenuButtons.style.textShadow = '0 1px 0 rgba(0, 0, 0, 0.1)';
+            this._fTelnetContainer.appendChild(this._MenuButtons);
+
             // Create the virtual keyboard
             VirtualKeyboard.Init(this._fTelnetContainer);
             VirtualKeyboard.Visible = this._VirtualKeyboardVisible;
@@ -256,7 +263,6 @@ class fTelnet {
             }
         } else {
             this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
-            this._ButtonBar.style.display = 'none';
             if (this._ScrollbackBar !== null) this._ScrollbackBar.style.display = 'none';
             this._FocusWarningBar.style.display = 'none';
             return false;
@@ -302,14 +308,12 @@ class fTelnet {
     }
 
     public static get ButtonBarVisible(): boolean {
-        return this._ButtonBarVisible;
+        // No longer used -- only here to avoid errors for people who used this
+        return true;
     }
 
     public static set ButtonBarVisible(value: boolean) {
-        this._ButtonBarVisible = value;
-        if (this._ButtonBar != null) {
-            this._ButtonBar.style.display = (value ? 'block' : 'none');
-        }
+        // No longer used -- only here to avoid errors for people who used this
     }
 
     public static get ConnectionType(): string {
@@ -321,6 +325,9 @@ class fTelnet {
     }
 
     public static Connect(): void {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        this._MenuButtons.style.display = 'none';
+
         if ((this._Connection !== null) && (this._Connection.connected)) { return; }
 
         // Create new connection
@@ -354,10 +361,10 @@ class fTelnet {
 
         // Make connection
         if (this._ProxyHostname === '') {
-            this._StatusBar.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port;
+            this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port;
             this._Connection.connect(this._Hostname, this._Port);
         } else {
-            this._StatusBar.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
             this._Connection.connect(this._Hostname, this._Port, this._ProxyHostname, this._ProxyPort, this._ProxyPortSecure);
         }
     }
@@ -368,6 +375,9 @@ class fTelnet {
     }
 
     public static Disconnect(prompt: boolean): boolean {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        this._MenuButtons.style.display = 'none';
+
         if (this._Connection === null) { return true; }
         if (!this._Connection.connected) { return true; }
 
@@ -389,6 +399,9 @@ class fTelnet {
     }
 
     public static Download(): void {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        this._MenuButtons.style.display = 'none';
+
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
 
@@ -456,6 +469,9 @@ class fTelnet {
     }
 
     public static FullScreenToggle(): void {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        this._MenuButtons.style.display = 'none';
+
         if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
             if (this._fTelnetContainer.requestFullscreen) {
                 this._fTelnetContainer.requestFullscreen();
@@ -532,16 +548,16 @@ class fTelnet {
     }
 
     private static OnConnectionClose(): void {
-        this._StatusBar.innerHTML = 'Disconnected from ' + this._Hostname + ':' + this._Port;
+        this._StatusBarLabel.innerHTML = 'Disconnected from ' + this._Hostname + ':' + this._Port;
     }
 
     private static OnConnectionConnect(): void {
         Crt.ClrScr();
 
         if (this._ProxyHostname === '') {
-            this._StatusBar.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port;
+            this._StatusBarLabel.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port;
         } else {
-            this._StatusBar.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBarLabel.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
         }
 
         if (this._ConnectionType === 'rlogin') {
@@ -601,9 +617,9 @@ class fTelnet {
 
     private static OnConnectionSecurityError(): void {
         if (this._ProxyHostname === '') {
-            this._StatusBar.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port;
+            this._StatusBarLabel.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port;
         } else {
-            this._StatusBar.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBarLabel.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
         }
     }
 
@@ -646,7 +662,6 @@ class fTelnet {
 
         // TODO -10 is 5px of left and right padding -- would be good if this wasn't hardcoded since it can be customized in the .css
         if (this._FocusWarningBar != null) { this._FocusWarningBar.style.width = NewWidth - 10 + 'px'; }
-        if (this._ButtonBar != null) { this._ButtonBar.style.width = NewWidth - 10 + 'px'; }
         if (this._ScrollbackBar != null) { this._ScrollbackBar.style.width = NewWidth - 10 + 'px'; }
         if (this._StatusBar != null) { this._StatusBar.style.width = NewWidth - 10 + 'px'; }
 
@@ -671,7 +686,9 @@ class fTelnet {
     }
 
     private static OnMenuButtonClick(e: Event): boolean {
-        this._ButtonBar.style.display = (this._ButtonBar.style.display == 'none') ? 'block' : 'none';
+        this._MenuButtons.style.display = (this._MenuButtons.style.display == 'none') ? 'block' : 'none';
+        this._MenuButtons.style.left = Offset.getOffset(this._MenuButton).x + 'px';
+        this._MenuButtons.style.top = Offset.getOffset(this._MenuButton).y - this._MenuButtons.clientHeight + 'px';
         e.preventDefault();
         return false;
     }
@@ -813,6 +830,9 @@ class fTelnet {
     }
 
     public static Upload(): void {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        this._MenuButtons.style.display = 'none';
+
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
 
@@ -843,6 +863,9 @@ class fTelnet {
     }
 
     public static set VirtualKeyboardVisible(value: boolean) {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        this._MenuButtons.style.display = 'none';
+
         this._VirtualKeyboardVisible = value;
         VirtualKeyboard.Visible = value;
     }
