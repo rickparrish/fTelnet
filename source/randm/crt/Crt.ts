@@ -652,6 +652,7 @@ class Crt {
             var YDest: number;
             var YSource: number;
 
+            // TODO Handle HOME and END?
             if (ke.keyCode === Keyboard.DOWN) {
                 if (this._ScrollBackPosition < this._ScrollBackTemp.length) {
                     this._ScrollBackPosition += 1;

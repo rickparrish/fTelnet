@@ -35,8 +35,11 @@ class fTelnet {
     private static _HasFocus: boolean = true;
     private static _InitMessageBar: HTMLDivElement = null;
     private static _LastTimer: number = 0;
+    private static _MenuButton: HTMLAnchorElement = null;
+    private static _MenuButtons: HTMLDivElement = null;
     private static _ScrollbackBar: HTMLDivElement = null;
     private static _StatusBar: HTMLDivElement = null;
+    private static _StatusBarLabel: HTMLSpanElement = null;
     private static _Timer: number = null;
     private static _YModemReceive: YModemReceive = null;
     private static _YModemSend: YModemSend = null;
@@ -204,9 +207,31 @@ class fTelnet {
             // Create the status bar
             this._StatusBar = document.createElement('div');
             this._StatusBar.id = 'fTelnetStatusBar';
-            this._StatusBar.innerHTML = 'Not connected';
             this._StatusBar.style.display = (this._StatusBarVisible ? 'block' : 'none');
             this._fTelnetContainer.appendChild(this._StatusBar);
+
+            // Create the statusbar menu button
+            this._MenuButton = document.createElement('a');
+            this._MenuButton.id = 'fTelnetMenuButton';
+            this._MenuButton.href = '#fTelnetContainer';
+            this._MenuButton.innerHTML = 'Menu';
+            this._MenuButton.style.backgroundColor = 'white';
+            this._MenuButton.style.border = '1px solid #666';
+            this._MenuButton.style.borderRadius = '5px';
+            this._MenuButton.style.color = 'black';
+            this._MenuButton.style.display = 'inline-block';
+            this._MenuButton.style.marginRight = '10px';
+            this._MenuButton.style.padding = '8px 12px';
+            this._MenuButton.style.textDecoration = 'none';
+            this._MenuButton.style.textShadow = '0 1px 0 rgba(0, 0, 0, 0.1)';
+            this._MenuButton.addEventListener('click', (e: Event): boolean => { return this.OnMenuButtonClick(e); }, false);
+            this._StatusBar.appendChild(this._MenuButton);
+
+            // Create the statusbar label
+            this._StatusBarLabel = document.createElement('span');
+            this._StatusBarLabel.id = 'fTelnetStatusBarLabel';
+            this._StatusBarLabel.innerHTML = 'Not connected';
+            this._StatusBar.appendChild(this._StatusBarLabel);
 
             // Create the virtual keyboard
             VirtualKeyboard.Init(this._fTelnetContainer);
@@ -332,7 +357,7 @@ class fTelnet {
             this._StatusBar.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port;
             this._Connection.connect(this._Hostname, this._Port);
         } else {
-            this._StatusBar.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via proxy';
+            this._StatusBar.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
             this._Connection.connect(this._Hostname, this._Port, this._ProxyHostname, this._ProxyPort, this._ProxyPortSecure);
         }
     }
@@ -516,7 +541,7 @@ class fTelnet {
         if (this._ProxyHostname === '') {
             this._StatusBar.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port;
         } else {
-            this._StatusBar.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via proxy';
+            this._StatusBar.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
         }
 
         if (this._ConnectionType === 'rlogin') {
@@ -578,7 +603,7 @@ class fTelnet {
         if (this._ProxyHostname === '') {
             this._StatusBar.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port;
         } else {
-            this._StatusBar.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port + ' via proxy';
+            this._StatusBar.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
         }
     }
 
@@ -643,6 +668,12 @@ class fTelnet {
     private static OnDownloadComplete(): void {
         // Restart listeners for keyboard and connection data
         this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
+    }
+
+    private static OnMenuButtonClick(e: Event): boolean {
+        this._ButtonBar.style.display = (this._ButtonBar.style.display == 'none') ? 'block' : 'none';
+        e.preventDefault();
+        return false;
     }
 
     private static OnTimer(): void {

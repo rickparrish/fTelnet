@@ -12,7 +12,8 @@
 // http://developer.telerik.com/featured/300-ms-click-delay-ios-8/ Speed up clicks on mobile devices
 // Look into cut and paste
 // Make scrollback size configurable
-// Make connected/disconnected states more noticeable (ie let users know when connection drops)// RIP fonts need to be optimized
+// Make connected/disconnected states more noticeable (ie let users know when connection drops)
+// RIP fonts need to be optimized
 // Resize window in RIP mode changed font size, and it shouldn't do that
 // Add option to play <audio> when connect is clicked (maybe also when connected and disconnected?)
 //Unhandled ESC sequence: Enable auto wrap
