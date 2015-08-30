@@ -122,27 +122,6 @@ class fTelnet {
             }
         }
 
-        // Create the scrollback bar (if necessary)
-        if (DetectMobileBrowser.IsMobile) {
-            this._ScrollbackBar = document.createElement('div');
-            this._ScrollbackBar.id = 'fTelnetScrollback';
-            this._ScrollbackBar.innerHTML = '<a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
-            '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
-            this._ScrollbackBar.style.display = 'none';
-            this._fTelnetContainer.appendChild(this._ScrollbackBar);
-            // TODO Also have a span to hold the current line number
-        }
-
-        // Create the focus bar
-        this._FocusWarningBar = document.createElement('div');
-        this._FocusWarningBar.id = 'fTelnetFocusWarning';
-        this._FocusWarningBar.innerHTML = '*** CLICK HERE TO GIVE fTelnet FOCUS ***';
-        this._FocusWarningBar.style.display = 'none';
-        this._fTelnetContainer.appendChild(this._FocusWarningBar);
-
         // Create the client container (crt/graph)
         this._ClientContainer = document.createElement('div');
         this._ClientContainer.id = 'fTelnetClientContainer';
@@ -189,6 +168,27 @@ class fTelnet {
                 return false;
             }
 
+            // Create the focus bar
+            this._FocusWarningBar = document.createElement('div');
+            this._FocusWarningBar.id = 'fTelnetFocusWarning';
+            this._FocusWarningBar.innerHTML = '*** CLICK HERE TO ENABLE KEYBOARD INPUT ***';
+            this._FocusWarningBar.style.display = 'none';
+            this._fTelnetContainer.appendChild(this._FocusWarningBar);
+
+            // Create the scrollback bar (if necessary)
+            if (DetectMobileBrowser.IsMobile) {
+                this._ScrollbackBar = document.createElement('div');
+                this._ScrollbackBar.id = 'fTelnetScrollback';
+                this._ScrollbackBar.innerHTML = 'SCROLLBACK: <a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
+                '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
+                this._ScrollbackBar.style.display = 'none';
+                this._fTelnetContainer.appendChild(this._ScrollbackBar);
+                // TODO Also have a span to hold the current line number
+            }
+            
             // Create the status bar
             this._StatusBar = document.createElement('div');
             this._StatusBar.id = 'fTelnetStatusBar';
@@ -443,6 +443,9 @@ class fTelnet {
     }
 
     public static EnterScrollback(): void {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        this._MenuButtons.style.display = 'none';
+
         if (this._ScrollbackBar !== null) {
             if (this._ScrollbackBar.style.display = 'none') {
                 Crt.EnterScrollBack();
