@@ -1,18 +1,11 @@
 /// <reference path='source/fTelnet.ts' />
 
 // TODO List:
-// https://jsfiddle.net/mo2psxab/2/ might be an alternative method for scrollback
-//   Too slow on mobile, maybe have a hybrid approach based on how long it takes to scroll one line
-//   Maybe cut-off point is >100ms is old style, < 100ms is new style?
-//   If going ahead, use these to get scrollbar width (and remove 17px hardcoded value)
-//     http://davidwalsh.name/detect-scrollbar-width
-//     http://stackoverflow.com/questions/13382516/getting-scroll-bar-width-using-javascript
-//   Or maybe use mobile detection and split it between desktop and mobile.  My Windows Phone
-//   didn't seem to like the benchmark code, so it would lock up and be unusable.
-// http://developer.telerik.com/featured/300-ms-click-delay-ios-8/ Speed up clicks on mobile devices
-// Look into cut and paste
+// Implemented rudimentary copy/paste support, future improvements:
+//  - http://stackoverflow.com/a/30810322 shows prompt-less copy, hopefully paste also possible
+//  - Do like putty and inverse selected region so it's easy to see what you're copying
 // Make scrollback size configurable
-// Make connected/disconnected states more noticeable (ie let users know when connection drops)
+// Update docs/embed wizard to allow use of NO_RIP and NO_RIP_OR_XFER branches (they're much smaller .js files)
 // RIP fonts need to be optimized
 // Resize window in RIP mode changed font size, and it shouldn't do that
 // Add option to play <audio> when connect is clicked (maybe also when connected and disconnected?)

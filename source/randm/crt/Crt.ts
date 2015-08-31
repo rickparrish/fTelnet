@@ -87,6 +87,7 @@ class Crt {
     private static _Canvas: HTMLCanvasElement = null;
     private static _CanvasContext: CanvasRenderingContext2D = null;
     private static _CharInfo: CharInfo = new CharInfo(null, Crt.LIGHTGRAY);
+    private static _ClipboardText: string = '';
     private static _Container: HTMLElement = null;
     private static _Cursor: Cursor = null;
     private static _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
@@ -95,6 +96,7 @@ class Crt {
     private static _KeyBuf: KeyPressEvent[] = [];
     private static _LastChar: number = 0x00;
     private static _LocalEcho: boolean = false;
+    private static _MouseDownPoint: Point = null;
     private static _ScreenSize: Point = new Point(80, 25);
     private static _Scrollback: CharInfo[][] = null;
     private static _ScrollbackPosition: number = -1;
@@ -123,6 +125,8 @@ class Crt {
         } else {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
         }
+        this._Canvas.addEventListener('mousedown', (me: MouseEvent): void => { this.OnMouseDown(me); }, false);
+        this._Canvas.addEventListener('mouseup', (me: MouseEvent): void => { this.OnMouseUp(me); }, false);
 
         // Check for Canvas support
         if (!this._Canvas.getContext) {
@@ -217,6 +221,10 @@ class Crt {
 
     public static get Canvas(): HTMLCanvasElement {
         return this._Canvas;
+    }
+
+    public static get ClipboardText(): string {
+        return this._ClipboardText;
     }
 
     public static ClrBol(): void {
@@ -851,6 +859,70 @@ class Crt {
         if (keyString) {
             ke.preventDefault();
             this.onkeypressed.trigger();
+        }
+    }
+
+    private static OnMouseDown(me: MouseEvent): void {
+        if (typeof me.offsetX !== "undefined") {
+            this._MouseDownPoint = new Point(me.offsetX, me.offsetY);
+        } else {
+            var CanvasOffset = Offset.getOffset(this._Canvas);
+            this._MouseDownPoint = new Point(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
+        }
+    }
+
+    private static OnMouseUp(me: MouseEvent): void {
+        // Get the mouse up point
+        var MouseUpPoint: Point = null;
+        if (typeof me.offsetX !== "undefined") {
+            MouseUpPoint = new Point(me.offsetX, me.offsetY);
+        } else {
+            var CanvasOffset = Offset.getOffset(this._Canvas);
+            MouseUpPoint = new Point(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
+        }
+
+        // Adjust for modern scrollback offset
+        if (!DetectMobileBrowser.IsMobile) {
+            this._MouseDownPoint.y -= this._ScrollbackSize * this._Font.Height;
+            MouseUpPoint.y -= this._ScrollbackSize * this._Font.Height;
+        }
+
+        // Convert to crt points
+        var CrtDownPoint: Point = new Point(Math.floor(this._MouseDownPoint.x / this._Font.Width) + 1, Math.floor(this._MouseDownPoint.y / this._Font.Height) + 1);
+        var CrtUpPoint: Point = new Point(Math.floor(MouseUpPoint.x / this._Font.Width) + 1, Math.floor(MouseUpPoint.y / this._Font.Height) + 1);
+
+        // Ignore single cell copies
+        if ((CrtDownPoint.x == CrtUpPoint.x) && (CrtDownPoint.y == CrtUpPoint.y)) return;
+
+        // Check if we need to flip the points
+        if ((CrtDownPoint.y > CrtUpPoint.y) || ((CrtDownPoint.y == CrtUpPoint.y) && (CrtDownPoint.x > CrtUpPoint.x))) {
+            var TempPoint = CrtDownPoint;
+            CrtDownPoint = CrtUpPoint;
+            CrtUpPoint = TempPoint;
+        }
+
+        // Get the text behind those points
+        var Text: string = '';
+        for (var y: number = CrtDownPoint.y; y <= CrtUpPoint.y; y++) {
+            // Determine how many cells to copy on this row
+            var FirstX: number = (y == CrtDownPoint.y) ? CrtDownPoint.x : 1;
+            var LastX: number = (y == CrtUpPoint.y) ? CrtUpPoint.x : this._ScreenSize.x;
+
+            // And now copy the cells from this row
+            for (var x: number = FirstX; x <= LastX; x++) {
+                Text += (this._Buffer[y][x].Ch === null) ? ' ' : this._Buffer[y][x].Ch;
+            }
+
+            // Add linefeeds, if necessary
+            if (y < CrtDownPoint.y) Text += "\r\n";
+        }
+
+        // Show a prompt so they can copy the text
+        this._ClipboardText = Text;
+        if (window.clipboardData) {
+            window.clipboardData.setData("Text", Text);
+        } else {
+            prompt('Press CTRL-C to copy the text to your clipboard', Text);
         }
     }
 

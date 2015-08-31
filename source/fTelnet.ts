@@ -200,7 +200,7 @@ class fTelnet {
             // Create the statusbar menu button
             this._MenuButton = document.createElement('a');
             this._MenuButton.id = 'fTelnetMenuButton';
-            this._MenuButton.href = '#fTelnetContainer';
+            this._MenuButton.href = '#';
             this._MenuButton.innerHTML = 'Menu';
             this._MenuButton.style.backgroundColor = 'white';
             this._MenuButton.style.border = '1px solid #666';
@@ -225,6 +225,8 @@ class fTelnet {
             this._MenuButtons.id = 'fTelnetMenuButtons';
             this._MenuButtons.innerHTML = '<table cellpadding="5" cellspacing="1"><tr><td><a href="#" onclick="fTelnet.Connect(); return false;">Connect</a></td>'
                 + '<td><a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a></td></tr>'
+                + '<tr><td><a href="#" onclick="fTelnet.ClipboardCopy(); return false;">Copy</a></td>'
+                + '<td><a href="#" onclick="fTelnet.ClipboardPaste(); return false;">Paste</a></td></tr>'
                 + '<tr><td><a href="#" onclick="fTelnet.Upload(); return false;">Upload</a></td>'
                 + '<td><a href="#" onclick="fTelnet.Download(); return false;">Download</a></td></tr>'
                 + '<tr><td><a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a></td>'
@@ -315,6 +317,43 @@ class fTelnet {
 
     public static set ButtonBarVisible(value: boolean) {
         // No longer used -- only here to avoid errors for people who used this
+    }
+
+    public static ClipboardCopy(): void {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+
+        if (window.clipboardData) {
+            window.clipboardData.setData("Text", Crt.ClipboardText);
+        } else {
+            prompt('Press CTRL-C to copy the text to your clipboard', Crt.ClipboardText);
+        }
+    }
+
+    public static ClipboardPaste(): void {
+        // Hide the menu buttons (in case we clicked the Connect menu button)
+        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+
+        if (this._Connection === null) { return; }
+        if (!this._Connection.connected) { return; }
+
+        var Text = '';
+        if (window.clipboardData) {
+            Text = window.clipboardData.getData("Text");
+        } else {
+            Text = prompt("Enter the text you'd like to paste (no linefeeds)");
+        }
+
+        for (var i = 0; i < Text.length; i++) {
+            var B: number = Text.charCodeAt(i);
+            if ((B == 13) || (B == 32)) {
+                // Handle CR and space differently
+                Crt.PushKeyDown(0, B, false, false, false);
+            } else if ((B >= 33) && (B <= 126)) {
+                // Handle normal key
+                Crt.PushKeyPress(B, 0, false, false, false);
+            }
+        }
     }
 
     public static get ConnectionType(): string {
