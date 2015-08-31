@@ -665,17 +665,6 @@ class Crt {
                         this.FastWrite(this._ScrollBackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollBackTemp[YSource][X], false);
                     }
                 }
-            } else if (ke.keyCode === Keyboard.ESCAPE) {
-                // Restore the screen contents
-                if (this._Buffer !== null) {
-                    for (Y = 1; Y <= this._ScreenSize.y; Y++) {
-                        for (X = 1; X <= this._ScreenSize.x; X++) {
-                            this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
-                        }
-                    }
-                }
-
-                this._InScrollBack = false;
             } else if (ke.keyCode === Keyboard.PAGE_DOWN) {
                 for (i = 0; i < this._ScreenSize.y; i++) {
                     this.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);
