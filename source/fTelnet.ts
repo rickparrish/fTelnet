@@ -323,11 +323,7 @@ class fTelnet {
         // Hide the menu buttons (in case we clicked the Connect menu button)
         if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
-        if (window.clipboardData) {
-            window.clipboardData.setData("Text", Crt.ClipboardText);
-        } else {
-            prompt('Press CTRL-C to copy the text to your clipboard', Crt.ClipboardText);
-        }
+        Clipboard.SetData(Crt.ClipboardText);
     }
 
     public static ClipboardPaste(): void {
@@ -337,13 +333,7 @@ class fTelnet {
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
 
-        var Text = '';
-        if (window.clipboardData) {
-            Text = window.clipboardData.getData("Text");
-        } else {
-            Text = prompt("Enter the text you'd like to paste (no linefeeds)");
-        }
-
+        var Text = Clipboard.GetData();
         for (var i = 0; i < Text.length; i++) {
             var B: number = Text.charCodeAt(i);
             if ((B == 13) || (B == 32)) {

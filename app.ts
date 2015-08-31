@@ -1,8 +1,7 @@
 /// <reference path='source/fTelnet.ts' />
 
 // TODO List:
-// Implemented rudimentary copy/paste support, future improvements:
-//  - http://stackoverflow.com/a/30810322 shows prompt-less copy, hopefully paste also possible
+// Implemented copy/paste support, future improvements:
 //  - Do like putty and inverse selected region so it's easy to see what you're copying
 // Make scrollback size configurable
 // Update docs/embed wizard to allow use of NO_RIP and NO_RIP_OR_XFER branches (they're much smaller .js files)

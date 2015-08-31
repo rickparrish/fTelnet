@@ -33,6 +33,7 @@
     <Content Include="source\randm\crt\font\RIP\RIP-8x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
     <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
+    <TypeScriptCompile Include="source\3rdparty\Clipboard.ts" />
     <TypeScriptCompile Include="source\3rdparty\ClipboardData.d.ts" />
     <TypeScriptCompile Include="source\3rdparty\Window.d.ts" />
     <TypeScriptCompile Include="source\3rdparty\GetScrollbarWidth.ts" />

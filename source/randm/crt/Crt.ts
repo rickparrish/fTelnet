@@ -917,14 +917,11 @@ class Crt {
             if (y < CrtDownPoint.y) Text += "\r\n";
         }
 
-        // Show a prompt so they can copy the text
+        // Copy to the clipboard
         this._ClipboardText = Text;
-        if (window.clipboardData) {
-            window.clipboardData.setData("Text", Text);
-        } else {
-            prompt('Press CTRL-C to copy the text to your clipboard', Text);
-        }
+        Clipboard.SetData(Text);
     }
+
 
     private static OnResize(): void {
         // See if we can switch to a different font size
