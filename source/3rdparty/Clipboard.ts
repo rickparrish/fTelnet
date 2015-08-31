@@ -1,4 +1,5 @@
-﻿class Clipboard {
+﻿// From: http://stackoverflow.com/a/30810322/342378
+class Clipboard {
     public static GetData(): string {
         if (document.queryCommandSupported('paste')) {
             var textArea: HTMLTextAreaElement = document.createElement("textarea");
@@ -19,7 +20,6 @@
             try {
                 document.execCommand('paste');
             } catch (err) {
-                alert(err);
                 textArea.value = prompt("Enter the text you'd like to paste");
             }
 

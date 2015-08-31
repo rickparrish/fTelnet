@@ -225,8 +225,8 @@ class fTelnet {
             this._MenuButtons.id = 'fTelnetMenuButtons';
             this._MenuButtons.innerHTML = '<table cellpadding="5" cellspacing="1"><tr><td><a href="#" onclick="fTelnet.Connect(); return false;">Connect</a></td>'
                 + '<td><a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a></td></tr>'
-                + '<tr><td><a href="#" onclick="fTelnet.ClipboardCopy(); return false;">Copy</a></td>'
-                + '<td><a href="#" onclick="fTelnet.ClipboardPaste(); return false;">Paste</a></td></tr>'
+                + (DetectMobileBrowser.IsMobile ? '' : '<tr><td><a href="#" onclick="fTelnet.ClipboardCopy(); return false;">Copy</a></td>')
+                + (DetectMobileBrowser.IsMobile ? '' : '<td><a href="#" onclick="fTelnet.ClipboardPaste(); return false;">Paste</a></td></tr>')
                 + '<tr><td><a href="#" onclick="fTelnet.Upload(); return false;">Upload</a></td>'
                 + '<td><a href="#" onclick="fTelnet.Download(); return false;">Download</a></td></tr>'
                 + '<tr><td><a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a></td>'
@@ -241,6 +241,7 @@ class fTelnet {
             this._MenuButtons.style.position = 'absolute';
             this._MenuButtons.style.textDecoration = 'none';
             this._MenuButtons.style.textShadow = '0 1px 0 rgba(0, 0, 0, 0.1)';
+            this._MenuButtons.style.zIndex = '150';  // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
             this._fTelnetContainer.appendChild(this._MenuButtons);
 
             // Create the virtual keyboard
