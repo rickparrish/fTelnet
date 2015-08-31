@@ -202,15 +202,6 @@ class fTelnet {
             this._MenuButton.id = 'fTelnetMenuButton';
             this._MenuButton.href = '#';
             this._MenuButton.innerHTML = 'Menu';
-            this._MenuButton.style.backgroundColor = 'white';
-            this._MenuButton.style.border = '1px solid #666';
-            this._MenuButton.style.borderRadius = '5px';
-            this._MenuButton.style.color = 'black';
-            this._MenuButton.style.display = 'inline-block';
-            this._MenuButton.style.marginRight = '10px';
-            this._MenuButton.style.padding = '8px 12px';
-            this._MenuButton.style.textDecoration = 'none';
-            this._MenuButton.style.textShadow = '0 1px 0 rgba(0, 0, 0, 0.1)';
             this._MenuButton.addEventListener('click', (e: Event): boolean => { return this.OnMenuButtonClick(e); }, false);
             this._StatusBar.appendChild(this._MenuButton);
 
@@ -231,16 +222,8 @@ class fTelnet {
                 + '<td><a href="#" onclick="fTelnet.Download(); return false;">Download</a></td></tr>'
                 + '<tr><td><a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a></td>'
                 + '<td><a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen</a></td></tr>'
-                + (DetectMobileBrowser.IsMobile ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
-            this._MenuButtons.style.backgroundColor = 'white';
-            this._MenuButtons.style.border = '1px solid #666';
-            this._MenuButtons.style.color = 'black';
+            + (DetectMobileBrowser.IsMobile ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
             this._MenuButtons.style.display = 'none';
-            this._MenuButtons.style.marginRight = '10px';
-            this._MenuButtons.style.padding = '8px 12px';
-            this._MenuButtons.style.position = 'absolute';
-            this._MenuButtons.style.textDecoration = 'none';
-            this._MenuButtons.style.textShadow = '0 1px 0 rgba(0, 0, 0, 0.1)';
             this._MenuButtons.style.zIndex = '150';  // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
             this._fTelnetContainer.appendChild(this._MenuButtons);
 
