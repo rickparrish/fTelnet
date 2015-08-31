@@ -131,8 +131,8 @@ class fTelnet {
         if (!DetectMobileBrowser.IsMobile) {
             this._ClientContainer.style.overflowX = 'hidden';
             this._ClientContainer.style.overflowY = 'scroll';
-            this._ClientContainer.style.height = '400px'; // TODO Assumes 25 lines at 9x16
-            this._ClientContainer.style.width = '737px'; // TODO Assumes 9x16 font + 17px for scrollbar
+            this._ClientContainer.style.height = this._ScreenRows * 16 + 'px'; // Default font is 9x16
+            this._ClientContainer.style.width = (this._ScreenColumns * 9) + GetScrollbarWidth.Width + 'px'; // Default font is 9x16
             this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
         }
 
@@ -670,7 +670,7 @@ class fTelnet {
             var NewWidth: number = Crt.ScreenCols * Crt.Font.Width;
         } else {
             // Non-mobile means modern scrollback, which needs both width and height to be set
-            var NewWidth: number = Crt.ScreenCols * Crt.Font.Width + 17; // TODO 17 is scrollbar width
+            var NewWidth: number = Crt.ScreenCols * Crt.Font.Width + GetScrollbarWidth.Width;
             var NewHeight: number = Crt.ScreenRows * Crt.Font.Height;
 
             this._ClientContainer.style.width = NewWidth + 'px';
