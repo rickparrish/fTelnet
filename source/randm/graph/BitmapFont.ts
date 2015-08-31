@@ -25,12 +25,12 @@ class BitmapFont {
     public static Init(): void {
         // This initializes the pixels array so that all 256 chars are blank
         // This is so if we fail loading the pixels array from the HTTP server, the client won't crash (but it means the bitmap font text won't display)
-        for (var char: number = 0; char < 256; char++) {
-            this.Pixels[char] = [];
+        for (var Char: number = 0; Char < 256; Char++) {
+            this.Pixels[Char] = [];
             for (var y: number = 0; y < 8; y++) {
-                this.Pixels[char][y] = [];
+                this.Pixels[Char][y] = [];
                 for (var x: number = 0; x < 8; x++) {
-                    this.Pixels[char][y][x] = 0;
+                    this.Pixels[Char][y][x] = 0;
                 }
             }
         }
