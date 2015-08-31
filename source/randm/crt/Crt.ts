@@ -91,15 +91,15 @@ class Crt {
     private static _Cursor: Cursor = null;
     private static _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
     private static _Font: CrtFont = null;
-    private static _InScrollBack: boolean = false;
+    private static _InScrollback: boolean = false;
     private static _KeyBuf: KeyPressEvent[] = [];
     private static _LastChar: number = 0x00;
     private static _LocalEcho: boolean = false;
     private static _ScreenSize: Point = new Point(80, 25);
-    private static _ScrollBack: CharInfo[][] = null;
-    private static _ScrollBackPosition: number = -1;
-    private static _ScrollBackSize: number = 500;
-    private static _ScrollBackTemp: CharInfo[][] = null;
+    private static _Scrollback: CharInfo[][] = null;
+    private static _ScrollbackPosition: number = -1;
+    private static _ScrollbackSize: number = 500;
+    private static _ScrollbackTemp: CharInfo[][] = null;
     private static _TempCanvas: HTMLCanvasElement = null;
     private static _TempCanvasContext: CanvasRenderingContext2D = null;
     private static _Transparent: Boolean = false;
@@ -121,7 +121,7 @@ class Crt {
         if (DetectMobileBrowser.IsMobile) {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         } else {
-            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollBackSize);
+            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
         }
 
         // Check for Canvas support
@@ -355,40 +355,53 @@ class Crt {
         this.ScrollUpCustom(this.WindMinX + 1, this.WhereYA(), this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
     }
 
-    public static EnterScrollBack(): void {
+    public static EnterScrollback(): void {
         // Non-mobile have modern scrollback
         if (!DetectMobileBrowser.IsMobile) return;
 
-        if (!this._InScrollBack) {
-            this._InScrollBack = true;
+        if (!this._InScrollback) {
+            this._InScrollback = true;
 
             var NewRow: CharInfo[];
             var X: number;
             var Y: number;
 
             // Make copy of current scrollback buffer in temp scrollback buffer
-            this._ScrollBackTemp = [];
-            for (Y = 0; Y < this._ScrollBack.length; Y++) {
+            this._ScrollbackTemp = [];
+            for (Y = 0; Y < this._Scrollback.length; Y++) {
                 NewRow = [];
-                for (X = 0; X < this._ScrollBack[Y].length; X++) {
-                    NewRow.push(new CharInfo(this._ScrollBack[Y][X].Ch, this._ScrollBack[Y][X].Attr, this._ScrollBack[Y][X].Blink, this._ScrollBack[Y][X].Underline, this._ScrollBack[Y][X].Reverse));
+                for (X = 0; X < this._Scrollback[Y].length; X++) {
+                    NewRow.push(new CharInfo(this._Scrollback[Y][X].Ch, this._Scrollback[Y][X].Attr, this._Scrollback[Y][X].Blink, this._Scrollback[Y][X].Underline, this._Scrollback[Y][X].Reverse));
                 }
-                this._ScrollBackTemp.push(NewRow);
+                this._ScrollbackTemp.push(NewRow);
             }
 
             // Add current screen to temp scrollback buffer
-            // TODO Unused var YOffset: number = this._ScrollBackTemp.length - 1;
+            // TODO Unused var YOffset: number = this._ScrollbackTemp.length - 1;
             for (Y = 1; Y <= this._ScreenSize.y; Y++) {
                 NewRow = [];
                 for (X = 1; X <= this._ScreenSize.x; X++) {
                     NewRow.push(new CharInfo(this._Buffer[Y][X].Ch, this._Buffer[Y][X].Attr, this._Buffer[Y][X].Blink, this._Buffer[Y][X].Underline, this._Buffer[Y][X].Reverse));
                 }
-                this._ScrollBackTemp.push(NewRow);
+                this._ScrollbackTemp.push(NewRow);
             }
 
             // Set our position in the scrollback
-            this._ScrollBackPosition = this._ScrollBackTemp.length;
+            this._ScrollbackPosition = this._ScrollbackTemp.length;
         }
+    }
+
+    public static ExitScrollback(): void {
+        // Restore the screen contents
+        if (this._Buffer !== null) {
+            for (var Y = 1; Y <= this._ScreenSize.y; Y++) {
+                for (var X = 1; X <= this._ScreenSize.x; X++) {
+                    this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
+                }
+            }
+        }
+
+        this._InScrollback = false;
     }
 
     public static FastWrite(text: string, x: number, y: number, charInfo: CharInfo, updateBuffer?: boolean): void {
@@ -426,11 +439,11 @@ class Crt {
                 var Char: ImageData = this._Font.GetChar(CharCodes[i], charInfo);
                 if (Char) {
                     if (DetectMobileBrowser.IsMobile) {
-                        if ((!this._InScrollBack) || (this._InScrollBack && !updateBuffer)) {
+                        if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
                             this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height);
                         }
                     } else {
-                        this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollBackSize) * this._Font.Height);
+                        this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height);
                     }
                 }
 
@@ -492,7 +505,7 @@ class Crt {
     }
 
     // TODO Have to do this here because the static constructor doesn't seem to like the X and Y variables
-    private static InitBuffers(initScrollBack: boolean): void {
+    private static InitBuffers(initScrollback: boolean): void {
         this._Buffer = [];
         for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
             this._Buffer[Y] = [];
@@ -501,8 +514,8 @@ class Crt {
             }
         }
 
-        if (initScrollBack) {
-            this._ScrollBack = [];
+        if (initScrollback) {
+            this._Scrollback = [];
         }
     }
 
@@ -610,7 +623,9 @@ class Crt {
         }
 
         // Reposition the cursor
-        this._Cursor.WindowOffset = Offset.getOffset(this._Canvas);
+        var NewOffset = Offset.getOffset(this._Canvas);
+        if (!DetectMobileBrowser.IsMobile) NewOffset.y += this._ScrollbackSize * this._Font.Height;
+        this._Cursor.WindowOffset = NewOffset;
     }
 
     private static OnFontChanged(): void {
@@ -622,7 +637,7 @@ class Crt {
         if (DetectMobileBrowser.IsMobile) {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         } else {
-            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollBackSize);
+            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
             this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
             this._TempCanvas.width = this._Canvas.width;
             this._TempCanvas.height = this._Canvas.height;
@@ -644,7 +659,7 @@ class Crt {
         // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
 
-        if (this._InScrollBack) {
+        if (this._InScrollback) {
             var i: number;
             var X: number;
             var XEnd: number;
@@ -654,15 +669,15 @@ class Crt {
 
             // TODO Handle HOME and END?
             if (ke.keyCode === Keyboard.DOWN) {
-                if (this._ScrollBackPosition < this._ScrollBackTemp.length) {
-                    this._ScrollBackPosition += 1;
+                if (this._ScrollbackPosition < this._ScrollbackTemp.length) {
+                    this._ScrollbackPosition += 1;
                     this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 7, false, false, false), false);
 
                     YDest = this._ScreenSize.y;
-                    YSource = this._ScrollBackPosition - 1;
-                    XEnd = Math.min(this._ScreenSize.x, this._ScrollBackTemp[YSource].length);
+                    YSource = this._ScrollbackPosition - 1;
+                    XEnd = Math.min(this._ScreenSize.x, this._ScrollbackTemp[YSource].length);
                     for (X = 0; X < XEnd; X++) {
-                        this.FastWrite(this._ScrollBackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollBackTemp[YSource][X], false);
+                        this.FastWrite(this._ScrollbackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollbackTemp[YSource][X], false);
                     }
                 }
             } else if (ke.keyCode === Keyboard.PAGE_DOWN) {
@@ -674,15 +689,15 @@ class Crt {
                     this.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);
                 }
             } else if (ke.keyCode === Keyboard.UP) {
-                if (this._ScrollBackPosition > this._ScreenSize.y) {
-                    this._ScrollBackPosition -= 1;
+                if (this._ScrollbackPosition > this._ScreenSize.y) {
+                    this._ScrollbackPosition -= 1;
                     this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 7, false, false), false);
 
                     YDest = 1;
-                    YSource = this._ScrollBackPosition - this._ScreenSize.y;
-                    XEnd = Math.min(this._ScreenSize.x, this._ScrollBackTemp[YSource].length);
+                    YSource = this._ScrollbackPosition - this._ScreenSize.y;
+                    XEnd = Math.min(this._ScreenSize.x, this._ScrollbackTemp[YSource].length);
                     for (X = 0; X < XEnd; X++) {
-                        this.FastWrite(this._ScrollBackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollBackTemp[YSource][X], false);
+                        this.FastWrite(this._ScrollbackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollbackTemp[YSource][X], false);
                     }
                 }
             }
@@ -801,7 +816,7 @@ class Crt {
         // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
 
-        if (this._InScrollBack) { return; }
+        if (this._InScrollback) { return; }
 
         var keyString: string = '';
 
@@ -1037,7 +1052,7 @@ class Crt {
         var MaxLines: number = bottom - top + 1;
         if (count > MaxLines) { count = MaxLines; }
 
-        if ((!this._InScrollBack) || (this._InScrollBack && !updateBuffer)) {
+        if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
             if (DetectMobileBrowser.IsMobile) {
                 // Scroll
                 var Left: number = (left - 1) * this._Font.Width;
@@ -1113,13 +1128,13 @@ class Crt {
                     for (X = left; X <= right; X++) {
                         NewRow.push(new CharInfo(this._Buffer[Y + top][X].Ch, this._Buffer[Y + top][X].Attr, this._Buffer[Y + top][X].Blink, this._Buffer[Y + top][X].Underline, this._Buffer[Y + top][X].Reverse));
                     }
-                    this._ScrollBack.push(NewRow);
+                    this._Scrollback.push(NewRow);
                 }
                 // Trim the scrollback to 1000 lines, if necessary
-                var ScrollBackLength: number = this._ScrollBack.length;
-                while (ScrollBackLength > (this._ScrollBackSize - 2)) {
-                    this._ScrollBack.shift();
-                    ScrollBackLength -= 1;
+                var ScrollbackLength: number = this._Scrollback.length;
+                while (ScrollbackLength > (this._ScrollbackSize - 2)) {
+                    this._Scrollback.shift();
+                    ScrollbackLength -= 1;
                 }
             }
 
@@ -1191,7 +1206,7 @@ class Crt {
     // TODO Doesn't seem to be working
     public static SetScreenSize(columns: number, rows: number): void {
         // Check if we're in scrollback
-        if (this._InScrollBack) { return; }
+        if (this._InScrollback) { return; }
 
         // Check if the requested size is already in use
         if ((columns === this._ScreenSize.x) && (rows === this._ScreenSize.y)) { return; }
@@ -1228,7 +1243,7 @@ class Crt {
         if (DetectMobileBrowser.IsMobile) {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         } else {
-            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollBackSize);
+            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
             this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
             this._TempCanvas.width = this._Canvas.width;
             this._TempCanvas.height = this._Canvas.height;

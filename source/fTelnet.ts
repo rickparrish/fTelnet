@@ -453,7 +453,7 @@ class fTelnet {
 
         if (this._ScrollbackBar !== null) {
             if (this._ScrollbackBar.style.display = 'none') {
-                Crt.EnterScrollBack();
+                Crt.EnterScrollback();
                 this._ScrollbackBar.style.display = 'block';
             }
         }
@@ -462,7 +462,7 @@ class fTelnet {
     public static ExitScrollback(): void {
         if (this._ScrollbackBar !== null) {
             if (this._ScrollbackBar.style.display = 'block') {
-                Crt.PushKeyDown(Keyboard.ESCAPE, Keyboard.ESCAPE, false, false, false);
+                Crt.ExitScrollback();
                 this._ScrollbackBar.style.display = 'none';
             }
         }
