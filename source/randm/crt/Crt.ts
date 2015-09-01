@@ -126,9 +126,13 @@ class Crt {
         } else {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
         }
-        this._Canvas.addEventListener('mousedown', (me: MouseEvent): void => { this.OnMouseDown(me); }, false);
-        this._Canvas.addEventListener('mousemove', (me: MouseEvent): void => { this.OnMouseMove(me); }, false);
-        this._Canvas.addEventListener('mouseup', (me: MouseEvent): void => { this.OnMouseUp(me); }, false);
+
+        // Handle events for copy/paste
+        if (!DetectMobileBrowser.IsMobile) {
+            this._Canvas.addEventListener('mousedown', (me: MouseEvent): void => { this.OnMouseDown(me); }, false);
+            this._Canvas.addEventListener('mousemove', (me: MouseEvent): void => { this.OnMouseMove(me); }, false);
+            this._Canvas.addEventListener('mouseup', (me: MouseEvent): void => { this.OnMouseUp(me); }, false);
+        }
 
         // Check for Canvas support
         if (!this._Canvas.getContext) {

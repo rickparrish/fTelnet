@@ -307,7 +307,7 @@ class fTelnet {
         // Hide the menu buttons (in case we clicked the Connect menu button)
         if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
 
-        Clipboard.SetData(Crt.ClipboardText);
+        alert('Click and drag your mouse over the text you want to copy');
     }
 
     public static ClipboardPaste(): void {
