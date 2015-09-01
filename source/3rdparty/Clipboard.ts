@@ -20,7 +20,7 @@ class Clipboard {
             try {
                 document.execCommand('paste');
             } catch (err) {
-                textArea.value = prompt("Enter the text you'd like to paste");
+                textArea.value = prompt("Press CTRL-V then Enter to paste the text from your clipboard");
             }
 
             document.body.removeChild(textArea);
@@ -28,7 +28,7 @@ class Clipboard {
         } else if (window.clipboardData) {
             return window.clipboardData.getData("Text");
         } else {
-            return prompt("Enter the text you'd like to paste");
+            return prompt("Press CTRL-V then Enter to paste the text from your clipboard");
         }
     }
 
@@ -52,14 +52,14 @@ class Clipboard {
             try {
                 document.execCommand('copy');
             } catch (err) {
-                prompt('Press CTRL-C to copy the text to your clipboard', text);
+                prompt('Press CTRL-C then Enter to copy the text to your clipboard', text);
             }
 
             document.body.removeChild(textArea);
         } else if (window.clipboardData) {
             window.clipboardData.setData("Text", text);
         } else {
-            prompt('Press CTRL-C to copy the text to your clipboard', text);
+            prompt('Press CTRL-C then Enter to copy the text to your clipboard', text);
         }
     }
 }

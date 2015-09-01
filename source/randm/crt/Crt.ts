@@ -97,6 +97,7 @@ class Crt {
     private static _LastChar: number = 0x00;
     private static _LocalEcho: boolean = false;
     private static _MouseDownPoint: Point = null;
+    private static _MouseMovePoint: Point = null;
     private static _ScreenSize: Point = new Point(80, 25);
     private static _Scrollback: CharInfo[][] = null;
     private static _ScrollbackPosition: number = -1;
@@ -126,6 +127,7 @@ class Crt {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
         }
         this._Canvas.addEventListener('mousedown', (me: MouseEvent): void => { this.OnMouseDown(me); }, false);
+        this._Canvas.addEventListener('mousemove', (me: MouseEvent): void => { this.OnMouseMove(me); }, false);
         this._Canvas.addEventListener('mouseup', (me: MouseEvent): void => { this.OnMouseUp(me); }, false);
 
         // Check for Canvas support
@@ -578,6 +580,16 @@ class Crt {
         this.TextAttr &= 0xF7;
     }
 
+    private static MousePositionToScreenPosition(x: number, y: number): Point {
+        // Adjust for modern scrollback offset
+        if (!DetectMobileBrowser.IsMobile) {
+            y -= this._ScrollbackSize * this._Font.Height;
+        }
+
+        // Convert to screen position
+        return new Point(Math.floor(x / this._Font.Width) + 1, Math.floor(y / this._Font.Height) + 1);
+    }
+
     public static NormVideo(): void {
         /// <summary>
         /// Selects the original text attribute read from the cursor location at startup.
@@ -864,62 +876,128 @@ class Crt {
 
     private static OnMouseDown(me: MouseEvent): void {
         if (typeof me.offsetX !== "undefined") {
-            this._MouseDownPoint = new Point(me.offsetX, me.offsetY);
+            this._MouseDownPoint = this.MousePositionToScreenPosition(me.offsetX, me.offsetY);
         } else {
             var CanvasOffset = Offset.getOffset(this._Canvas);
-            this._MouseDownPoint = new Point(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
+            this._MouseDownPoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
         }
+        this._MouseMovePoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+    }
+
+    private static OnMouseMove(me: MouseEvent): void {
+        // Bail if mouse is not down
+        if (this._MouseDownPoint === null) return;
+
+        // Get new screen point
+        var NewMovePoint: Point;
+        if (typeof me.offsetX !== "undefined") {
+            NewMovePoint = this.MousePositionToScreenPosition(me.offsetX, me.offsetY);
+        } else {
+            var CanvasOffset = Offset.getOffset(this._Canvas);
+            NewMovePoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
+        }
+
+        // Bail if move wasn't large enough
+        if ((this._MouseMovePoint.x == NewMovePoint.x) && (this._MouseMovePoint.y == NewMovePoint.y)) return;
+
+        // Check if we need to flip the points
+        var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+        var MovePoint = new Point(this._MouseMovePoint.x, this._MouseMovePoint.y);
+        if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
+            var TempPoint = DownPoint;
+            DownPoint = MovePoint;
+            MovePoint = TempPoint;
+        }
+
+        // Redraw each cell without highlighting
+        for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
+            // Determine how many cells to copy on this row
+            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+            var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
+
+            // And now copy the cells from this row
+            for (var x: number = FirstX; x <= LastX; x++) {
+                var CI: CharInfo = this._Buffer[y][x];
+                CI.Reverse = false;
+                this.FastWrite(CI.Ch, x, y, CI, false);
+            }
+        }
+
+        // Check if we need to flip the points
+        DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+        MovePoint = new Point(NewMovePoint.x, NewMovePoint.y);
+        if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
+            var TempPoint = DownPoint;
+            DownPoint = MovePoint;
+            MovePoint = TempPoint;
+        }
+
+        // Redraw each cell with highlighting
+        for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
+            // Determine how many cells to copy on this row
+            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+            var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
+
+            // And now copy the cells from this row
+            for (var x: number = FirstX; x <= LastX; x++) {
+                var CI: CharInfo = this._Buffer[y][x];
+                CI.Reverse = true;
+                this.FastWrite(CI.Ch, x, y, CI, false);
+            }
+        }
+
+        // Update move point
+        this._MouseMovePoint = NewMovePoint;
     }
 
     private static OnMouseUp(me: MouseEvent): void {
-        // Get the mouse up point
-        var MouseUpPoint: Point = null;
+        // Get new screen point
+        var UpPoint: Point;
         if (typeof me.offsetX !== "undefined") {
-            MouseUpPoint = new Point(me.offsetX, me.offsetY);
+            UpPoint = this.MousePositionToScreenPosition(me.offsetX, me.offsetY);
         } else {
             var CanvasOffset = Offset.getOffset(this._Canvas);
-            MouseUpPoint = new Point(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
+            UpPoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
         }
-
-        // Adjust for modern scrollback offset
-        if (!DetectMobileBrowser.IsMobile) {
-            this._MouseDownPoint.y -= this._ScrollbackSize * this._Font.Height;
-            MouseUpPoint.y -= this._ScrollbackSize * this._Font.Height;
-        }
-
-        // Convert to crt points
-        var CrtDownPoint: Point = new Point(Math.floor(this._MouseDownPoint.x / this._Font.Width) + 1, Math.floor(this._MouseDownPoint.y / this._Font.Height) + 1);
-        var CrtUpPoint: Point = new Point(Math.floor(MouseUpPoint.x / this._Font.Width) + 1, Math.floor(MouseUpPoint.y / this._Font.Height) + 1);
 
         // Ignore single cell copies
-        if ((CrtDownPoint.x == CrtUpPoint.x) && (CrtDownPoint.y == CrtUpPoint.y)) return;
+        var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+        if ((DownPoint.x == UpPoint.x) && (DownPoint.y == UpPoint.y)) return;
 
         // Check if we need to flip the points
-        if ((CrtDownPoint.y > CrtUpPoint.y) || ((CrtDownPoint.y == CrtUpPoint.y) && (CrtDownPoint.x > CrtUpPoint.x))) {
-            var TempPoint = CrtDownPoint;
-            CrtDownPoint = CrtUpPoint;
-            CrtUpPoint = TempPoint;
+        if ((DownPoint.y > UpPoint.y) || ((DownPoint.y == UpPoint.y) && (DownPoint.x > UpPoint.x))) {
+            var TempPoint = DownPoint;
+            DownPoint = UpPoint;
+            UpPoint = TempPoint;
         }
 
         // Get the text behind those points
         var Text: string = '';
-        for (var y: number = CrtDownPoint.y; y <= CrtUpPoint.y; y++) {
+        for (var y: number = DownPoint.y; y <= UpPoint.y; y++) {
             // Determine how many cells to copy on this row
-            var FirstX: number = (y == CrtDownPoint.y) ? CrtDownPoint.x : 1;
-            var LastX: number = (y == CrtUpPoint.y) ? CrtUpPoint.x : this._ScreenSize.x;
+            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+            var LastX: number = (y == UpPoint.y) ? UpPoint.x : this._ScreenSize.x;
 
             // And now copy the cells from this row
             for (var x: number = FirstX; x <= LastX; x++) {
+                var CI: CharInfo = this._Buffer[y][x];
+                CI.Reverse = false;
+                this.FastWrite(CI.Ch, x, y, CI, false);
+
                 Text += (this._Buffer[y][x].Ch === null) ? ' ' : this._Buffer[y][x].Ch;
             }
 
             // Add linefeeds, if necessary
-            if (y < CrtDownPoint.y) Text += "\r\n";
+            if (y < DownPoint.y) Text += "\r\n";
         }
 
         // Copy to the clipboard
         this._ClipboardText = Text;
         Clipboard.SetData(Text);
+
+        // Reset variables
+        this._MouseDownPoint = null;
+        this._MouseMovePoint = null;
     }
 
 
