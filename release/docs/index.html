@@ -155,8 +155,7 @@
                     <td>boolean</td>
                     <td>true</td>
                     <td>
-                        <p><strong>true: </strong> The connect/disconnect/download/upload/etc button bar is visible</p>
-                        <p><strong>false: </strong> The button bar is hidden</p>
+                        <p><strong>This variable no longer does anything -- the button bar was replaced with a pop-up menu in August 2015</strong></p>
                     </td>
                 </tr>
                 <tr>
@@ -167,6 +166,15 @@
                         <p><strong>rlogin: </strong> You're going to be making an rlogin connection (see other RLogin* settings below)</p>
                         <p><strong>tcp: </strong> You're going to be making a raw tcp connection (no protocol will be used)</p>
                         <p><strong>telnet: </strong> You're going to be making a telnet connection</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Emulation</td>
+                    <td>string</td>
+                    <td>ansi-bbs</td>
+                    <td>
+                        <p><strong>ansi-bbs: </strong> The default, and probably only value you'll ever want to use</p>
+                        <p><strong>RIP: </strong> Enable RIPscript mode.  Still very experimental, I wouldn't use this in production</p>
                     </td>
                 </tr>
                 <tr>
@@ -285,6 +293,7 @@
                     <td>
                         <p><strong>true: </strong> The status bar is visible</p>
                         <p><strong>false: </strong> The status bar is hidden</p>
+                        <p><strong>NOTE: </strong> The menu buttons and connection status is displayed in the status bar, so I highly recommend leaving it visible</p>
                     </td>
                 </tr>
                 <tr>

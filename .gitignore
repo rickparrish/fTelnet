@@ -13,6 +13,8 @@ release/keyboard/*.css.map
 [Bb]in/
 [Oo]bj/
 
+.vs/
+
 # =========================
 # Windows detritus
 # =========================

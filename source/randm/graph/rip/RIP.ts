@@ -1047,7 +1047,7 @@ class RIP {
         }
     }
 
-    // Can't use this since it isn't referring to RIP (no fat arrow used to call)
+    // Can't use this. since it isn't referring to RIP (no fat arrow used to call)
     private static OnGraphCanvasMouseMove(me: MouseEvent): void {
         var MB: MouseButton = RIP._MouseFields[RIP._ButtonPressed];
         

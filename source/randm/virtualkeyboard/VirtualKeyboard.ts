@@ -40,10 +40,14 @@ class VirtualKeyboard {
                 var KeyCode: string = (<HTMLDivElement>Keys[i]).getAttribute('data-keycode');
                 if (this._Keys[KeyCode][2] > 0) { // [2] is the CharCodeShifted, which only a non-special key has
                     // Regular character
-                    Keys[i].addEventListener('click', (e: Event): void => { this.OnCharCode(e); }, false);
+                    Keys[i].addEventListener('click', VirtualKeyboard.OnCharCode, false);
+                    Keys[i].addEventListener('touchend', VirtualKeyboard.OnCharCode, false);
+                    Keys[i].addEventListener('touchstart', VirtualKeyboard.OnTouchStart, false);
                 } else {
                     // Special character
-                    Keys[i].addEventListener('click', (e: Event): void => { this.OnKeyCode(e); }, false);
+                    Keys[i].addEventListener('click', VirtualKeyboard.OnKeyCode, false);
+                    Keys[i].addEventListener('touchend', VirtualKeyboard.OnKeyCode, false);
+                    Keys[i].addEventListener('touchstart', VirtualKeyboard.OnTouchStart, false);
                 }
             }
         }
@@ -192,81 +196,103 @@ class VirtualKeyboard {
         }
     }
 
+    // Can't use this. since it isn't referring to RIP (no fat arrow used to call this event)
     private static OnCharCode(e: Event): void {
         var KeyCode: number = parseInt((<HTMLDivElement>e.target).getAttribute('data-keycode'), 10);
         var CharCode: number = 0;
 
         if ((KeyCode >= 65) && (KeyCode <= 90)) {
             // Alphanumeric takes shift AND capslock into account
-            CharCode = parseInt((this._ShiftPressed !== this._CapsLockEnabled) ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
+            CharCode = parseInt((VirtualKeyboard._ShiftPressed !== VirtualKeyboard._CapsLockEnabled) ? VirtualKeyboard._Keys[KeyCode][2] : VirtualKeyboard._Keys[KeyCode][3], 10);
         } else {
             // Other keys just take shift into account
-            CharCode = parseInt(this._ShiftPressed ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
+            CharCode = parseInt(VirtualKeyboard._ShiftPressed ? VirtualKeyboard._Keys[KeyCode][2] : VirtualKeyboard._Keys[KeyCode][3], 10);
         }
 
         // Determine if ctrl, alt or shift were held down
         var NeedReDraw: boolean = false;
         var RegularKey: boolean = true;
-        if (this._AltPressed) {
+        if (VirtualKeyboard._AltPressed) {
             NeedReDraw = true;
             RegularKey = false;
         }
-        if (this._CtrlPressed) {
+        if (VirtualKeyboard._CtrlPressed) {
             NeedReDraw = true;
             RegularKey = false;
         }
-        if (this._ShiftPressed) {
+        if (VirtualKeyboard._ShiftPressed) {
             NeedReDraw = true;
         }
 
         // Always dispatch onKeyDown, and then only OnTextEvent for regular keypresses
-        Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+        Crt.PushKeyDown(0, KeyCode, VirtualKeyboard._CtrlPressed, VirtualKeyboard._AltPressed, VirtualKeyboard._ShiftPressed);
         if (RegularKey) {
-            Crt.PushKeyPress(CharCode, 0, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+            Crt.PushKeyPress(CharCode, 0, VirtualKeyboard._CtrlPressed, VirtualKeyboard._AltPressed, VirtualKeyboard._ShiftPressed);
         }
 
         // Reset flags and redraw, if necessary
         if (NeedReDraw) {
-            this._AltPressed = false;
-            this._CtrlPressed = false;
-            this._ShiftPressed = false;
-            this.ReDrawSpecialKeys();
+            VirtualKeyboard._AltPressed = false;
+            VirtualKeyboard._CtrlPressed = false;
+            VirtualKeyboard._ShiftPressed = false;
+            VirtualKeyboard.ReDrawSpecialKeys();
         }
     }
 
+    // Can't use this. since it isn't referring to RIP (no fat arrow used to call this event)
     private static OnKeyCode(e: Event): void {
         var KeyCode: number = parseInt((<HTMLDivElement>e.target).getAttribute('data-keycode'), 10);
 
         var NeedReset: boolean = false;
         switch (KeyCode) {
             case Keyboard.ALTERNATE:
-                this._AltPressed = !this._AltPressed;
-                this.ReDrawSpecialKeys();
+                VirtualKeyboard._AltPressed = !VirtualKeyboard._AltPressed;
+                VirtualKeyboard.ReDrawSpecialKeys();
                 break;
             case Keyboard.CAPS_LOCK:
-                this._CapsLockEnabled = !this._CapsLockEnabled;
-                this.ReDrawSpecialKeys();
+                VirtualKeyboard._CapsLockEnabled = !VirtualKeyboard._CapsLockEnabled;
+                VirtualKeyboard.ReDrawSpecialKeys();
                 break;
             case Keyboard.CONTROL:
-                this._CtrlPressed = !this._CtrlPressed;
-                this.ReDrawSpecialKeys();
+                VirtualKeyboard._CtrlPressed = !VirtualKeyboard._CtrlPressed;
+                VirtualKeyboard.ReDrawSpecialKeys();
                 break;
             case Keyboard.SHIFTLEFT:
-                this._ShiftPressed = !this._ShiftPressed;
-                this.ReDrawSpecialKeys();
+                VirtualKeyboard._ShiftPressed = !VirtualKeyboard._ShiftPressed;
+                VirtualKeyboard.ReDrawSpecialKeys();
                 break;
             default:
                 NeedReset = true;
                 break;
         }
 
-        Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+        Crt.PushKeyDown(0, KeyCode, VirtualKeyboard._CtrlPressed, VirtualKeyboard._AltPressed, VirtualKeyboard._ShiftPressed);
 
         if (NeedReset) {
-            this._AltPressed = false;
-            this._CtrlPressed = false;
-            this._ShiftPressed = false;
-            this.ReDrawSpecialKeys();
+            VirtualKeyboard._AltPressed = false;
+            VirtualKeyboard._CtrlPressed = false;
+            VirtualKeyboard._ShiftPressed = false;
+            VirtualKeyboard.ReDrawSpecialKeys();
+        }
+    }
+
+    // Can't use this. since it isn't referring to RIP (no fat arrow used to call this event)
+    private static OnTouchStart(e: Event): void {
+        // We have touch events, unsubscribe to the click events
+        var Keys: NodeList = document.getElementsByClassName('fTelnetKeyboardKey');
+        for (var i: number = 0; i < Keys.length; i++) {
+            if (Keys[i].removeEventListener) {  // all browsers except IE before version 9
+                var KeyCode: string = (<HTMLDivElement>Keys[i]).getAttribute('data-keycode');
+                if (VirtualKeyboard._Keys[KeyCode][2] > 0) { // [2] is the CharCodeShifted, which only a non-special key has
+                    // Regular character
+                    Keys[i].removeEventListener('click', VirtualKeyboard.OnCharCode);
+                    Keys[i].removeEventListener('touchstart', VirtualKeyboard.OnTouchStart, false);
+                } else {
+                    // Special character
+                    Keys[i].removeEventListener('click', VirtualKeyboard.OnKeyCode, false);
+                    Keys[i].removeEventListener('touchstart', VirtualKeyboard.OnTouchStart, false);
+                }
+            }
         }
     }
 

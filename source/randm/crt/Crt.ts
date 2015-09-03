@@ -87,19 +87,24 @@ class Crt {
     private static _Canvas: HTMLCanvasElement = null;
     private static _CanvasContext: CanvasRenderingContext2D = null;
     private static _CharInfo: CharInfo = new CharInfo(null, Crt.LIGHTGRAY);
+    private static _ClipboardText: string = '';
     private static _Container: HTMLElement = null;
     private static _Cursor: Cursor = null;
     private static _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
     private static _Font: CrtFont = null;
-    private static _InScrollBack: boolean = false;
+    private static _InScrollback: boolean = false;
     private static _KeyBuf: KeyPressEvent[] = [];
     private static _LastChar: number = 0x00;
     private static _LocalEcho: boolean = false;
+    private static _MouseDownPoint: Point = null;
+    private static _MouseMovePoint: Point = null;
     private static _ScreenSize: Point = new Point(80, 25);
-    private static _ScrollBack: CharInfo[][] = null;
-    private static _ScrollBackPosition: number = -1;
-    private static _ScrollBackSize: number = 1000;
-    private static _ScrollBackTemp: CharInfo[][] = null;
+    private static _Scrollback: CharInfo[][] = null;
+    private static _ScrollbackPosition: number = -1;
+    private static _ScrollbackSize: number = 500;
+    private static _ScrollbackTemp: CharInfo[][] = null;
+    private static _TempCanvas: HTMLCanvasElement = null;
+    private static _TempCanvasContext: CanvasRenderingContext2D = null;
     private static _Transparent: Boolean = false;
     private static _WindMin: number = 0;
     private static _WindMax: number = (80 - 1) | ((25 - 1) << 8);
@@ -116,7 +121,18 @@ class Crt {
         this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
         this._Canvas.style.zIndex = '50'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
-        this._Canvas.height = this._Font.Height * this._ScreenSize.y;
+        if (DetectMobileBrowser.IsMobile) {
+            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
+        } else {
+            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
+        }
+
+        // Handle events for copy/paste
+        if (!DetectMobileBrowser.IsMobile) {
+            this._Canvas.addEventListener('mousedown', (me: MouseEvent): void => { this.OnMouseDown(me); }, false);
+            this._Canvas.addEventListener('mousemove', (me: MouseEvent): void => { this.OnMouseMove(me); }, false);
+            this._Canvas.addEventListener('mouseup', (me: MouseEvent): void => { this.OnMouseUp(me); }, false);
+        }
 
         // Check for Canvas support
         if (!this._Canvas.getContext) {
@@ -148,6 +164,22 @@ class Crt {
         this._CanvasContext = this._Canvas.getContext('2d');
         this._CanvasContext.font = '12pt monospace';
         this._CanvasContext.textBaseline = 'top';
+
+        // Create the buffer canvas and context for scrolling
+        if (!DetectMobileBrowser.IsMobile) {
+            this._TempCanvas = document.createElement('canvas');
+            this._TempCanvas.width = this._Canvas.width;
+            this._TempCanvas.height = this._Canvas.height;
+            this._TempCanvasContext = this._TempCanvas.getContext('2d');
+            this._TempCanvasContext.font = '12pt monospace';
+            this._TempCanvasContext.textBaseline = 'top';
+            
+            // Black out the scrollback
+            this._CanvasContext.fillStyle = 'black';
+            this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
+        }
+
+        // Clear the screen
         this.ClrScr();
 
         return true;
@@ -195,6 +227,10 @@ class Crt {
 
     public static get Canvas(): HTMLCanvasElement {
         return this._Canvas;
+    }
+
+    public static get ClipboardText(): string {
+        return this._ClipboardText;
     }
 
     public static ClrBol(): void {
@@ -333,37 +369,53 @@ class Crt {
         this.ScrollUpCustom(this.WindMinX + 1, this.WhereYA(), this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
     }
 
-    public static EnterScrollBack(): void {
-        if (!this._InScrollBack) {
-            this._InScrollBack = true;
+    public static EnterScrollback(): void {
+        // Non-mobile have modern scrollback
+        if (!DetectMobileBrowser.IsMobile) return;
+
+        if (!this._InScrollback) {
+            this._InScrollback = true;
 
             var NewRow: CharInfo[];
             var X: number;
             var Y: number;
 
             // Make copy of current scrollback buffer in temp scrollback buffer
-            this._ScrollBackTemp = [];
-            for (Y = 0; Y < this._ScrollBack.length; Y++) {
+            this._ScrollbackTemp = [];
+            for (Y = 0; Y < this._Scrollback.length; Y++) {
                 NewRow = [];
-                for (X = 0; X < this._ScrollBack[Y].length; X++) {
-                    NewRow.push(new CharInfo(this._ScrollBack[Y][X].Ch, this._ScrollBack[Y][X].Attr, this._ScrollBack[Y][X].Blink, this._ScrollBack[Y][X].Underline, this._ScrollBack[Y][X].Reverse));
+                for (X = 0; X < this._Scrollback[Y].length; X++) {
+                    NewRow.push(new CharInfo(this._Scrollback[Y][X].Ch, this._Scrollback[Y][X].Attr, this._Scrollback[Y][X].Blink, this._Scrollback[Y][X].Underline, this._Scrollback[Y][X].Reverse));
                 }
-                this._ScrollBackTemp.push(NewRow);
+                this._ScrollbackTemp.push(NewRow);
             }
 
             // Add current screen to temp scrollback buffer
-            // TODO Unused var YOffset: number = this._ScrollBackTemp.length - 1;
+            // TODO Unused var YOffset: number = this._ScrollbackTemp.length - 1;
             for (Y = 1; Y <= this._ScreenSize.y; Y++) {
                 NewRow = [];
                 for (X = 1; X <= this._ScreenSize.x; X++) {
                     NewRow.push(new CharInfo(this._Buffer[Y][X].Ch, this._Buffer[Y][X].Attr, this._Buffer[Y][X].Blink, this._Buffer[Y][X].Underline, this._Buffer[Y][X].Reverse));
                 }
-                this._ScrollBackTemp.push(NewRow);
+                this._ScrollbackTemp.push(NewRow);
             }
 
             // Set our position in the scrollback
-            this._ScrollBackPosition = this._ScrollBackTemp.length;
+            this._ScrollbackPosition = this._ScrollbackTemp.length;
         }
+    }
+
+    public static ExitScrollback(): void {
+        // Restore the screen contents
+        if (this._Buffer !== null) {
+            for (var Y = 1; Y <= this._ScreenSize.y; Y++) {
+                for (var X = 1; X <= this._ScreenSize.x; X++) {
+                    this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
+                }
+            }
+        }
+
+        this._InScrollback = false;
     }
 
     public static FastWrite(text: string, x: number, y: number, charInfo: CharInfo, updateBuffer?: boolean): void {
@@ -400,8 +452,12 @@ class Crt {
             for (var i: number = 0; i < TextLength; i++) {
                 var Char: ImageData = this._Font.GetChar(CharCodes[i], charInfo);
                 if (Char) {
-                    if ((!this._InScrollBack) || (this._InScrollBack && !updateBuffer)) {
-                        this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height);
+                    if (DetectMobileBrowser.IsMobile) {
+                        if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
+                            this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height);
+                        }
+                    } else {
+                        this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height);
                     }
                 }
 
@@ -463,7 +519,7 @@ class Crt {
     }
 
     // TODO Have to do this here because the static constructor doesn't seem to like the X and Y variables
-    private static InitBuffers(initScrollBack: boolean): void {
+    private static InitBuffers(initScrollback: boolean): void {
         this._Buffer = [];
         for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
             this._Buffer[Y] = [];
@@ -472,8 +528,8 @@ class Crt {
             }
         }
 
-        if (initScrollBack) {
-            this._ScrollBack = [];
+        if (initScrollback) {
+            this._Scrollback = [];
         }
     }
 
@@ -526,6 +582,16 @@ class Crt {
         /// color, thus mapping colors 8 to 15 onto colors 0 to 7.
         /// </remarks>
         this.TextAttr &= 0xF7;
+    }
+
+    private static MousePositionToScreenPosition(x: number, y: number): Point {
+        // Adjust for modern scrollback offset
+        if (!DetectMobileBrowser.IsMobile) {
+            y -= this._ScrollbackSize * this._Font.Height;
+        }
+
+        // Convert to screen position
+        return new Point(Math.floor(x / this._Font.Width) + 1, Math.floor(y / this._Font.Height) + 1);
     }
 
     public static NormVideo(): void {
@@ -581,7 +647,9 @@ class Crt {
         }
 
         // Reposition the cursor
-        this._Cursor.WindowOffset = Offset.getOffset(this._Canvas);
+        var NewOffset = Offset.getOffset(this._Canvas);
+        if (!DetectMobileBrowser.IsMobile) NewOffset.y += this._ScrollbackSize * this._Font.Height;
+        this._Cursor.WindowOffset = NewOffset;
     }
 
     private static OnFontChanged(): void {
@@ -589,8 +657,15 @@ class Crt {
         this._Cursor.Size = this._Font.Size;
 
         // Update the canvas
-        this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
+        if (DetectMobileBrowser.IsMobile) {
+            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
+        } else {
+            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
+            this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
+            this._TempCanvas.width = this._Canvas.width;
+            this._TempCanvas.height = this._Canvas.height;
+        }
 
         // Restore the screen contents
         if (this._Buffer !== null) {
@@ -608,7 +683,7 @@ class Crt {
         // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
 
-        if (this._InScrollBack) {
+        if (this._InScrollback) {
             var i: number;
             var X: number;
             var XEnd: number;
@@ -616,29 +691,19 @@ class Crt {
             var YDest: number;
             var YSource: number;
 
+            // TODO Handle HOME and END?
             if (ke.keyCode === Keyboard.DOWN) {
-                if (this._ScrollBackPosition < this._ScrollBackTemp.length) {
-                    this._ScrollBackPosition += 1;
+                if (this._ScrollbackPosition < this._ScrollbackTemp.length) {
+                    this._ScrollbackPosition += 1;
                     this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 7, false, false, false), false);
 
                     YDest = this._ScreenSize.y;
-                    YSource = this._ScrollBackPosition - 1;
-                    XEnd = Math.min(this._ScreenSize.x, this._ScrollBackTemp[YSource].length);
+                    YSource = this._ScrollbackPosition - 1;
+                    XEnd = Math.min(this._ScreenSize.x, this._ScrollbackTemp[YSource].length);
                     for (X = 0; X < XEnd; X++) {
-                        this.FastWrite(this._ScrollBackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollBackTemp[YSource][X], false);
+                        this.FastWrite(this._ScrollbackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollbackTemp[YSource][X], false);
                     }
                 }
-            } else if (ke.keyCode === Keyboard.ESCAPE) {
-                // Restore the screen contents
-                if (this._Buffer !== null) {
-                    for (Y = 1; Y <= this._ScreenSize.y; Y++) {
-                        for (X = 1; X <= this._ScreenSize.x; X++) {
-                            this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
-                        }
-                    }
-                }
-
-                this._InScrollBack = false;
             } else if (ke.keyCode === Keyboard.PAGE_DOWN) {
                 for (i = 0; i < this._ScreenSize.y; i++) {
                     this.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);
@@ -648,15 +713,15 @@ class Crt {
                     this.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);
                 }
             } else if (ke.keyCode === Keyboard.UP) {
-                if (this._ScrollBackPosition > this._ScreenSize.y) {
-                    this._ScrollBackPosition -= 1;
+                if (this._ScrollbackPosition > this._ScreenSize.y) {
+                    this._ScrollbackPosition -= 1;
                     this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 7, false, false), false);
 
                     YDest = 1;
-                    YSource = this._ScrollBackPosition - this._ScreenSize.y;
-                    XEnd = Math.min(this._ScreenSize.x, this._ScrollBackTemp[YSource].length);
+                    YSource = this._ScrollbackPosition - this._ScreenSize.y;
+                    XEnd = Math.min(this._ScreenSize.x, this._ScrollbackTemp[YSource].length);
                     for (X = 0; X < XEnd; X++) {
-                        this.FastWrite(this._ScrollBackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollBackTemp[YSource][X], false);
+                        this.FastWrite(this._ScrollbackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollbackTemp[YSource][X], false);
                     }
                 }
             }
@@ -775,7 +840,7 @@ class Crt {
         // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
 
-        if (this._InScrollBack) { return; }
+        if (this._InScrollback) { return; }
 
         var keyString: string = '';
 
@@ -813,6 +878,133 @@ class Crt {
         }
     }
 
+    private static OnMouseDown(me: MouseEvent): void {
+        if (typeof me.offsetX !== "undefined") {
+            this._MouseDownPoint = this.MousePositionToScreenPosition(me.offsetX, me.offsetY);
+        } else {
+            var CanvasOffset = Offset.getOffset(this._Canvas);
+            this._MouseDownPoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
+        }
+        this._MouseMovePoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+    }
+
+    private static OnMouseMove(me: MouseEvent): void {
+        // Bail if mouse is not down
+        if (this._MouseDownPoint === null) return;
+
+        // Get new screen point
+        var NewMovePoint: Point;
+        if (typeof me.offsetX !== "undefined") {
+            NewMovePoint = this.MousePositionToScreenPosition(me.offsetX, me.offsetY);
+        } else {
+            var CanvasOffset = Offset.getOffset(this._Canvas);
+            NewMovePoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
+        }
+
+        // Bail if move wasn't large enough
+        if ((this._MouseMovePoint.x == NewMovePoint.x) && (this._MouseMovePoint.y == NewMovePoint.y)) return;
+
+        // Check if we need to flip the points
+        var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+        var MovePoint = new Point(this._MouseMovePoint.x, this._MouseMovePoint.y);
+        if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
+            var TempPoint = DownPoint;
+            DownPoint = MovePoint;
+            MovePoint = TempPoint;
+        }
+
+        // Redraw each cell without highlighting
+        for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
+            // Determine how many cells to copy on this row
+            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+            var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
+
+            // And now copy the cells from this row
+            for (var x: number = FirstX; x <= LastX; x++) {
+                var CI: CharInfo = this._Buffer[y][x];
+                CI.Reverse = false;
+                this.FastWrite(CI.Ch, x, y, CI, false);
+            }
+        }
+
+        // Check if we need to flip the points
+        DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+        MovePoint = new Point(NewMovePoint.x, NewMovePoint.y);
+        if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
+            var TempPoint = DownPoint;
+            DownPoint = MovePoint;
+            MovePoint = TempPoint;
+        }
+
+        // Redraw each cell with highlighting
+        for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
+            // Determine how many cells to copy on this row
+            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+            var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
+
+            // And now copy the cells from this row
+            for (var x: number = FirstX; x <= LastX; x++) {
+                var CI: CharInfo = this._Buffer[y][x];
+                CI.Reverse = true;
+                this.FastWrite(CI.Ch, x, y, CI, false);
+            }
+        }
+
+        // Update move point
+        this._MouseMovePoint = NewMovePoint;
+    }
+
+    private static OnMouseUp(me: MouseEvent): void {
+        // Get new screen point
+        var UpPoint: Point;
+        if (typeof me.offsetX !== "undefined") {
+            UpPoint = this.MousePositionToScreenPosition(me.offsetX, me.offsetY);
+        } else {
+            var CanvasOffset = Offset.getOffset(this._Canvas);
+            UpPoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
+        }
+
+        // Ignore single cell copies
+        var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+        if ((DownPoint.x == UpPoint.x) && (DownPoint.y == UpPoint.y)) return;
+
+        // Check if we need to flip the points
+        if ((DownPoint.y > UpPoint.y) || ((DownPoint.y == UpPoint.y) && (DownPoint.x > UpPoint.x))) {
+            var TempPoint = DownPoint;
+            DownPoint = UpPoint;
+            UpPoint = TempPoint;
+        }
+
+        // Get the text behind those points
+        var Text: string = '';
+        for (var y: number = DownPoint.y; y <= UpPoint.y; y++) {
+            // Determine how many cells to copy on this row
+            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+            var LastX: number = (y == UpPoint.y) ? UpPoint.x : this._ScreenSize.x;
+
+            // And now copy the cells from this row
+            for (var x: number = FirstX; x <= LastX; x++) {
+                var CI: CharInfo = this._Buffer[y][x];
+                CI.Reverse = false;
+                this.FastWrite(CI.Ch, x, y, CI, false);
+
+                Text += (this._Buffer[y][x].Ch === null) ? ' ' : this._Buffer[y][x].Ch;
+            }
+
+            // Add linefeeds, if necessary
+            if (y < DownPoint.y) Text += "\r\n";
+        }
+
+        // Copy to the clipboard
+        this._ClipboardText = Text;
+        Clipboard.SetData(Text);
+
+        // Reset variables
+        this._MouseDownPoint = null;
+        this._MouseMovePoint = null;
+    }
+
+
     private static OnResize(): void {
         // See if we can switch to a different font size
         if (this._AllowDynamicFontResize) {
@@ -821,25 +1013,25 @@ class Crt {
     }
 
     public static PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
-         this.OnKeyDown(<KeyboardEvent>{
-             altKey: alt,
-             charCode: pushedCharCode,
-             ctrlKey: ctrl,
-             keyCode: pushedKeyCode,
-             shiftKey: shift,
-             preventDefault: function (): void { /* do nothing */ }
-         });
+        this.OnKeyDown(<KeyboardEvent>{
+            altKey: alt,
+            charCode: pushedCharCode,
+            ctrlKey: ctrl,
+            keyCode: pushedKeyCode,
+            shiftKey: shift,
+            preventDefault: function (): void { /* do nothing */ }
+        });
     }
 
     public static PushKeyPress(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
-         this.OnKeyPress(<KeyboardEvent>{
-             altKey: alt,
-             charCode: pushedCharCode,
-             ctrlKey: ctrl,
-             keyCode: pushedKeyCode,
-             shiftKey: shift,
-             preventDefault: function (): void { /* do nothing */ }
-         });
+        this.OnKeyPress(<KeyboardEvent>{
+            altKey: alt,
+            charCode: pushedCharCode,
+            ctrlKey: ctrl,
+            keyCode: pushedKeyCode,
+            shiftKey: shift,
+            preventDefault: function (): void { /* do nothing */ }
+        });
     }
 
     public static ReadKey(): KeyPressEvent {
@@ -1011,17 +1203,44 @@ class Crt {
         var MaxLines: number = bottom - top + 1;
         if (count > MaxLines) { count = MaxLines; }
 
-        if ((!this._InScrollBack) || (this._InScrollBack && !updateBuffer)) {
-            // Scroll
-            var Left: number = (left - 1) * this._Font.Width;
-            var Top: number = (top - 1 + count) * this._Font.Height;
-            var Width: number = (right - left + 1) * this._Font.Width;
-            var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
-            if (Height > 0) {
-                var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
-                Left = (left - 1) * this._Font.Width;
-                Top = (top - 1) * this._Font.Height;
-                this._CanvasContext.putImageData(Buf, Left, Top);
+        if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
+            if (DetectMobileBrowser.IsMobile) {
+                // Scroll
+                var Left: number = (left - 1) * this._Font.Width;
+                var Top: number = (top - 1 + count) * this._Font.Height;
+                var Width: number = (right - left + 1) * this._Font.Width;
+                var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
+                if (Height > 0) {
+                    var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
+                    Left = (left - 1) * this._Font.Width;
+                    Top = (top - 1) * this._Font.Height;
+                    this._CanvasContext.putImageData(Buf, Left, Top);
+                }
+            } else {
+                if ((left == 1) && (top == 1) && (right == this._ScreenSize.x) && (bottom == this._ScreenSize.y)) {
+                    // Scroll the lines into the scrollback region
+                    var Left: number = 0;
+                    var Top: number = count * this._Font.Height;
+                    var Width: number = this._Canvas.width;
+                    var Height: number = this._Canvas.height - Top;
+
+                    // From: http://stackoverflow.com/a/6003174/342378
+                    this._TempCanvasContext.drawImage(this._Canvas, 0, 0);
+                    this._CanvasContext.drawImage(this._TempCanvas, 0, Top, Width, Height, 0, 0, Width, Height);
+                } else {
+                    // Just scroll the selected region and leave scrollback alone
+                    // TODO Needs to be tested (likely needs Top to be adjusted for scrollback buffer size?)
+                    var Left: number = (left - 1) * this._Font.Width;
+                    var Top: number = (top - 1 + count) * this._Font.Height;
+                    var Width: number = (right - left + 1) * this._Font.Width;
+                    var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
+                    if (Height > 0) {
+                        var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
+                        Left = (left - 1) * this._Font.Width;
+                        Top = (top - 1) * this._Font.Height;
+                        this._CanvasContext.putImageData(Buf, Left, Top);
+                    }
+                }
             }
 
             // Blank
@@ -1053,19 +1272,21 @@ class Crt {
             var X: number;
             var Y: number;
 
-            // First, store the contents of the scrolled lines in the scrollback buffer
-            for (Y = 0; Y < count; Y++) {
-                NewRow = [];
-                for (X = left; X <= right; X++) {
-                    NewRow.push(new CharInfo(this._Buffer[Y + top][X].Ch, this._Buffer[Y + top][X].Attr, this._Buffer[Y + top][X].Blink, this._Buffer[Y + top][X].Underline, this._Buffer[Y + top][X].Reverse));
+            if (DetectMobileBrowser.IsMobile) {
+                // First, store the contents of the scrolled lines in the scrollback buffer
+                for (Y = 0; Y < count; Y++) {
+                    NewRow = [];
+                    for (X = left; X <= right; X++) {
+                        NewRow.push(new CharInfo(this._Buffer[Y + top][X].Ch, this._Buffer[Y + top][X].Attr, this._Buffer[Y + top][X].Blink, this._Buffer[Y + top][X].Underline, this._Buffer[Y + top][X].Reverse));
+                    }
+                    this._Scrollback.push(NewRow);
                 }
-                this._ScrollBack.push(NewRow);
-            }
-            // Trim the scrollback to 1000 lines, if necessary
-            var ScrollBackLength: number = this._ScrollBack.length;
-            while (ScrollBackLength > (this._ScrollBackSize - 2)) {
-                this._ScrollBack.shift();
-                ScrollBackLength -= 1;
+                // Trim the scrollback to 1000 lines, if necessary
+                var ScrollbackLength: number = this._Scrollback.length;
+                while (ScrollbackLength > (this._ScrollbackSize - 2)) {
+                    this._Scrollback.shift();
+                    ScrollbackLength -= 1;
+                }
             }
 
             // Then, shuffle the contents that are still visible
@@ -1125,13 +1346,18 @@ class Crt {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        if (DetectMobileBrowser.IsMobile) {
+            return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        } else {
+            // With modern scrollbar the container is the same width as the canvas, so we need to look at the parent container to see the maximum client size
+            return this._Font.Load(font, Math.floor(this._Container.parentElement.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        }
     }
 
     // TODO Doesn't seem to be working
     public static SetScreenSize(columns: number, rows: number): void {
         // Check if we're in scrollback
-        if (this._InScrollBack) { return; }
+        if (this._InScrollback) { return; }
 
         // Check if the requested size is already in use
         if ((columns === this._ScreenSize.x) && (rows === this._ScreenSize.y)) { return; }
@@ -1164,8 +1390,15 @@ class Crt {
         this.InitBuffers(false);
 
         // Update the canvas
-        this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
+        if (DetectMobileBrowser.IsMobile) {
+            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
+        } else {
+            this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
+            this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
+            this._TempCanvas.width = this._Canvas.width;
+            this._TempCanvas.height = this._Canvas.height;
+        }
 
         // Restore the screen contents
         // TODO If new screen is smaller than old screen, restore bottom portion not top portion

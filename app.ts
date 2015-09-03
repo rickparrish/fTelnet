@@ -1,6 +1,8 @@
 /// <reference path='source/fTelnet.ts' />
 
 // TODO List:
+// Make scrollback size configurable
+// Update docs/embed wizard to allow use of NO_RIP and NO_RIP_OR_XFER branches (they're much smaller .js files)
 // RIP fonts need to be optimized
 // Resize window in RIP mode changed font size, and it shouldn't do that
 // Add option to play <audio> when connect is clicked (maybe also when connected and disconnected?)
