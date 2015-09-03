@@ -1,6 +1,7 @@
 /// <reference path='source/fTelnet.ts' />
 
 // TODO List:
+// Add ?v=DATE to all the automated includes (ie ftelnet.css)
 // Make scrollback size configurable
 // Update docs/embed wizard to allow use of NO_RIP and NO_RIP_OR_XFER branches (they're much smaller .js files)
 // RIP fonts need to be optimized

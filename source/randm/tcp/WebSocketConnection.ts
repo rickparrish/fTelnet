@@ -27,7 +27,7 @@ if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30'))
     window['WebSocket'] = window['MozWebSocket'];
 } else {
     // For IE9 and Android < 4.4
-    var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src;
+    var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src.split('?')[0];
     var ScriptRoot: string = ScriptUrl.replace('/ftelnet.min.js', '');
     ScriptRoot = ScriptRoot.replace('/ftelnet.debug.js', '');
 
