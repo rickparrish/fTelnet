@@ -132,6 +132,7 @@ class Crt {
             this._Canvas.addEventListener('mousedown', (me: MouseEvent): void => { this.OnMouseDown(me); }, false);
             this._Canvas.addEventListener('mousemove', (me: MouseEvent): void => { this.OnMouseMove(me); }, false);
             this._Canvas.addEventListener('mouseup', (me: MouseEvent): void => { this.OnMouseUp(me); }, false);
+            window.addEventListener('mouseup', (me: MouseEvent): void => { this.OnMouseUpForWindow(me); }, false);
         }
 
         // Check for Canvas support
@@ -966,44 +967,80 @@ class Crt {
 
         // Ignore single cell copies
         var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
-        if ((DownPoint.x == UpPoint.x) && (DownPoint.y == UpPoint.y)) return;
-
-        // Check if we need to flip the points
-        if ((DownPoint.y > UpPoint.y) || ((DownPoint.y == UpPoint.y) && (DownPoint.x > UpPoint.x))) {
-            var TempPoint = DownPoint;
-            DownPoint = UpPoint;
-            UpPoint = TempPoint;
-        }
-
-        // Get the text behind those points
-        var Text: string = '';
-        for (var y: number = DownPoint.y; y <= UpPoint.y; y++) {
-            // Determine how many cells to copy on this row
-            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
-            var LastX: number = (y == UpPoint.y) ? UpPoint.x : this._ScreenSize.x;
-
-            // And now copy the cells from this row
-            for (var x: number = FirstX; x <= LastX; x++) {
-                var CI: CharInfo = this._Buffer[y][x];
-                CI.Reverse = false;
-                this.FastWrite(CI.Ch, x, y, CI, false);
-
-                Text += (this._Buffer[y][x].Ch === null) ? ' ' : this._Buffer[y][x].Ch;
+        if ((DownPoint.x != UpPoint.x) || (DownPoint.y != UpPoint.y)) {
+            // Check if we need to flip the points
+            if ((DownPoint.y > UpPoint.y) || ((DownPoint.y == UpPoint.y) && (DownPoint.x > UpPoint.x))) {
+                var TempPoint = DownPoint;
+                DownPoint = UpPoint;
+                UpPoint = TempPoint;
             }
 
-            // Add linefeeds, if necessary
-            if (y < DownPoint.y) Text += "\r\n";
-        }
+            // Get the text behind those points
+            var Text: string = '';
+            for (var y: number = DownPoint.y; y <= UpPoint.y; y++) {
+                // Determine how many cells to copy on this row
+                var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+                var LastX: number = (y == UpPoint.y) ? UpPoint.x : this._ScreenSize.x;
 
-        // Copy to the clipboard
-        this._ClipboardText = Text;
-        Clipboard.SetData(Text);
+                // And now copy the cells from this row
+                for (var x: number = FirstX; x <= LastX; x++) {
+                    var CI: CharInfo = this._Buffer[y][x];
+                    CI.Reverse = false;
+                    this.FastWrite(CI.Ch, x, y, CI, false);
+
+                    Text += (this._Buffer[y][x].Ch === null) ? ' ' : this._Buffer[y][x].Ch;
+                }
+
+                // Add linefeeds, if necessary
+                if (y < DownPoint.y) Text += "\r\n";
+            }
+
+            // Copy to the clipboard
+            this._ClipboardText = Text;
+            Clipboard.SetData(Text);
+        }
 
         // Reset variables
         this._MouseDownPoint = null;
         this._MouseMovePoint = null;
     }
 
+    private static OnMouseUpForWindow(me: MouseEvent): void {
+        // Mouse up over window, check if we need to erase the highlighting
+        if ((this._MouseDownPoint != null) && (this._MouseMovePoint != null)) {
+            var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+            var MovePoint = new Point(this._MouseMovePoint.x, this._MouseMovePoint.y);
+
+            // Bail if move wasn't large enough
+            if ((DownPoint.x != MovePoint.x) || (DownPoint.y != MovePoint.y)) {
+
+                // Check if we need to flip the points
+                if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
+                    var TempPoint = DownPoint;
+                    DownPoint = MovePoint;
+                    MovePoint = TempPoint;
+                }
+
+                // Redraw each cell without highlighting
+                for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
+                    // Determine how many cells to copy on this row
+                    var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+                    var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
+
+                    // And now copy the cells from this row
+                    for (var x: number = FirstX; x <= LastX; x++) {
+                        var CI: CharInfo = this._Buffer[y][x];
+                        CI.Reverse = false;
+                        this.FastWrite(CI.Ch, x, y, CI, false);
+                    }
+                }
+            }
+        }
+
+        // Reset variables with no copy since they didn't mouse up over the canvas
+        this._MouseDownPoint = null;
+        this._MouseMovePoint = null;
+    }
 
     private static OnResize(): void {
         // See if we can switch to a different font size
