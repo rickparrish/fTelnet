@@ -36,13 +36,8 @@ class StrokeFont {
         }
 
         if (document.getElementById('fTelnetScript') !== null) {
-            // TODO This logic is also in CrtFonts -- Should create a helper function so we don't have to duplicate this
-            var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src.split('?')[0];
-            var JsonUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/fonts/RIP-Strokes.json');
-            JsonUrl = JsonUrl.replace('/ftelnet.debug.js', '/fonts/RIP-Strokes.json');
-
             var xhr: XMLHttpRequest = new XMLHttpRequest();
-            xhr.open('get', JsonUrl, true);
+            xhr.open('get', StringUtils.GetUrl('fonts/RIP-Strokes.json'), true);
             xhr.onload = (): void => { this.OnJsonLoad(xhr); };
             xhr.send();
         }

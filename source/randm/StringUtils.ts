@@ -35,6 +35,14 @@ class StringUtils {
         return (value * 100).toFixed(fractionDigits) + '%';
     }
 
+    public static GetUrl(filename: string): string {
+        var fTelnetScriptParts = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src.split('?');
+        var fTelnetScriptUrl = fTelnetScriptParts[0];
+        var fTelnetScriptPath = fTelnetScriptUrl.substring(0, fTelnetScriptUrl.lastIndexOf('/'));
+        var fTelnetVersion = (fTelnetScriptParts.length == 1) ? "v=1" : fTelnetScriptParts[1];
+        return fTelnetScriptPath + '/' + filename + '?' + fTelnetVersion;
+    }
+
     public static NewString(ch: string, length: number): string {
         if (ch.length === 0) { return ''; }
 

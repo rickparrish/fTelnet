@@ -76,10 +76,7 @@ class CrtFonts {
             // Use remote url instead
             return this.GetRemoteUrl(font, width, height);
         } else {
-            var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src.split('?')[0];
-            var PngUrl: string = ScriptUrl.replace('/ftelnet.min.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
-            PngUrl = PngUrl.replace('/ftelnet.debug.js', '/fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
-            return PngUrl;
+            return StringUtils.GetUrl('fonts/' + font + '_' + width.toString(10) + 'x' + height.toString(10) + '.png');
         }
     }
 

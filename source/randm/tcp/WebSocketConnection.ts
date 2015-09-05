@@ -27,15 +27,11 @@ if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30'))
     window['WebSocket'] = window['MozWebSocket'];
 } else {
     // For IE9 and Android < 4.4
-    var ScriptUrl: string = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src.split('?')[0];
-    var ScriptRoot: string = ScriptUrl.replace('/ftelnet.min.js', '');
-    ScriptRoot = ScriptRoot.replace('/ftelnet.debug.js', '');
-
     // From: https://github.com/gimite/web-socket-js
     window['WEB_SOCKET_FORCE_FLASH'] = true;
-    window['WEB_SOCKET_SWF_LOCATION'] = ScriptRoot + "/WebSocketMain.swf";
-    document.write('<script src="' + ScriptRoot + '/swfobject.js"><\/script>');
-    document.write('<script src="' + ScriptRoot + '/web_socket.js"><\/script>');
+    window['WEB_SOCKET_SWF_LOCATION'] = StringUtils.GetUrl('WebSocketMain.swf');
+    document.write('<script src="' + StringUtils.GetUrl('swfobject.js') + '"><\/script>');
+    document.write('<script src="' + StringUtils.GetUrl('web_socket.js') + '"><\/script>');
 }
 
 var WebSocketProtocol: string = ('https:' === document.location.protocol ? 'wss' : 'ws');
