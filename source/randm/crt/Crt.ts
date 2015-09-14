@@ -101,7 +101,7 @@ class Crt {
     private static _ScreenSize: Point = new Point(80, 25);
     private static _Scrollback: CharInfo[][] = null;
     private static _ScrollbackPosition: number = -1;
-    private static _ScrollbackSize: number = 500;
+    private static _ScrollbackSize: number = 250; // TODO Quick hack to make Edge happy, change back to 500 after finding IndexSizeError fix
     private static _ScrollbackTemp: CharInfo[][] = null;
     private static _TempCanvas: HTMLCanvasElement = null;
     private static _TempCanvasContext: CanvasRenderingContext2D = null;
