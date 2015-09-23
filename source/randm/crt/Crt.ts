@@ -967,7 +967,37 @@ class Crt {
 
         // Ignore single cell copies
         var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
-        if ((DownPoint.x != UpPoint.x) || (DownPoint.y != UpPoint.y)) {
+        if ((DownPoint.x == UpPoint.x) && (DownPoint.y == UpPoint.y)) {
+            // Single cell click, so check for hyperlink
+            if ((this._Buffer[DownPoint.y][DownPoint.x].Ch !== null) && (this._Buffer[DownPoint.y][DownPoint.x].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][DownPoint.x].Ch.charCodeAt(0) <= 126)) {
+                // Didn't click on a space, so backtrack to the previous space
+                var StartX = DownPoint.x;
+                var EndX = DownPoint.x;
+
+                // Find the previous space, or start of line TODO Find previous non-typable or space
+                while ((StartX > 1) && (this._Buffer[DownPoint.y][StartX - 1].Ch !== null) && (this._Buffer[DownPoint.y][StartX - 1].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][StartX - 1].Ch.charCodeAt(0) <= 126)) {
+                    StartX--;
+                }
+
+                // Find the next space, or end of line TODO Find next non-typable or space
+                while ((EndX < this._ScreenSize.x) && (this._Buffer[DownPoint.y][EndX + 1].Ch !== null) && (this._Buffer[DownPoint.y][EndX + 1].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][EndX + 1].Ch.charCodeAt(0) <= 126)) {
+                    EndX++;
+                }
+
+                // Build the string
+                var ClickedWord = '';
+                for (var x: number = StartX; x <= EndX; x++) {
+                    ClickedWord += this._Buffer[DownPoint.y][x].Ch;
+                }
+
+                // Check for hyperlink
+                if ((ClickedWord.toLowerCase().indexOf('http://') === 0) || (ClickedWord.toLowerCase().indexOf('https://') === 0)) {
+                    if (confirm('Would you like to open this url in a new window?\n\n' + ClickedWord)) {
+                        window.open(ClickedWord);
+                    }
+                }
+            }
+        } else {
             // Check if we need to flip the points
             if ((DownPoint.y > UpPoint.y) || ((DownPoint.y == UpPoint.y) && (DownPoint.x > UpPoint.x))) {
                 var TempPoint = DownPoint;
