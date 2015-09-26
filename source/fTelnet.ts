@@ -375,7 +375,7 @@ class fTelnet {
             this._ClientContainer.style.opacity = '1.0';
             this._Connection.connect(this._Hostname, this._Port);
         } else {
-            this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
             this._Connection.connect(this._Hostname, this._Port, this._ProxyHostname, this._ProxyPort, this._ProxyPortSecure);
@@ -577,7 +577,7 @@ class fTelnet {
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
         } else {
-            this._StatusBarLabel.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBarLabel.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
         }
@@ -643,7 +643,7 @@ class fTelnet {
             this._StatusBar.style.backgroundColor = 'red';
             this._ClientContainer.style.opacity = '0.5';
         } else {
-            this._StatusBarLabel.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Retry Connection</a> Unable to connect to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname + ':' + this._ProxyPort.toString(10);
+            this._StatusBarLabel.innerHTML = '<a href="#" onclick="fTelnet.Connect(); return false;">Retry Connection</a> Unable to connect to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname;
             this._StatusBar.style.backgroundColor = 'red';
             this._ClientContainer.style.opacity = '0.5';
         }

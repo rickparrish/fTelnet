@@ -1,6 +1,7 @@
 /// <reference path='source/fTelnet.ts' />
 
 // TODO List:
+// TODO Maybe underline detected hyperlinks?
 // Add version number displayed to user somewhere (menu popup?)
 // Maybe have OnWindowMouseUp handle hiding the menu if it's popped up
 // Make scrollback size configurable
