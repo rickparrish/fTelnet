@@ -1,4 +1,4 @@
-﻿// IE less than 9.0 will throw script errors and not even load
+// IE less than 9.0 will throw script errors and not even load
 if (navigator.appName === 'Microsoft Internet Explorer') {
     var Version = -1;
     var RE = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})');
