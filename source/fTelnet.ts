@@ -51,6 +51,7 @@ class fTelnet {
     private static _Emulation: string = 'ansi-bbs';
     private static _Enter: string = '\r';
     private static _Font: string = 'CP437';
+    private static _ForceWss: boolean = false;
     private static _Hostname: string = 'bbs.ftelnet.ca';
     private static _LocalEcho: boolean = false;
     private static _Port: number = 1123;
@@ -123,7 +124,7 @@ class fTelnet {
         this._fTelnetContainer.appendChild(this._ClientContainer);
 
         // Setup the client container for modern scrollback on desktop devices
-        if (!DetectMobileBrowser.IsMobile) {
+        if (DetectMobileBrowser.SupportsModernScrollback) {
             this._ClientContainer.style.overflowX = 'hidden';
             this._ClientContainer.style.overflowY = 'scroll';
             this._ClientContainer.style.height = this._ScreenRows * 16 + 'px'; // Default font is 9x16
@@ -173,7 +174,7 @@ class fTelnet {
             // Create the scrollback bar
                 this._ScrollbackBar = document.createElement('div');
                 this._ScrollbackBar.id = 'fTelnetScrollback';
-                if (DetectMobileBrowser.IsMobile) {
+                if (!DetectMobileBrowser.SupportsModernScrollback) {
                     this._ScrollbackBar.innerHTML = 'SCROLLBACK: <a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
                     '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
                     '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
@@ -217,7 +218,7 @@ class fTelnet {
                 + '<td><a href="#" onclick="fTelnet.Download(); return false;">Download</a></td></tr>'
                 + '<tr><td><a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a></td>'
                 + '<td><a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen</a></td></tr>'
-            + (DetectMobileBrowser.IsMobile ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
+            + (!DetectMobileBrowser.SupportsModernScrollback ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
             this._MenuButtons.style.display = 'none';
             this._MenuButtons.style.zIndex = '150';  // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
             this._fTelnetContainer.appendChild(this._MenuButtons);
@@ -373,12 +374,12 @@ class fTelnet {
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
-            this._Connection.connect(this._Hostname, this._Port);
+            this._Connection.connect(this._Hostname, this._Port, this._ForceWss);
         } else {
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
-            this._Connection.connect(this._Hostname, this._Port, this._ProxyHostname, this._ProxyPort, this._ProxyPortSecure);
+            this._Connection.connect(this._Hostname, this._Port, this._ForceWss, this._ProxyHostname, this._ProxyPort, this._ProxyPortSecure);
         }
     }
 
@@ -482,6 +483,14 @@ class fTelnet {
 
     public static set Font(value: string) {
         this._Font = value;
+    }
+
+    public static get ForceWss(): boolean {
+        return this._ForceWss;
+    }
+
+    public static set ForceWss(value: boolean) {
+        this._ForceWss = value;
     }
 
     public static FullScreenToggle(): void {
@@ -674,7 +683,7 @@ class fTelnet {
     }
 
     private static OnCrtScreenSizeChanged(): void {
-        if (DetectMobileBrowser.IsMobile) {
+        if (!DetectMobileBrowser.SupportsModernScrollback) {
             var NewWidth: number = Crt.ScreenCols * Crt.Font.Width;
         } else {
             // Non-mobile means modern scrollback, which needs both width and height to be set
@@ -728,7 +737,7 @@ class fTelnet {
             }
 
             // Check for scrollback
-            if (!DetectMobileBrowser.IsMobile) {
+            if (DetectMobileBrowser.SupportsModernScrollback) {
                 var ScrolledUp = (this._ClientContainer.scrollHeight - this._ClientContainer.scrollTop - this._ClientContainer.clientHeight > 1);
                 if (ScrolledUp && (this._ScrollbackBar.style.display == 'none')) {
                     this._ScrollbackBar.style.display = 'block';

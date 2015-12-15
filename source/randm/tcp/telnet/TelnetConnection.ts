@@ -280,6 +280,19 @@ class TelnetConnection extends WebSocketConnection {
         } else {
             this.SendWont(TelnetOption.Echo);
         }
+
+        //TODO Could send a WILL TTYLOC here, and if the server says go ahead, use this code to pull the users real IP and send it
+        //var xhr: XMLHttpRequest = new XMLHttpRequest();
+        //xhr.open('get', 'http://myip.randm.ca', true);
+        //xhr.onload = (): void => {
+        //    var status: number = xhr.status;
+        //    if (status === 200) {
+        //        alert(xhr.responseText);
+        //    } else {
+        //        alert('failed to get remote ip');
+        //    }
+        //}
+        //xhr.send();
     }
 
     private SendDo(option: number): void {

@@ -73,7 +73,7 @@ class WebSocketConnection {
         }
     }
 
-    public connect(hostname: string, port: number, proxyHostname?: string, proxyPort?: number, proxyPortSecure?: number): void {
+    public connect(hostname: string, port: number, forceWss: boolean, proxyHostname?: string, proxyPort?: number, proxyPortSecure?: number): void {
         if (typeof proxyHostname === 'undefined') { proxyHostname = ''; }
         if (typeof proxyPort === 'undefined') { proxyPort = 1123; }
         if (typeof proxyPortSecure === 'undefined') { proxyPortSecure = 11235; }
@@ -92,10 +92,11 @@ class WebSocketConnection {
             }
         }
 
+        var WsOrWss = forceWss ? 'wss' : WebSocketProtocol;
         if (proxyHostname === '') {
-            this._WebSocket = new WebSocket(WebSocketProtocol + '://' + hostname + ':' + port, Protocols);
+            this._WebSocket = new WebSocket(WsOrWss + '://' + hostname + ':' + port, Protocols);
         } else {
-            this._WebSocket = new WebSocket(WebSocketProtocol + '://' + proxyHostname + ':' + (WebSocketProtocol === 'wss' ? proxyPortSecure : proxyPort) + '/' + hostname + '/' + port, Protocols);
+            this._WebSocket = new WebSocket(WsOrWss + '://' + proxyHostname + ':' + (WsOrWss === 'wss' ? proxyPortSecure : proxyPort) + '/' + hostname + '/' + port, Protocols);
         }
 
         // Enable binary mode, if supported

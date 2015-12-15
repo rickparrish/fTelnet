@@ -121,7 +121,7 @@ class Crt {
         this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
         this._Canvas.style.zIndex = '50'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
-        if (DetectMobileBrowser.IsMobile) {
+        if (!DetectMobileBrowser.SupportsModernScrollback) {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         } else {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
@@ -167,7 +167,7 @@ class Crt {
         this._CanvasContext.textBaseline = 'top';
 
         // Create the buffer canvas and context for scrolling
-        if (!DetectMobileBrowser.IsMobile) {
+        if (DetectMobileBrowser.SupportsModernScrollback) {
             this._TempCanvas = document.createElement('canvas');
             this._TempCanvas.width = this._Canvas.width;
             this._TempCanvas.height = this._Canvas.height;
@@ -372,7 +372,7 @@ class Crt {
 
     public static EnterScrollback(): void {
         // Non-mobile have modern scrollback
-        if (!DetectMobileBrowser.IsMobile) return;
+        if (DetectMobileBrowser.SupportsModernScrollback) return;
 
         if (!this._InScrollback) {
             this._InScrollback = true;
@@ -453,7 +453,7 @@ class Crt {
             for (var i: number = 0; i < TextLength; i++) {
                 var Char: ImageData = this._Font.GetChar(CharCodes[i], charInfo);
                 if (Char) {
-                    if (DetectMobileBrowser.IsMobile) {
+                    if (!DetectMobileBrowser.SupportsModernScrollback) {
                         if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
                             this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height);
                         }
@@ -587,7 +587,7 @@ class Crt {
 
     private static MousePositionToScreenPosition(x: number, y: number): Point {
         // Adjust for modern scrollback offset
-        if (!DetectMobileBrowser.IsMobile) {
+        if (DetectMobileBrowser.SupportsModernScrollback) {
             y -= this._ScrollbackSize * this._Font.Height;
         }
 
@@ -649,7 +649,7 @@ class Crt {
 
         // Reposition the cursor
         var NewOffset = Offset.getOffset(this._Canvas);
-        if (!DetectMobileBrowser.IsMobile) NewOffset.y += this._ScrollbackSize * this._Font.Height;
+        if (DetectMobileBrowser.SupportsModernScrollback) NewOffset.y += this._ScrollbackSize * this._Font.Height;
         this._Cursor.WindowOffset = NewOffset;
     }
 
@@ -659,7 +659,7 @@ class Crt {
 
         // Update the canvas
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
-        if (DetectMobileBrowser.IsMobile) {
+        if (!DetectMobileBrowser.SupportsModernScrollback) {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         } else {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
@@ -1271,7 +1271,7 @@ class Crt {
         if (count > MaxLines) { count = MaxLines; }
 
         if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
-            if (DetectMobileBrowser.IsMobile) {
+            if (!DetectMobileBrowser.SupportsModernScrollback) {
                 // Scroll
                 var Left: number = (left - 1) * this._Font.Width;
                 var Top: number = (top - 1 + count) * this._Font.Height;
@@ -1339,7 +1339,7 @@ class Crt {
             var X: number;
             var Y: number;
 
-            if (DetectMobileBrowser.IsMobile) {
+            if (!DetectMobileBrowser.SupportsModernScrollback) {
                 // First, store the contents of the scrolled lines in the scrollback buffer
                 for (Y = 0; Y < count; Y++) {
                     NewRow = [];
@@ -1413,7 +1413,7 @@ class Crt {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        if (DetectMobileBrowser.IsMobile) {
+        if (!DetectMobileBrowser.SupportsModernScrollback) {
             return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
         } else {
             // With modern scrollbar the container is the same width as the canvas, so we need to look at the parent container to see the maximum client size
@@ -1458,7 +1458,7 @@ class Crt {
 
         // Update the canvas
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
-        if (DetectMobileBrowser.IsMobile) {
+        if (!DetectMobileBrowser.SupportsModernScrollback) {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         } else {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);

@@ -9,4 +9,8 @@ class DetectMobileBrowser {
         }
         return this._IsMobile;
     }
+
+    public static get SupportsModernScrollback(): boolean {
+        return !DetectMobileBrowser.IsMobile;
+    }
 }
