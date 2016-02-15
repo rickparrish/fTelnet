@@ -85,6 +85,38 @@ class TelnetConnection extends WebSocketConnection {
         }
     }
 
+    private HandleSendLocation(): void {
+        var xhr: XMLHttpRequest = new XMLHttpRequest();
+        xhr.open('get', 'http://myip.randm.ca', true);
+        xhr.onload = (): void => {
+            var status: number = xhr.status;
+            if (status === 200) {
+                this.SendWill(TelnetOption.SendLocation);
+                this.SendSubnegotiate(TelnetOption.SendLocation);
+
+                var ToSendString: string = xhr.responseText;//TODOX + ' ' + xhr.responseText;
+                var ToSendBytes: number[] = [];
+                for (var i: number = 0; i < ToSendString.length; i++) {
+                    var CharCode: number = ToSendString.charCodeAt(i);
+                    ToSendBytes.push(CharCode);
+                    if (CharCode === TelnetCommand.IAC) {
+                        // Double up so it's not treated as an IAC
+                        ToSendBytes.push(TelnetCommand.IAC);
+                    }
+                }
+                this.Send(ToSendBytes);
+
+                this.SendSubnegotiateEnd();
+            } else {
+                //TODOX alert('failed to get remote ip');
+            }
+        }
+        xhr.onerror = (): void => {
+            // TODOX alert('failed to get remote ip');
+        }
+        xhr.send();
+    }
+
     private HandleTerminalType(): void {
         this.SendWill(TelnetOption.TerminalType);
         this.SendSubnegotiate(TelnetOption.TerminalType);
@@ -109,35 +141,47 @@ class TelnetConnection extends WebSocketConnection {
     }
 
     private HandleTerminalLocationNumber(): void {
-        this.SendWill(TelnetOption.TerminalLocationNumber);
-        this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
+        var xhr: XMLHttpRequest = new XMLHttpRequest();
+        xhr.open('get', 'http://myip.randm.ca', true);
+        xhr.onload = (): void => {
+            var status: number = xhr.status;
+            if (status === 200) {
+                this.SendWill(TelnetOption.TerminalLocationNumber);
+                this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
 
-        var InternetHostNumber: number = 0; // TODO This should be the client's IP address
-        var TerminalNumber: number = -1; // TODO This could be the web server's IP address
+                var InternetHostNumber: number = StringUtils.IPtoInteger(xhr.responseText);
+                var TerminalNumber: number = 0xFFFFFFFF; // Indicates "unknown" terminal number
 
-        var SixtyFourBits: number[] = [];
-        SixtyFourBits.push(0); // Format 0
-        SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
-        SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
-        SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
-        SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
-        SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
-        SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
-        SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
-        SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
+                var SixtyFourBits: number[] = [];
+                SixtyFourBits.push(0); // Format 0 to indicate we'll send two 32bit numbers
+                SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
+                SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
+                SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
+                SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
+                SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
+                SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
+                SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
+                SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
 
-        var ToSendBytes: number[] = [];
+                var ToSendBytes: number[] = [];
+                for (var i: number = 0; i < SixtyFourBits.length; i++) {
+                    ToSendBytes.push(SixtyFourBits[i]);
+                    if (SixtyFourBits[i] === TelnetCommand.IAC) {
+                        // Double up so it's not treated as an IAC
+                        ToSendBytes.push(TelnetCommand.IAC);
+                    }
+                }
+                this.Send(ToSendBytes);
 
-        for (var i: number = 0; i < SixtyFourBits.length; i++) {
-            ToSendBytes.push(SixtyFourBits[i]);
-            if (SixtyFourBits[i] === TelnetCommand.IAC) {
-                // Double up so it's not treated as an IAC
-                ToSendBytes.push(TelnetCommand.IAC);
+                this.SendSubnegotiateEnd();
+            } else {
+                //TODOX alert('failed to get remote ip');
             }
         }
-        this.Send(ToSendBytes);
-
-        this.SendSubnegotiateEnd();
+        xhr.onerror = (): void => {
+            // TODOX alert('failed to get remote ip');
+        }
+        xhr.send();
     }
 
     private HandleWindowSize(): void {
@@ -224,6 +268,7 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.TransmitBinary: this.SendWill(B); break;
                     case TelnetOption.Echo: this.HandleEcho(TelnetCommand.Do); break;
                     case TelnetOption.SuppressGoAhead: this.SendWill(B); break;
+                    case TelnetOption.SendLocation: this.HandleSendLocation(); break;
                     case TelnetOption.TerminalType: this.HandleTerminalType(); break;
                     case TelnetOption.TerminalLocationNumber: this.HandleTerminalLocationNumber(); break;
                     case TelnetOption.WindowSize: this.HandleWindowSize(); break;
@@ -236,6 +281,7 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.TransmitBinary: this.SendWill(B); break;
                     case TelnetOption.Echo: this.HandleEcho(TelnetCommand.Dont); break;
                     case TelnetOption.SuppressGoAhead: this.SendWill(B); break;
+                    case TelnetOption.SendLocation: this.SendWont(B); break;
                     case TelnetOption.TerminalLocationNumber: this.SendWont(B); break;
                     case TelnetOption.WindowSize: this.SendWont(B); break;
                     case TelnetOption.LineMode: this.SendWont(B); break;
@@ -247,6 +293,7 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.TransmitBinary: this.SendDo(B); break;
                     case TelnetOption.Echo: this.HandleEcho(TelnetCommand.Will); break;
                     case TelnetOption.SuppressGoAhead: this.SendDo(B); break;
+                    case TelnetOption.SendLocation: this.SendDont(B); break;
                     case TelnetOption.TerminalLocationNumber: this.SendDont(B); break;
                     case TelnetOption.WindowSize: this.SendDont(B); break;
                     case TelnetOption.LineMode: this.SendDont(B); break;
@@ -258,6 +305,7 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.TransmitBinary: this.SendDo(B); break;
                     case TelnetOption.Echo: this.HandleEcho(TelnetCommand.Wont); break;
                     case TelnetOption.SuppressGoAhead: this.SendDo(B); break;
+                    case TelnetOption.SendLocation: this.SendDont(B); break;
                     case TelnetOption.TerminalLocationNumber: this.SendDont(B); break;
                     case TelnetOption.WindowSize: this.SendDont(B); break;
                     case TelnetOption.LineMode: this.SendDont(B); break;
@@ -281,18 +329,10 @@ class TelnetConnection extends WebSocketConnection {
             this.SendWont(TelnetOption.Echo);
         }
 
-        //TODO Could send a WILL TTYLOC here, and if the server says go ahead, use this code to pull the users real IP and send it
-        //var xhr: XMLHttpRequest = new XMLHttpRequest();
-        //xhr.open('get', 'http://myip.randm.ca', true);
-        //xhr.onload = (): void => {
-        //    var status: number = xhr.status;
-        //    if (status === 200) {
-        //        alert(xhr.responseText);
-        //    } else {
-        //        alert('failed to get remote ip');
-        //    }
-        //}
-        //xhr.send();
+        if (this._Proxied) {
+            this.SendWill(TelnetOption.SendLocation);
+            this.SendWill(TelnetOption.TerminalLocationNumber);
+        }
     }
 
     private SendDo(option: number): void {

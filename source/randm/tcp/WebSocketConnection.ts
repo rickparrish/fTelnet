@@ -52,14 +52,14 @@ class WebSocketConnection {
 
     // TODO Protected variables
     public _InputBuffer: ByteArray = null;
-    public _LocalEcho: boolean;
+    public _LocalEcho: boolean = false;
     public _OutputBuffer: ByteArray = null;
     public _Protocol: string = 'plain';
+    public _Proxied: boolean = false;
     public _WebSocket: WebSocket = null;
 
     constructor() {
         this._InputBuffer = new ByteArray();
-        this._LocalEcho = false;
         this._OutputBuffer = new ByteArray();
     }
 
@@ -94,8 +94,10 @@ class WebSocketConnection {
 
         var WsOrWss = forceWss ? 'wss' : WebSocketProtocol;
         if (proxyHostname === '') {
+            this._Proxied = false;
             this._WebSocket = new WebSocket(WsOrWss + '://' + hostname + ':' + port, Protocols);
         } else {
+            this._Proxied = true;
             this._WebSocket = new WebSocket(WsOrWss + '://' + proxyHostname + ':' + (WsOrWss === 'wss' ? proxyPortSecure : proxyPort) + '/' + hostname + '/' + port, Protocols);
         }
 

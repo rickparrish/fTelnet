@@ -190,6 +190,16 @@
                     <td>The character set to use.  TODO need to add a popup that lists the available options</td>
                 </tr>
                 <tr>
+                    <td>ForceWss</td>
+                    <td>boolean</td>
+                    <td>false</td>
+                    <td>
+                        <p><strong>true: </strong> Always use the secure wss:// protocol for connecting to the server</p>
+                        <p><strong>false: </strong> Use the secure wss:// protocol for pages served via https://, and normal ws:// protocol for pages served via http://</p>
+                        <p>If your server supports wss://, then it makes sense to change this to true</p>
+                    </td>
+                </tr>
+                <tr>
                     <td>Hostname</td>
                     <td>string</td>
                     <td>bbs.ftelnet.ca</td>
