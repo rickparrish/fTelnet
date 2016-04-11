@@ -51,6 +51,8 @@ class RIP {
     private static _MouseFields: any[] = [];
     private static _RIPParserState: number = RIPParserState.None;
     private static _SubLevel: number = 0;
+    private static _WaitingForBitmapFont: boolean = false;
+    private static _WaitingForStrokeFont: boolean = false;
 
     public static Init(): void {
         // TODO OnEnterFrame is where action happens, and MouseDown is for buttons
@@ -526,8 +528,20 @@ class RIP {
 
             // Don't process anything if we're waiting for the stroke font to load from the HTTP server
             // Need to do this in case we want to write in stroke font mode, since the fonts are loaded remotely
-            if (!BitmapFont.Loaded) { return; }
-            if (!StrokeFont.Loaded) { return; }
+            if (this._WaitingForBitmapFont) {
+                if (BitmapFont.Loaded) {
+                    this._WaitingForBitmapFont = false;
+                } else {
+                    return;
+                }
+            }
+            if (this._WaitingForStrokeFont) {
+                if (StrokeFont.Loaded) {
+                    this._WaitingForStrokeFont = false;
+                } else {
+                    return;
+                }
+            }
 
             var Code: number = this._InputBuffer.shift();
             var Ch: string = String.fromCharCode(Code);
@@ -857,7 +871,6 @@ class RIP {
                             case 'Y': // font style
                                 if (this._Buffer.length === 8) {
                                     // Peek to see what font is being requested
-                                    // TODO So we need WaitingForStrokeFont after all!
                                     var font: number = parseInt(this._Buffer.substr(0, 2), 36);
                                     if (font > 0) {
                                         // Stroke font, ensure it has loaded
@@ -865,11 +878,16 @@ class RIP {
                                             this.RIP_FONT_STYLE();
                                             this._RIPParserState = RIPParserState.None;
                                         } else {
-                                            // TODO FWaitingForStrokeFont = true;
+                                            this._WaitingForStrokeFont = true;
                                         }
                                     } else {
-                                        this.RIP_FONT_STYLE();
-                                        this._RIPParserState = RIPParserState.None;
+                                        // Bitmap font, ensure it has loaded
+                                        if (BitmapFont.Loaded) {
+                                            this.RIP_FONT_STYLE();
+                                            this._RIPParserState = RIPParserState.None;
+                                        } else {
+                                            this._WaitingForBitmapFont = true;
+                                        }
                                     }
                                 }
                                 break;
@@ -1024,26 +1042,26 @@ class RIP {
     // Can't use this since it isn't referring to RIP (no fat arrow used to call)
     private static OnGraphCanvasMouseDown(me: MouseEvent): void {
         for (var i: number = RIP._MouseFields.length - 1; i >= 0; i--) {
-        	var MB: MouseButton = RIP._MouseFields[i];
+            var MB: MouseButton = RIP._MouseFields[i];
         	
-        	// Hit test for this button
-        	if (me.offsetX < MB.Coords.left) continue;
+            // Hit test for this button
+            if (me.offsetX < MB.Coords.left) continue;
             if (me.offsetX > MB.Coords.right) continue;
             if (me.offsetY < MB.Coords.top) continue;
             if (me.offsetY > MB.Coords.bottom) continue;
         	
-        	// We're in the region, add events
+            // We're in the region, add events
             Graph.Canvas.removeEventListener('mousedown', RIP.OnGraphCanvasMouseDown);
             Graph.Canvas.addEventListener('mousemove', RIP.OnGraphCanvasMouseMove);
             Graph.Canvas.addEventListener('mouseup', RIP.OnGraphCanvasMouseUp);
         	
-        	// Invert button
-        	if (MB.IsInvertable()) {
-        		Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
-        	}
-        	RIP._ButtonInverted = true;
-        	RIP._ButtonPressed = i;
-        	break;
+            // Invert button
+            if (MB.IsInvertable()) {
+                Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
+            }
+            RIP._ButtonInverted = true;
+            RIP._ButtonPressed = i;
+            break;
         }
     }
 
@@ -1060,8 +1078,8 @@ class RIP {
 
         // Check if we need to change the inversion
         if ((MB.IsInvertable()) && (Over !== RIP._ButtonInverted)) {
-        	Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
-        	RIP._ButtonInverted = Over;
+            Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
+            RIP._ButtonInverted = Over;
         }
     }
 
@@ -1070,7 +1088,7 @@ class RIP {
         Graph.Canvas.removeEventListener('mouseup', RIP.OnGraphCanvasMouseUp);
         Graph.Canvas.removeEventListener('mousemove', RIP.OnGraphCanvasMouseMove);
         Graph.Canvas.addEventListener('mousedown', RIP.OnGraphCanvasMouseDown);
-        
+
         var MB: MouseButton = RIP._MouseFields[RIP._ButtonPressed];
         
         // Hit test for this button
@@ -1079,15 +1097,15 @@ class RIP {
         if (me.offsetX > MB.Coords.right) Over = false;
         if (me.offsetY < MB.Coords.top) Over = false;
         if (me.offsetY > MB.Coords.bottom) Over = false;
-        
+
         if (Over) {
-        	if (MB.IsInvertable() && RIP._ButtonInverted) {
-        		Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
-        	}
-        	RIP._ButtonInverted = false;
-        	RIP._ButtonPressed = -1;
-        	
-        	RIP.HandleMouseButton(MB);				
+            if (MB.IsInvertable() && RIP._ButtonInverted) {
+                Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
+            }
+            RIP._ButtonInverted = false;
+            RIP._ButtonPressed = -1;
+
+            RIP.HandleMouseButton(MB);
         }
     }
 

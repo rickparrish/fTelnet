@@ -40,6 +40,7 @@ class fTelnet {
     private static _StatusBar: HTMLDivElement = null;
     private static _StatusBarLabel: HTMLSpanElement = null;
     private static _Timer: number = null;
+    private static _UseModernScrollback: boolean = false;
     private static _YModemReceive: YModemReceive = null;
     private static _YModemSend: YModemSend = null;
 
@@ -124,7 +125,8 @@ class fTelnet {
         this._fTelnetContainer.appendChild(this._ClientContainer);
 
         // Setup the client container for modern scrollback on desktop devices
-        if (DetectMobileBrowser.SupportsModernScrollback) {
+        this._UseModernScrollback = (DetectMobileBrowser.SupportsModernScrollback && (this._Emulation !== 'RIP'));
+        if (this._UseModernScrollback) {
             this._ClientContainer.style.overflowX = 'hidden';
             this._ClientContainer.style.overflowY = 'scroll';
             this._ClientContainer.style.height = this._ScreenRows * 16 + 'px'; // Default font is 9x16
@@ -133,7 +135,7 @@ class fTelnet {
         }
 
         // Seup the crt window
-        if (Crt.Init(this._ClientContainer) && ((this._Emulation !== 'RIP') || Graph.Init(this._ClientContainer))) {
+        if (Crt.Init(this._ClientContainer, this._UseModernScrollback) && ((this._Emulation !== 'RIP') || Graph.Init(this._ClientContainer))) {
             this._InitMessageBar.style.display = 'none';
 
             Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
@@ -174,14 +176,14 @@ class fTelnet {
             // Create the scrollback bar
                 this._ScrollbackBar = document.createElement('div');
                 this._ScrollbackBar.id = 'fTelnetScrollback';
-                if (!DetectMobileBrowser.SupportsModernScrollback) {
+                if (this._UseModernScrollback) {
+                    this._ScrollbackBar.innerHTML = 'SCROLLBACK: Scroll back down to the bottom to exit scrollback mode';
+                } else {
                     this._ScrollbackBar.innerHTML = 'SCROLLBACK: <a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
                     '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
                     '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
                     '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
                     '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
-                } else {
-                    this._ScrollbackBar.innerHTML = 'SCROLLBACK: Scroll back down to the bottom to exit scrollback mode';
                 }
                 this._ScrollbackBar.style.display = 'none';
                 this._fTelnetContainer.appendChild(this._ScrollbackBar);
@@ -218,7 +220,7 @@ class fTelnet {
                 + '<td><a href="#" onclick="fTelnet.Download(); return false;">Download</a></td></tr>'
                 + '<tr><td><a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a></td>'
                 + '<td><a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen</a></td></tr>'
-            + (!DetectMobileBrowser.SupportsModernScrollback ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
+                + (!this._UseModernScrollback ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
             this._MenuButtons.style.display = 'none';
             this._MenuButtons.style.zIndex = '150';  // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
             this._fTelnetContainer.appendChild(this._MenuButtons);
@@ -683,16 +685,21 @@ class fTelnet {
     }
 
     private static OnCrtScreenSizeChanged(): void {
-        if (!DetectMobileBrowser.SupportsModernScrollback) {
-            var NewWidth: number = Crt.ScreenCols * Crt.Font.Width;
+        if (this._Emulation === 'RIP') {
+            // TODOX Anything to do here?
+            var NewWidth: number = 640;
         } else {
-            // Non-mobile means modern scrollback, which needs both width and height to be set
-            var NewWidth: number = Crt.ScreenCols * Crt.Font.Width + GetScrollbarWidth.Width;
-            var NewHeight: number = Crt.ScreenRows * Crt.Font.Height;
+            if (this._UseModernScrollback) {
+                // Non-mobile means modern scrollback, which needs both width and height to be set
+                var NewWidth: number = Crt.ScreenCols * Crt.Font.Width + GetScrollbarWidth.Width;
+                var NewHeight: number = Crt.ScreenRows * Crt.Font.Height;
 
-            this._ClientContainer.style.width = NewWidth + 'px';
-            this._ClientContainer.style.height = NewHeight + 'px';
-            this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
+                this._ClientContainer.style.width = NewWidth + 'px';
+                this._ClientContainer.style.height = NewHeight + 'px';
+                this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
+            } else {
+                var NewWidth: number = Crt.ScreenCols * Crt.Font.Width;
+            }
         }
 
         // TODO -10 is 5px of left and right padding -- would be good if this wasn't hardcoded since it can be customized in the .css
@@ -737,7 +744,7 @@ class fTelnet {
             }
 
             // Check for scrollback
-            if (DetectMobileBrowser.SupportsModernScrollback) {
+            if (this._UseModernScrollback) {
                 var ScrolledUp = (this._ClientContainer.scrollHeight - this._ClientContainer.scrollTop - this._ClientContainer.clientHeight > 1);
                 if (ScrolledUp && (this._ScrollbackBar.style.display == 'none')) {
                     this._ScrollbackBar.style.display = 'block';

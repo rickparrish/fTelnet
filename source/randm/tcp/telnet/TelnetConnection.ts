@@ -94,7 +94,7 @@ class TelnetConnection extends WebSocketConnection {
                 this.SendWill(TelnetOption.SendLocation);
                 this.SendSubnegotiate(TelnetOption.SendLocation);
 
-                var ToSendString: string = xhr.responseText;//TODOX + ' ' + xhr.responseText;
+                var ToSendString: string = xhr.responseText;
                 var ToSendBytes: number[] = [];
                 for (var i: number = 0; i < ToSendString.length; i++) {
                     var CharCode: number = ToSendString.charCodeAt(i);

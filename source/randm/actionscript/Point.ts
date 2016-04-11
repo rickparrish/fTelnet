@@ -25,4 +25,8 @@ class Point {
         this.x = x;
         this.y = y;
     }
+
+    public toString(): string {
+        return '[' + this.x.toString(10) + ',' + this.y.toString(10) + ']';
+    }
 }

@@ -77,6 +77,7 @@ class Graph {
     private static _CursorPosition: Point = new Point(0, 0);
     private static _FillEllipse: Boolean = false;
     private static _FillPolyMap: boolean[][] = [];
+    private static _IsLittleEndian = true;
     private static _TextWindow: Rectangle = null;
     private static _WriteMode: number = WriteMode.Normal;
 
@@ -84,8 +85,16 @@ class Graph {
 
     public static Init(container: HTMLElement): boolean {
         this._Container = container;
-
         this._TextWindow = new Rectangle(0, 0, Crt.ScreenCols, Crt.ScreenRows);
+
+        // Determine whether Uint32 is little- or big-endian (FROM: http://jsfiddle.net/andrewjbaker/Fnx2w/)
+        var EndianBuffer = new ArrayBuffer(4);
+        var Endian8 = new Uint8Array(EndianBuffer);
+        var Endian32 = new Uint32Array(EndianBuffer);
+        Endian32[0] = 0x0a0b0c0d;
+        if (Endian8[0] === 0x0a && Endian8[1] === 0x0b && Endian8[2] === 0x0c && Endian8[3] === 0x0d) {
+            this._IsLittleEndian = false;
+        }
 
         // Init fonts
         BitmapFont.Init();
@@ -186,7 +195,7 @@ class Graph {
 
             // Precalculate the "on" and "off" colours
             var ColourOn = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._FillSettings.Colour].toString(16), '0', 6);
-            var ColourOff = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[0].toString(16), '0', 6); // TODO Should 0 be this._BackColour?
+            var ColourOff = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[0].toString(16), '0', 6); // TODO Should [0] be [this._BackColour]?
 
             for (y = AY1; y <= AY2; y++) {
                 for (x = AX1; x <= AX2; x++) {
@@ -423,12 +432,14 @@ class Graph {
 
         this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._BackColour].toString(16), '0', 6);
 
-        // Reset the pixels behind the text window TODO Maybe use one big fillRect()?  Are there anti-aliasing issues?
-        for (var y: number = y1; y <= y2; y++) {
-            for (var x: number = x1; x <= x2; x++) {
-                this._CanvasContext.fillRect(x, y, 1, 1);
-            }
-        }
+        // Reset the pixels behind the text window
+        // TODO Need to confirm this won't anti-alias
+        this._CanvasContext.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+        //for (var y: number = y1; y <= y2; y++) {
+        //    for (var x: number = x1; x <= x2; x++) {
+        //        this._CanvasContext.fillRect(x, y, 1, 1);
+        //    }
+        //}
 
         // Clear the Crt line
         Crt.ClrEol();
@@ -555,22 +566,11 @@ class Graph {
             if ((AX < this._ViewPortSettings.x1) || (AX > this._ViewPortSettings.x2) || (AY < this._ViewPortSettings.y1) || (AY > this._ViewPortSettings.y2)) return;
         }
 
-        // Determine whether Uint32 is little- or big-endian (FROM: http://jsfiddle.net/andrewjbaker/Fnx2w/)
-        // TODO Put this in Init so we don't have to recalcualte each time
-        var IsLittleEndian = true;
-        var EndianBuffer = new ArrayBuffer(4);
-        var Endian8 = new Uint8Array(EndianBuffer);
-        var Endian32 = new Uint32Array(EndianBuffer);
-        Endian32[0] = 0x0a0b0c0d;
-        if (Endian8[0] === 0x0a && Endian8[1] === 0x0b && Endian8[2] === 0x0c && Endian8[3] === 0x0d) {
-            IsLittleEndian = false;
-        }
-
         // Precalculate the "on" and "off" colours
         var BorderColour = this.CURRENT_PALETTE[ABorder];
         var ColourOn = this.CURRENT_PALETTE[this._FillSettings.Colour];
         var ColourOff = this.CURRENT_PALETTE[0]; // TODO Should 0 be this._BackColour?
-        if (IsLittleEndian) {
+        if (this._IsLittleEndian) {
             // Need to flip the colours for little endian machines
             var R = (BorderColour & 0xFF0000) >> 16;
             var G = (BorderColour & 0x00FF00) >> 8;

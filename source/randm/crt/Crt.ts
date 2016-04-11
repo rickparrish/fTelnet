@@ -106,11 +106,13 @@ class Crt {
     private static _TempCanvas: HTMLCanvasElement = null;
     private static _TempCanvasContext: CanvasRenderingContext2D = null;
     private static _Transparent: Boolean = false;
+    private static _UseModernScrollback: Boolean = false;
     private static _WindMin: number = 0;
     private static _WindMax: number = (80 - 1) | ((25 - 1) << 8);
 
-    public static Init(container: HTMLElement): boolean {
+    public static Init(container: HTMLElement, useModernScrollback: boolean): boolean {
         this._Container = container;
+        this._UseModernScrollback = useModernScrollback;
 
         this._Font = new CrtFont();
         this._Font.onchange.on((): void => { this.OnFontChanged(); });
@@ -121,10 +123,10 @@ class Crt {
         this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
         this._Canvas.style.zIndex = '50'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
-        if (!DetectMobileBrowser.SupportsModernScrollback) {
-            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
-        } else {
+        if (this._UseModernScrollback) {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
+        } else {
+            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         }
 
         // Handle events for copy/paste
@@ -167,7 +169,7 @@ class Crt {
         this._CanvasContext.textBaseline = 'top';
 
         // Create the buffer canvas and context for scrolling
-        if (DetectMobileBrowser.SupportsModernScrollback) {
+        if (this._UseModernScrollback) {
             this._TempCanvas = document.createElement('canvas');
             this._TempCanvas.width = this._Canvas.width;
             this._TempCanvas.height = this._Canvas.height;
@@ -371,8 +373,8 @@ class Crt {
     }
 
     public static EnterScrollback(): void {
-        // Non-mobile have modern scrollback
-        if (DetectMobileBrowser.SupportsModernScrollback) return;
+        // Don't run this function if modern scrollback is enabled
+        if (this._UseModernScrollback) return;
 
         if (!this._InScrollback) {
             this._InScrollback = true;
@@ -453,12 +455,12 @@ class Crt {
             for (var i: number = 0; i < TextLength; i++) {
                 var Char: ImageData = this._Font.GetChar(CharCodes[i], charInfo);
                 if (Char) {
-                    if (!DetectMobileBrowser.SupportsModernScrollback) {
+                    if (this._UseModernScrollback) {
+                        this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height);
+                    } else {
                         if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
                             this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height);
                         }
-                    } else {
-                        this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height);
                     }
                 }
 
@@ -587,7 +589,7 @@ class Crt {
 
     private static MousePositionToScreenPosition(x: number, y: number): Point {
         // Adjust for modern scrollback offset
-        if (DetectMobileBrowser.SupportsModernScrollback) {
+        if (this._UseModernScrollback) {
             y -= this._ScrollbackSize * this._Font.Height;
         }
 
@@ -649,7 +651,7 @@ class Crt {
 
         // Reposition the cursor
         var NewOffset = Offset.getOffset(this._Canvas);
-        if (DetectMobileBrowser.SupportsModernScrollback) NewOffset.y += this._ScrollbackSize * this._Font.Height;
+        if (this._UseModernScrollback) NewOffset.y += this._ScrollbackSize * this._Font.Height;
         this._Cursor.WindowOffset = NewOffset;
     }
 
@@ -659,13 +661,13 @@ class Crt {
 
         // Update the canvas
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
-        if (!DetectMobileBrowser.SupportsModernScrollback) {
-            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
-        } else {
+        if (this._UseModernScrollback) {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
             this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
             this._TempCanvas.width = this._Canvas.width;
             this._TempCanvas.height = this._Canvas.height;
+        } else {
+            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         }
 
         // Restore the screen contents
@@ -1271,19 +1273,7 @@ class Crt {
         if (count > MaxLines) { count = MaxLines; }
 
         if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
-            if (!DetectMobileBrowser.SupportsModernScrollback) {
-                // Scroll
-                var Left: number = (left - 1) * this._Font.Width;
-                var Top: number = (top - 1 + count) * this._Font.Height;
-                var Width: number = (right - left + 1) * this._Font.Width;
-                var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
-                if (Height > 0) {
-                    var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
-                    Left = (left - 1) * this._Font.Width;
-                    Top = (top - 1) * this._Font.Height;
-                    this._CanvasContext.putImageData(Buf, Left, Top);
-                }
-            } else {
+            if (this._UseModernScrollback) {
                 if ((left == 1) && (top == 1) && (right == this._ScreenSize.x) && (bottom == this._ScreenSize.y)) {
                     // Scroll the lines into the scrollback region
                     var Left: number = 0;
@@ -1307,6 +1297,18 @@ class Crt {
                         Top = (top - 1) * this._Font.Height;
                         this._CanvasContext.putImageData(Buf, Left, Top);
                     }
+                }
+            } else {
+                // Scroll
+                var Left: number = (left - 1) * this._Font.Width;
+                var Top: number = (top - 1 + count) * this._Font.Height;
+                var Width: number = (right - left + 1) * this._Font.Width;
+                var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
+                if (Height > 0) {
+                    var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
+                    Left = (left - 1) * this._Font.Width;
+                    Top = (top - 1) * this._Font.Height;
+                    this._CanvasContext.putImageData(Buf, Left, Top);
                 }
             }
 
@@ -1339,7 +1341,7 @@ class Crt {
             var X: number;
             var Y: number;
 
-            if (!DetectMobileBrowser.SupportsModernScrollback) {
+            if (!this._UseModernScrollback) {
                 // First, store the contents of the scrolled lines in the scrollback buffer
                 for (Y = 0; Y < count; Y++) {
                     NewRow = [];
@@ -1413,11 +1415,11 @@ class Crt {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        if (!DetectMobileBrowser.SupportsModernScrollback) {
-            return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
-        } else {
+        if (this._UseModernScrollback) {
             // With modern scrollbar the container is the same width as the canvas, so we need to look at the parent container to see the maximum client size
             return this._Font.Load(font, Math.floor(this._Container.parentElement.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        } else {
+            return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
         }
     }
 
@@ -1458,13 +1460,13 @@ class Crt {
 
         // Update the canvas
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
-        if (!DetectMobileBrowser.SupportsModernScrollback) {
-            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
-        } else {
+        if (this._UseModernScrollback) {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
             this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
             this._TempCanvas.width = this._Canvas.width;
             this._TempCanvas.height = this._Canvas.height;
+        } else {
+            this._Canvas.height = this._Font.Height * this._ScreenSize.y;
         }
 
         // Restore the screen contents

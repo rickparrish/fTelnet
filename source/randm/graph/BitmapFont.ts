@@ -18,7 +18,6 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 class BitmapFont {
-    // TODO Figure out a better way to do this, or load on demand like other fonts
     public static Loaded: boolean = false;
     public static Pixels: any[] = [];
 
