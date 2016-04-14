@@ -42,7 +42,6 @@ class RIP {
     private static _Command: string = '';
     private static _DoTextCommand: boolean = false;
     private static _InputBuffer: number[] = [];
-    private static _IconsLoading: number = 0;
     private static _KeyBuf: any[] = [];
     private static _LastWasEscape: boolean = false;
     private static _Level: number = 0;
@@ -392,7 +391,6 @@ class RIP {
     // Loads and displays a disk-based icon to screen
     // Status: Partially Implemented
     private static LoadIcon(x: number, y: number, mode: number, clipboard: number, filename: string): void {
-        return; // TODO No icons to load for this test
         if (mode !== 0) {
             console.log('LoadIcon() only supports COPY mode');
             mode = 0;
@@ -402,113 +400,97 @@ class RIP {
         filename = filename.toUpperCase();
         if (filename.indexOf('.') === -1) { filename += '.ICN'; }
 
-        // Load from remote server since it's not in the cache
-        // TODO
-        //var Icon: RMURLLoader = new RMURLLoader();
-        //Icon.addEventListener(Event.COMPLETE, OnIconLoadComplete);
-        //Icon.addEventListener(IOErrorEvent.IO_ERROR, OnIconLoadIOError);
-        //Icon.dataFormat = URLLoaderDataFormat.BINARY;
-        //Icon.parameters['x'] = x;
-        //Icon.parameters['y'] = y;
-        //Icon.parameters['mode'] = mode;
-        //Icon.parameters['clipboard'] = clipboard;
-        //Icon.parameters['filename'] = filename;
-
-        //try {
-        //	this._IconsLoading++;
-        //	Icon.load(new URLRequest(FIconPath + filename));
-        //} catch (e: Error) {
-        //	// Ignore, not much we can do here
-        //	this._IconsLoading--;
-        //}
+        if (document.getElementById('fTelnetScript') !== null) {
+            try {
+                // TODO Maybe make synchronous, then no need for _IconsLoading?
+                var xhr: XMLHttpRequest = new XMLHttpRequest();
+                //TODO xhr.open('get', StringUtils.GetUrl('ripicons/' + filename), true);
+                xhr.open('get', 'http://www.ftelnet.ca/ripicons/' + filename, false);
+                xhr.overrideMimeType('text/plain; charset=x-user-defined');
+                xhr.send();
+                this.OnIconLoadComplete(xhr, x, y, mode, clipboard, filename);
+            } catch (e) {
+                console.log('Error loading icon: ' + e);
+            }
+        }
     }
 
-    private static OnIconLoadComplete(e: Event): void {
-        // TODO
-        //try {
-        //	var loader: RMURLLoader = RMURLLoader(e.target);
+    private static OnIconLoadComplete(xhr: XMLHttpRequest, x: number, y: number, mode: number, clipboard: number, filename: string): void {
+        try {
+            var left: number = x;
+            var top: number = y;
 
-        //	var left: number = loader.parameters['x'];
-        //	var top: number = loader.parameters['y'];
+            // Get the byte array
+            var BA: ByteArray = new ByteArray();
+            BA.writeString(xhr.responseText);
 
-        //	// Get the byte array
-        //	var BA: ByteArray = loader.data;
-        //	BA.endian = Endian.LITTLE_ENDIAN;
+            // TODO Use HTML5 localStorage for later use without re-downloading
 
-        //	// Store the image in a sharedobject for later use
-        //	var SO: SharedObject
-        //	try {
-        //		SO = SharedObject.getLocal(loader.parameters['filename'], 'fTelnet');
-        //		var SOBA: ByteArray = new ByteArray();
-        //		SOBA.writeBytes(BA);
-        //		SO.data['bytes'] = SOBA;
-        //		SO.flush();
-        //		SO.close();
-        //	} catch (e: Error) {
-        //		// Ignore
-        //	}				
+            // Get the image width and height
+            BA.position = 0;
+            var width: number = BA.readUnsignedShort();
+            var height: number = BA.readUnsignedShort();
 
-        //	// Get the image width and height
-        //	BA.position = 0;
-        //	var width: number = BA.readUnsignedShort();
-        //	var height: number = BA.readUnsignedShort();
+            // Get the raw bytes
+            var InV: number[] = [];
+            while (BA.bytesAvailable > 0) {
+                InV.push(BA.readUnsignedByte());
+            }
 
-        //	// Get the raw bytes
-        //	var InV: Vector.<uint> = new Vector.<uint>();
-        //	while (BA.bytesAvailable > 0) {
-        //		InV.push(BA.readUnsignedByte());
-        //	}
+            // Get the output vector
+            var BD: ImageData = new ImageData(width, height);
+            var OutV = new Uint32Array(BD.data.buffer);
+            var Offset: number = 0;
 
-        //	// Get the output vector
-        //	var BD: BitmapData = new BitmapData(width, height);
-        //	var OutV: Vector.<uint> = BD.getVector(new Rectangle(0, 0, width, height));
-        //	var Offset: number = 0;
+            var Colour: number;
+            var bytes_per_plane: number = Math.floor((width - 1) / 8) + 1;
+            var plane_offset0: number = (bytes_per_plane * 0);
+            var plane_offset1: number = (bytes_per_plane * 1);
+            var plane_offset2: number = (bytes_per_plane * 2);
+            var plane_offset3: number = (bytes_per_plane * 3);
+            var row_offset: number;
+            var byte_offset: number;
+            var right_shift: number;
+            for (var y: number = 0; y < height; ++y) {
+                row_offset = ((bytes_per_plane * 4) * y); // 4 = number of planes
 
-        //	var Colour: number;
-        //	var bytes_per_plane: number = Math.floor((width - 1) / 8) + 1;
-        //	var plane_offset0: number = (bytes_per_plane * 0);
-        //	var plane_offset1: number = (bytes_per_plane * 1);
-        //	var plane_offset2: number = (bytes_per_plane * 2);
-        //	var plane_offset3: number = (bytes_per_plane * 3);
-        //	var row_offset: number;
-        //	var byte_offset: number;
-        //	var right_shift: number;
-        //	for (var y: number = 0; y < height; ++y) {
-        //		row_offset = ((bytes_per_plane * 4) * y); // 4 = number of planes
+                for (var x: number = 0; x < width; ++x) {
+                    byte_offset = Math.floor(x / 8);
+                    right_shift = 7 - (x & 7);
 
-        //		for (var x: number = 0; x < width; ++x) {
-        //			byte_offset = Math.floor(x / 8);
-        //			right_shift = 7 - (x & 7);
+                    // here we roll in each bit from each plane, culminating
+                    // in a 4-bit number that represents our color number in
+                    // the 16-color palette
+                    Colour = (InV[row_offset + plane_offset0 + byte_offset] >> right_shift) & 0x01;
+                    Colour <<= 1;
+                    Colour |= (InV[row_offset + plane_offset1 + byte_offset] >> right_shift) & 0x01;
+                    Colour <<= 1;
+                    Colour |= (InV[row_offset + plane_offset2 + byte_offset] >> right_shift) & 0x01;
+                    Colour <<= 1;
+                    Colour |= (InV[row_offset + plane_offset3 + byte_offset] >> right_shift) & 0x01;
 
-        //			// here we roll in each bit from each plane, culminating
-        //			// in a 4-bit number that represents our color number in
-        //			// the 16-color palette
-        //			Colour = (InV[row_offset + plane_offset0 + byte_offset] >> right_shift) & 0x01; 
-        //			Colour <<= 1;
-        //			Colour |= (InV[row_offset + plane_offset1 + byte_offset] >> right_shift) & 0x01;
-        //			Colour <<= 1;
-        //			Colour |= (InV[row_offset + plane_offset2 + byte_offset] >> right_shift) & 0x01;
-        //			Colour <<= 1;
-        //			Colour |= (InV[row_offset + plane_offset3 + byte_offset] >> right_shift) & 0x01;
-        //			OutV[Offset++] = Graph.CURRENT_PALETTE[Colour];
-        //		}
-        //	}
-        //	BD.setVector(new Rectangle(0, 0, width, height), OutV);
-        //	Graph.PutImage(left, top, BD, WriteMode.Copy);
+                    // Lookup the actual colour based on the palette index we got above
+                    Colour = Graph.CURRENT_PALETTE[Colour];
 
-        //	if (loader.parameters['clipboard'] === 1) {
-        //		FClipboard = BD;
-        //	}
-        //} catch (e: Error) {
-        //	console.log('Error loading icon: ' + e);
-        //}
+                    // TODO Endian issues
+                    // Need to flip the colours for little endian machines
+                    var R = (Colour & 0xFF0000) >> 16;
+                    var G = (Colour & 0x00FF00) >> 8;
+                    var B = (Colour & 0x0000FF) >> 0;
+                    Colour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
 
-        //this._IconsLoading--;
-    }
+                    OutV[Offset++] = Colour;
+                }
+            }
 
-    private static OnIconLoadIOError(ioe: ErrorEvent): void {
-        console.log('Error loading icon: ' + ioe);
-        this._IconsLoading--;
+            Graph.PutImage(left, top, BD, WriteMode.Copy);
+
+            if (clipboard === 1) {
+                this._Clipboard = BD;
+            }
+        } catch (e) {
+            console.log('Error loading icon: ' + e);
+        }
     }
 
     public static Parse(AData: string): void {
@@ -521,11 +503,6 @@ class RIP {
 
     private static OnEnterFrame(e: Event): void {
         while (this._InputBuffer.length > 0) {
-            // Don't process anything if we're waiting on an icon to load from the HTTP server
-            // Need to do this in case we load an icon in clipboard mode, since the call to 
-            // PutImage() will not work right since we don't have the data in the clipboard yet
-            if (this._IconsLoading > 0) { return; }
-
             // Don't process anything if we're waiting for the stroke font to load from the HTTP server
             // Need to do this in case we want to write in stroke font mode, since the fonts are loaded remotely
             if (this._WaitingForBitmapFont) {
@@ -1043,18 +1020,18 @@ class RIP {
     private static OnGraphCanvasMouseDown(me: MouseEvent): void {
         for (var i: number = RIP._MouseFields.length - 1; i >= 0; i--) {
             var MB: MouseButton = RIP._MouseFields[i];
-        	
+
             // Hit test for this button
             if (me.offsetX < MB.Coords.left) continue;
             if (me.offsetX > MB.Coords.right) continue;
             if (me.offsetY < MB.Coords.top) continue;
             if (me.offsetY > MB.Coords.bottom) continue;
-        	
+
             // We're in the region, add events
             Graph.Canvas.removeEventListener('mousedown', RIP.OnGraphCanvasMouseDown);
             Graph.Canvas.addEventListener('mousemove', RIP.OnGraphCanvasMouseMove);
             Graph.Canvas.addEventListener('mouseup', RIP.OnGraphCanvasMouseUp);
-        	
+
             // Invert button
             if (MB.IsInvertable()) {
                 Graph.Invert(MB.Coords.left, MB.Coords.top, MB.Coords.right, MB.Coords.bottom);
@@ -1068,7 +1045,7 @@ class RIP {
     // Can't use this. since it isn't referring to RIP (no fat arrow used to call)
     private static OnGraphCanvasMouseMove(me: MouseEvent): void {
         var MB: MouseButton = RIP._MouseFields[RIP._ButtonPressed];
-        
+
         // Hit test for this button
         var Over: boolean = true;
         if (me.offsetX < MB.Coords.left) Over = false;
@@ -1090,7 +1067,7 @@ class RIP {
         Graph.Canvas.addEventListener('mousedown', RIP.OnGraphCanvasMouseDown);
 
         var MB: MouseButton = RIP._MouseFields[RIP._ButtonPressed];
-        
+
         // Hit test for this button
         var Over: boolean = true;
         if (me.offsetX < MB.Coords.left) Over = false;

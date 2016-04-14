@@ -2004,13 +2004,22 @@ class Graph {
             // Update the screen if requested
             if (AUpdateScreen) {
                 // TODO Flip and add alpha based on endian
+                // TODO Endian issues
                 var OldColour: number = this.CURRENT_PALETTE[ACurrentPaletteIndex];
-                var NewColour: number = this.EGA_PALETTE[AEGAPaletteIndex];
+                var R = (OldColour & 0xFF0000) >> 16;
+                var G = (OldColour & 0x00FF00) >> 8;
+                var B = (OldColour & 0x0000FF) >> 0;
+                OldColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
 
-                // TODO Test this new logic
-                // TODO This needs to use a uint32 array
+                // TODO Endian issues
+                var NewColour: number = this.EGA_PALETTE[AEGAPaletteIndex];
+                var R = (NewColour & 0xFF0000) >> 16;
+                var G = (NewColour & 0x00FF00) >> 8;
+                var B = (NewColour & 0x0000FF) >> 0;
+                NewColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
+
                 var PixelData: ImageData = this._CanvasContext.getImageData(0, 0, this.PIXELS_X, this.PIXELS_Y);
-                var Pixels = PixelData.data;
+                var Pixels = new Uint32Array(PixelData.data.buffer);
 
                 var Pixelslength: number = Pixels.length
                 for (var i: number = 0; i < Pixelslength; i++) {

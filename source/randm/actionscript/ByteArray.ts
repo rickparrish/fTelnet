@@ -116,7 +116,8 @@ class ByteArray {
             throw 'There is not sufficient data available to read.';
         }
 
-        return ((this._Bytes[this._Position++] & 0xFF) << 8) + (this._Bytes[this._Position++] & 0xFF);
+        // TODOX Endian problems?
+        return (this._Bytes[this._Position++] & 0xFF) + ((this._Bytes[this._Position++] & 0xFF) << 8);
     }
 
     public toString(): string {
@@ -172,7 +173,7 @@ class ByteArray {
     public writeString(text: string): void {
         var Textlength: number = text.length;
         for (var i: number = 0; i < Textlength; i++) {
-            this.writeByte(text.charCodeAt(i));
+            this.writeByte(text.charCodeAt(i) & 0xFF);
         }
     }
 }
