@@ -1,6 +1,6 @@
 ﻿// From: http://stackoverflow.com/a/13382873/342378
 class GetScrollbarWidth {
-    private static _Width: number = null;
+    private static _Width: number | null = null;
 
     public static get Width(): number {
         if (this._Width === null) {

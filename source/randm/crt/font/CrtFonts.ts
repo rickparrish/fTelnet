@@ -22,7 +22,7 @@ class CrtFonts {
     private static _Fonts: any[] = [];
 
     // Static constructor
-    private static __ctor = ((): void => {
+    public static __ctor() {
         for (var i: number = 0; i < CrtFonts._FontNames.length; i++) {
             var NameSize: string[] = CrtFonts._FontNames[i].split('_');
             var WidthHeight: string[] = NameSize[1].split('x');
@@ -48,9 +48,9 @@ class CrtFonts {
                 }
             });
         }
-    })();
+    }
 
-    public static GetBestFit(font: string, maxWidth: number, maxHeight: number): Point {
+    public static GetBestFit(font: string, maxWidth: number, maxHeight: number): Point | null {
         // Check how many matches we found
         if (typeof this._Fonts[font] === 'undefined') {
             // None, it's not a valid font
@@ -89,3 +89,4 @@ class CrtFonts {
         return (this._FontNames.indexOf(font) >= 0);
     }
 }
+CrtFonts.__ctor();

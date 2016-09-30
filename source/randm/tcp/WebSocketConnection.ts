@@ -51,12 +51,12 @@ class WebSocketConnection {
     private _WasConnected: boolean = false;
 
     // TODO Protected variables
-    public _InputBuffer: ByteArray = null;
+    public _InputBuffer: ByteArray;
     public _LocalEcho: boolean = false;
-    public _OutputBuffer: ByteArray = null;
+    public _OutputBuffer: ByteArray;
     public _Protocol: string = 'plain';
     public _Proxied: boolean = false;
-    public _WebSocket: WebSocket = null;
+    public _WebSocket: WebSocket;
 
     constructor() {
         this._InputBuffer = new ByteArray();

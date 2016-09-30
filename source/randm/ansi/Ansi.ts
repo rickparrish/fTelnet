@@ -57,8 +57,7 @@ class Ansi {
                             p1 = 2 enables RIP parsing
                             SOURCE: Unknown 
                             NOT IN CTERM.TXT */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
-                switch (parseInt(this._AnsiParams.shift(), 10)) {
+                switch (this.GetNextParam(0)) {
                     case 0: this.onripdetect.trigger(); break;
                     case 1: this.onripdisable.trigger(); break;
                     case 2: this.onripenable.trigger(); break;
@@ -74,8 +73,7 @@ class Ansi {
 	                        to the right, with rightmost charaters going off-screen and the
 	                        resulting hole being filled with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                x = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                x = Math.max(1, this.GetNextParam(1));
                 Crt.InsChar(x);
                 break;
             case '{': /* CSI = [ p1 [ ; p2 ] ] {
@@ -100,8 +98,7 @@ class Ansi {
 	                        Attempting to move past the screen boundaries stops the cursor
 	                        at the screen boundary.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                y = Math.max(1, this.GetNextParam(1));
                 y = Math.max(1, Crt.WhereY() - y);
                 Crt.GotoXY(Crt.WhereX(), y);
                 break;
@@ -112,8 +109,7 @@ class Ansi {
 	                        Attempting to move past the screen boundaries stops the cursor
 	                        at the screen boundary.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                y = Math.max(1, this.GetNextParam(1));
                 y = Math.min(Crt.WindRows, Crt.WhereY() + y);
                 Crt.GotoXY(Crt.WhereX(), y);
                 break;
@@ -124,8 +120,7 @@ class Ansi {
 	                        Attempting to move past the screen boundaries stops the cursor
 	                        at the screen boundary.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                x = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                x = Math.max(1, this.GetNextParam(1));
                 x = Math.min(Crt.WindCols, Crt.WhereX() + x);
                 Crt.GotoXY(x, Crt.WhereY());
                 break;
@@ -141,7 +136,6 @@ class Ansi {
 	                        adding an extra parameter to the end, not by incrementing any existing
 	                        one!
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
                 console.log('Unhandled ESC sequence: Device Attributes');
                 break;
             case 'D':
@@ -153,8 +147,7 @@ class Ansi {
                         Attempting to move past the screen boundaries stops the cursor
                         at the screen boundary.
                         SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                    if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                    x = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                    x = Math.max(1, this.GetNextParam(1));
                     x = Math.max(1, Crt.WhereX() - x);
                     Crt.GotoXY(x, Crt.WhereY());
                 } else if (this._AnsiIntermediates.indexOf(' ') !== -1) {
@@ -211,9 +204,8 @@ class Ansi {
                         Not all fonts are supported in all modes.  If a font is not supported in
                         the current mode, no action is taken.
                         SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                    while (this._AnsiParams.length < 2) { this._AnsiParams.push('0'); }
-                    x = parseInt(this._AnsiParams.shift(), 10);
-                    y = parseInt(this._AnsiParams.shift(), 10);
+                    x = this.GetNextParam(0);
+                    y = this.GetNextParam(0);
                     if ((x === 0) && (y >= 0) && (y <= 40)) {
                         // TODO Should pick based on available screen space, not on biggest to smallest
                         Crt.SetFont('SyncTerm-' + y.toString(10));
@@ -230,8 +222,7 @@ class Ansi {
 	                        Moving past the bottom of the screen scrolls the screen up the remaining
 	                        number of lines filling newly added lines with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                y = Math.max(1, this.GetNextParam(1));
                 y = Math.min(Crt.WindRows, Crt.WhereY() + y);
                 Crt.GotoXY(1, y);
                 break;
@@ -242,8 +233,7 @@ class Ansi {
 	                        Attempting to move past the screen boundaries stops the cursor
 	                        at the screen boundary.
                             SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                y = Math.max(1, this.GetNextParam(1));
                 y = Math.max(1, Crt.WhereY() - y);
                 Crt.GotoXY(1, y);
                 break;
@@ -252,8 +242,7 @@ class Ansi {
 	                        Defaults: p1 = 1
 	                        Movies the cursor to column p1 of the current row.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                x = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                x = Math.max(1, this.GetNextParam(1));
                 if ((x >= 1) && (x <= Crt.WindCols)) {
                     Crt.GotoXY(x, Crt.WhereY());
                 }
@@ -265,9 +254,8 @@ class Ansi {
 	                        Defaults: p1 = 1  p2 = 1
 	                        Moves the cursor to the p2th column of the p1th line.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                while (this._AnsiParams.length < 2) { this._AnsiParams.push('1'); }
-                y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
-                x = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                y = Math.max(1, this.GetNextParam(1));
+                x = Math.max(1, this.GetNextParam(1));
                 Crt.GotoXY(x, y);
                 break;
             case 'h':
@@ -339,8 +327,7 @@ class Ansi {
 	                        Erased characters are set to the current attribute.
 
 	                        SOURCE BANSI.TXT */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
-                switch (parseInt(this._AnsiParams.shift(), 10)) {
+                switch (this.GetNextParam(0)) {
                     case 0: Crt.ClrEos(); break;
                     case 1: Crt.ClrBos(); break;
                     case 2: Crt.ClrScr(); break;
@@ -355,8 +342,7 @@ class Ansi {
 	                        2 - Erase entire line.
 	                        Erased characters are set to the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
-                switch (parseInt(this._AnsiParams.shift(), 10)) {
+                switch (this.GetNextParam(0)) {
                     case 0: Crt.ClrEol(); break;
                     case 1: Crt.ClrBol(); break;
                     case 2: Crt.ClrLine(); break;
@@ -369,8 +355,7 @@ class Ansi {
 	                        those after it are scrolled down and the new empty lines are filled with
 	                        the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                y = Math.max(1, this.GetNextParam(1));
                 Crt.InsLine(y);
                 break;
             case 'l':
@@ -440,8 +425,7 @@ class Ansi {
                             In this mode, Delete Line will not be available.
 
                         SOURCE: CTerm only. */
-                    if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
-                    x = parseInt(this._AnsiParams.shift(), 10);
+                    x = this.GetNextParam(0);
                     switch (x) {
                         case 0:
                             console.log('Unhandled ESC sequence: Only CSI | will introduce an ANSI music string.');
@@ -469,8 +453,7 @@ class Ansi {
 
                         SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf
                         SOURCE: BANSI.TXT */
-                    if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                    y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                    y = Math.max(1, this.GetNextParam(1));
                     Crt.DelLine(y);
                 }
                 break;
@@ -517,9 +500,8 @@ class Ansi {
 	                        49 - Default background (same as black)                    X
 	                        All others are ignored.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
                 while (this._AnsiParams.length > 0) {
-                    x = parseInt(this._AnsiParams.shift(), 10);
+                    x = this.GetNextParam(0);
                     switch (x) {
                         case 0: // Default attribute, white on black
                             Crt.NormVideo();
@@ -628,8 +610,7 @@ class Ansi {
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf
 		                        (parameters 5 and 6 only)
 	                        SOURCE: BANSI.TXT (parameter 255) */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
-                x = parseInt(this._AnsiParams.shift(), 10);
+                x = this.GetNextParam(0);
                 switch (x) {
                     case 5: this.onesc5n.trigger(); break;
                     case 6: this.onesc6n.trigger(); break;
@@ -646,8 +627,7 @@ class Ansi {
 	                        from the current column + p1 left to the current column.  Opened blanks
 	                        at the end of the line are filled with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                x = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                x = Math.max(1, this.GetNextParam(1));
                 Crt.DelChar(x);
                 break;
             case 'Q': /* CSI p1 ; p2 ; p3 Q
@@ -658,10 +638,9 @@ class Ansi {
                             p2 is the height 
                             SOURCE: fTelnet
                             NOT IN CTERM.TXT */
-                while (this._AnsiParams.length < 3) { this._AnsiParams.push('0'); }
-                x = parseInt(this._AnsiParams.shift(), 10);
-                y = parseInt(this._AnsiParams.shift(), 10);
-                z = parseInt(this._AnsiParams.shift(), 10);
+                x = this.GetNextParam(0);
+                y = this.GetNextParam(0);
+                z = this.GetNextParam(0);
                 this.onescQ.trigger(x.toString(10));
                 break;
             case 'r':
@@ -711,8 +690,7 @@ class Ansi {
 	                        Scrolls all text on the screen up p1 lines.  New lines emptied at the
 	                        bottom are filled with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                y = Math.max(1, this.GetNextParam(1));
                 Crt.ScrollUpScreen(y);
                 break;
             case 's':
@@ -742,8 +720,7 @@ class Ansi {
 	                        Scrolls all text on the screen down p1 lines.  New lines emptied at the
 	                        top are filled with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                y = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                y = Math.max(1, this.GetNextParam(1));
                 Crt.ScrollDownWindow(y);
                 break;
             case 'U': /* CSI U
@@ -781,8 +758,7 @@ class Ansi {
 	                        of line.
 	                        Erased characters are set to the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
-                x = Math.max(1, parseInt(this._AnsiParams.shift(), 10));
+                x = Math.max(1, this.GetNextParam(1));
                 Crt.DelChar(x);
                 break;
             case 'Z': /* CSI [ p1 ] Z
@@ -867,6 +843,15 @@ class Ansi {
             return '\x1B[A';
         } else {
             return '\x1B[' + count.toString() + 'A';
+        }
+    }
+
+    private static GetNextParam(defaultValue: number): number {
+        var Result = this._AnsiParams.shift();
+        if (typeof Result === 'undefined') {
+            return defaultValue;
+        } else {
+            return parseInt(Result, 10);
         }
     }
 

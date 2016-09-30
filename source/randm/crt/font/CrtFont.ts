@@ -60,24 +60,25 @@ class CrtFont {
     private _Size: Point;
 
     constructor() {
-        this._Canvas = null;
-        this._CanvasContext = null;
+        this._Canvas ;
+        this._CanvasContext;
         this._CharMap = [];
         this._Name = 'CP437';
         this._Loading = 0;
         this._NewName = 'CP437';
         this._NewSize = new Point(9, 16);
-        this._Png = null;
+        this._Png;
         this._Size = new Point(9, 16);
 
         this._Canvas = document.createElement('canvas');
         if (this._Canvas.getContext) {
-            this._CanvasContext = this._Canvas.getContext('2d');
+            var CanvasContext = this._Canvas.getContext('2d');
+            if (CanvasContext !== null) this._CanvasContext = CanvasContext; // TODOX Handle error when CanvasContext is null
             this.Load(this._Name, this._Size.x, this._Size.y);
         }
     }
 
-    public GetChar(charCode: number, charInfo: CharInfo): ImageData {
+    public GetChar(charCode: number, charInfo: CharInfo): ImageData | null {
         if (this._Loading > 0) { return null; }
 
         // Validate values
@@ -156,7 +157,7 @@ class CrtFont {
     }
 
     public Load(font: string, maxWidth: number, maxHeight: number): boolean {
-        var BestFit: Point = null;
+        var BestFit: Point | null = null;
         if (font.indexOf('_') >= 0) {
             // Passed in a specific font size (ie RIP_8x8), so don't use GetBestFit
             if (CrtFonts.HasFont(font)) {

@@ -119,7 +119,7 @@ class YModemSend {
     private OnTimer(): void {
         // Check for abort
         while (Crt.KeyPressed()) {
-            var KPE: KeyPressEvent = Crt.ReadKey();
+            var KPE: KeyPressEvent | null = Crt.ReadKey();
             if ((KPE !== null) && (KPE.keyString.length > 0) && (KPE.keyString.charCodeAt(0) === this.CAN)) {
                 this.Cancel('User requested abort');
             }
@@ -157,7 +157,8 @@ class YModemSend {
                 }
 
                 // Do we still have files in the array?
-                if (this._Files.length === 0) {
+                var NextFile = this._Files.shift();
+                if (typeof NextFile === 'undefined') {
                     // Nope, let the other end know we're done
                     this.SendEmptyHeaderBlock();
                     this.CleanUp('File(s) successfully sent!');
@@ -165,7 +166,7 @@ class YModemSend {
                 }
 
                 // Load the next file
-                this._File = this._Files.shift();
+                this._File = NextFile;
                 this.lblFileCount.Text = 'Sending file ' + (this._FileCount - this._Files.length).toString() + ' of ' + this._FileCount.toString();
                 this.lblFileName.Text = 'File Name: ' + this._File.name;
                 this.lblFileSize.Text = 'File Size: ' + StringUtils.AddCommas(this._File.size) + ' bytes';

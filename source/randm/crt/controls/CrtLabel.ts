@@ -35,6 +35,8 @@ class CrtLabel extends CrtControl {
     }
 
     public Paint(force: boolean): void {
+        force = force; // Avoid unused parameter error
+
         // Draw the message
         var Lines: string[] = this._Text.replace("\r\n", "\n").split("\n");
         for (var i: number = 0; i < Lines.length; i++) {

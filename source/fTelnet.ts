@@ -26,23 +26,23 @@ class fTelnet {
     public static ondata: IMessageEvent = new TypedEvent();
 
     // Private variables
-    private static _ClientContainer: HTMLDivElement = null;
-    private static _Connection: WebSocketConnection = null;
-    private static _DataTimer: number = null;
-    private static _FocusWarningBar: HTMLDivElement = null;
-    private static _fTelnetContainer: HTMLElement = null;
+    private static _ClientContainer: HTMLDivElement;
+    private static _Connection: WebSocketConnection | null = null;
+    private static _DataTimer: number;
+    private static _FocusWarningBar: HTMLDivElement;
+    private static _fTelnetContainer: HTMLElement;
     private static _HasFocus: boolean = true;
-    private static _InitMessageBar: HTMLDivElement = null;
+    private static _InitMessageBar: HTMLDivElement;
     private static _LastTimer: number = 0;
-    private static _MenuButton: HTMLAnchorElement = null;
-    private static _MenuButtons: HTMLDivElement = null;
-    private static _ScrollbackBar: HTMLDivElement = null;
-    private static _StatusBar: HTMLDivElement = null;
-    private static _StatusBarLabel: HTMLSpanElement = null;
-    private static _Timer: number = null;
+    private static _MenuButton: HTMLAnchorElement;
+    private static _MenuButtons: HTMLDivElement;
+    private static _ScrollbackBar: HTMLDivElement;
+    private static _StatusBar: HTMLDivElement;
+    private static _StatusBarLabel: HTMLSpanElement;
+    private static _Timer: number | null = null;
     private static _UseModernScrollback: boolean = false;
-    private static _YModemReceive: YModemReceive = null;
-    private static _YModemSend: YModemSend = null;
+    private static _YModemReceive: YModemReceive;
+    private static _YModemSend: YModemSend;
 
     // Settings to be loaded from HTML
     private static _BareLFtoCRLF: boolean = false;
@@ -70,11 +70,13 @@ class fTelnet {
 
     public static Init(): boolean {
         // Ensure we have our container
-        if (document.getElementById('fTelnetContainer') === null) {
+        var fTelnetContainer = document.getElementById('fTelnetContainer');
+        if (fTelnetContainer === null) {
             alert('fTelnet Error: Container element with id="fTelnetContainer" was not found');
             return false;
+        } else {
+            this._fTelnetContainer = fTelnetContainer;
         }
-        this._fTelnetContainer = document.getElementById('fTelnetContainer');
 
         // Ensure the script tag includes the id we want
         if (document.getElementById('fTelnetScript') === null) {
@@ -174,21 +176,21 @@ class fTelnet {
             this._fTelnetContainer.appendChild(this._FocusWarningBar);
 
             // Create the scrollback bar
-                this._ScrollbackBar = document.createElement('div');
-                this._ScrollbackBar.id = 'fTelnetScrollback';
-                if (this._UseModernScrollback) {
-                    this._ScrollbackBar.innerHTML = 'SCROLLBACK: Scroll back down to the bottom to exit scrollback mode';
-                } else {
-                    this._ScrollbackBar.innerHTML = 'SCROLLBACK: <a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
-                    '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
-                    '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
-                    '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
-                    '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
-                }
-                this._ScrollbackBar.style.display = 'none';
-                this._fTelnetContainer.appendChild(this._ScrollbackBar);
-                // TODO Also have a span to hold the current line number
-            
+            this._ScrollbackBar = document.createElement('div');
+            this._ScrollbackBar.id = 'fTelnetScrollback';
+            if (this._UseModernScrollback) {
+                this._ScrollbackBar.innerHTML = 'SCROLLBACK: Scroll back down to the bottom to exit scrollback mode';
+            } else {
+                this._ScrollbackBar.innerHTML = 'SCROLLBACK: <a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
+                '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
+                '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
+            }
+            this._ScrollbackBar.style.display = 'none';
+            this._fTelnetContainer.appendChild(this._ScrollbackBar);
+            // TODO Also have a span to hold the current line number
+
             // Create the status bar
             this._StatusBar = document.createElement('div');
             this._StatusBar.id = 'fTelnetStatusBar';
@@ -299,6 +301,7 @@ class fTelnet {
 
     public static set ButtonBarVisible(value: boolean) {
         // No longer used -- only here to avoid errors for people who used this
+        value = value; // Avoid unused parameter error
     }
 
     public static ClipboardCopy(): void {
@@ -318,7 +321,7 @@ class fTelnet {
         var Text = Clipboard.GetData();
         for (var i = 0; i < Text.length; i++) {
             var B: number = Text.charCodeAt(i);
-            if ((B == 13) || (B == 32)) {
+            if ((B === 13) || (B === 32)) {
                 // Handle CR and space differently
                 Crt.PushKeyDown(0, B, false, false, false);
             } else if ((B >= 33) && (B <= 126)) {
@@ -425,8 +428,10 @@ class fTelnet {
         this._YModemReceive = new YModemReceive(this._Connection);
 
         // Setup listeners for during transfer
-        clearInterval(this._Timer);
-        this._Timer = null;
+        if (this._Timer !== null) {
+            clearInterval(this._Timer);
+            this._Timer = null;
+        }
         this._YModemReceive.ontransfercomplete.on((): void => { this.OnDownloadComplete(); });
 
         // Download the file
@@ -545,14 +550,20 @@ class fTelnet {
     }
 
     private static OnAnsiESC5n(): void {
+        if (this._Connection === null) { return; }
+        if (!this._Connection.connected) { return; }
         this._Connection.writeString('\x1B[0n');
     }
 
     private static OnAnsiESC6n(): void {
+        if (this._Connection === null) { return; }
+        if (!this._Connection.connected) { return; }
         this._Connection.writeString(Ansi.CursorPosition());
     }
 
     private static OnAnsiESC255n(): void {
+        if (this._Connection === null) { return; }
+        if (!this._Connection.connected) { return; }
         this._Connection.writeString(Ansi.CursorPosition(Crt.WindCols, Crt.WindRows));
     }
 
@@ -562,6 +573,8 @@ class fTelnet {
 
     private static OnAnsiRIPDetect(): void {
         if (this._Emulation === 'RIP') {
+            if (this._Connection === null) { return; }
+            if (!this._Connection.connected) { return; }
             this._Connection.writeString('RIPSCRIP015400');
         }
     }
@@ -598,6 +611,9 @@ class fTelnet {
             if (TerminalType === '') {
                 TerminalType = this._Emulation + '/' + this._BitsPerSecond;
             }
+
+            if (this._Connection === null) { return; }
+            if (!this._Connection.connected) { return; }
             this._Connection.writeString(String.fromCharCode(0) + this._RLoginClientUsername + String.fromCharCode(0) + this._RLoginServerUsername + String.fromCharCode(0) + TerminalType + String.fromCharCode(0));
             this._Connection.flush();
         }
@@ -665,7 +681,7 @@ class fTelnet {
         // TODO Maybe we should handle the CTRL-X to abort here instead of in the ymodem classes
         if (this._Timer !== null) {
             while (Crt.KeyPressed()) {
-                var KPE: KeyPressEvent = Crt.ReadKey();
+                var KPE: KeyPressEvent | null = Crt.ReadKey();
 
                 if (KPE !== null) {
                     if (KPE.keyString.length > 0) {
@@ -725,7 +741,7 @@ class fTelnet {
     }
 
     private static OnMenuButtonClick(e: Event): boolean {
-        this._MenuButtons.style.display = (this._MenuButtons.style.display == 'none') ? 'block' : 'none';
+        this._MenuButtons.style.display = (this._MenuButtons.style.display === 'none') ? 'block' : 'none';
         this._MenuButtons.style.left = Offset.getOffset(this._MenuButton).x + 'px';
         this._MenuButtons.style.top = Offset.getOffset(this._MenuButton).y - this._MenuButtons.clientHeight + 'px';
         e.preventDefault();
@@ -746,17 +762,17 @@ class fTelnet {
             // Check for scrollback
             if (this._UseModernScrollback) {
                 var ScrolledUp = (this._ClientContainer.scrollHeight - this._ClientContainer.scrollTop - this._ClientContainer.clientHeight > 1);
-                if (ScrolledUp && (this._ScrollbackBar.style.display == 'none')) {
+                if (ScrolledUp && (this._ScrollbackBar.style.display === 'none')) {
                     this._ScrollbackBar.style.display = 'block';
-                } else if (!ScrolledUp && (this._ScrollbackBar.style.display == 'block')) {
+                } else if (!ScrolledUp && (this._ScrollbackBar.style.display === 'block')) {
                     this._ScrollbackBar.style.display = 'none';
                 }
             }
         } else {
-            if (this._FocusWarningBar.style.display == 'block') {
+            if (this._FocusWarningBar.style.display === 'block') {
                 this._FocusWarningBar.style.display = 'none';
             }
-            if (this._ScrollbackBar.style.display == 'block') {
+            if (this._ScrollbackBar.style.display === 'block') {
                 this._ScrollbackBar.style.display = 'none';
             }
         }
@@ -771,19 +787,23 @@ class fTelnet {
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
 
-        var fTelentUpload: HTMLInputElement = <HTMLInputElement>document.getElementById('fTelnetUpload');
+        var fTelnetUpload: HTMLInputElement = <HTMLInputElement>document.getElementById('fTelnetUpload');
 
         // Get the YModemSend class ready to go
         this._YModemSend = new YModemSend(this._Connection);
 
         // Setup the listeners
-        clearInterval(this._Timer);
-        this._Timer = null;
+        if (this._Timer !== null) {
+            clearInterval(this._Timer);
+            this._Timer = null;
+        }
         this._YModemSend.ontransfercomplete.on((): void => { this.OnUploadComplete(); });
 
         // Loop through the FileList and prep them for upload
-        for (var i: number = 0; i < fTelentUpload.files.length; i++) {
-            this.UploadFile(fTelentUpload.files[i], fTelentUpload.files.length);
+        if (fTelnetUpload.files !== null) {
+            for (var i: number = 0; i < fTelnetUpload.files.length; i++) {
+                this.UploadFile(fTelnetUpload.files[i], fTelnetUpload.files.length);
+            }
         }
     }
 
@@ -892,7 +912,8 @@ class fTelnet {
         if (this._Connection === null) { return; }
         if (!this._Connection.connected) { return; }
 
-        document.getElementById('fTelnetUpload').click();
+        var Upload = document.getElementById('fTelnetUpload');
+        if (Upload !== null) Upload.click();
     }
 
     private static UploadFile(file: File, fileCount: number): void {

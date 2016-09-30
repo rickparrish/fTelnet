@@ -82,29 +82,29 @@ class Crt {
     private static _BareLFtoCRLF: boolean = false;
     private static _Blink: boolean = true;
     private static _BlinkHidden: boolean = false;
-    private static _Buffer: CharInfo[][] = null;
+    private static _Buffer: CharInfo[][];
     private static _C64: boolean = false;
-    private static _Canvas: HTMLCanvasElement = null;
-    private static _CanvasContext: CanvasRenderingContext2D = null;
-    private static _CharInfo: CharInfo = new CharInfo(null, Crt.LIGHTGRAY);
+    private static _Canvas: HTMLCanvasElement;
+    private static _CanvasContext: CanvasRenderingContext2D;
+    private static _CharInfo: CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
     private static _ClipboardText: string = '';
-    private static _Container: HTMLElement = null;
-    private static _Cursor: Cursor = null;
+    private static _Container: HTMLElement;
+    private static _Cursor: Cursor;
     private static _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
-    private static _Font: CrtFont = null;
+    private static _Font: CrtFont;
     private static _InScrollback: boolean = false;
     private static _KeyBuf: KeyPressEvent[] = [];
     private static _LastChar: number = 0x00;
     private static _LocalEcho: boolean = false;
-    private static _MouseDownPoint: Point = null;
-    private static _MouseMovePoint: Point = null;
+    private static _MouseDownPoint: Point | null;
+    private static _MouseMovePoint: Point | null;
     private static _ScreenSize: Point = new Point(80, 25);
-    private static _Scrollback: CharInfo[][] = null;
+    private static _Scrollback: CharInfo[][];
     private static _ScrollbackPosition: number = -1;
     private static _ScrollbackSize: number = 250; // TODO Quick hack to make Edge happy, change back to 500 after finding IndexSizeError fix
-    private static _ScrollbackTemp: CharInfo[][] = null;
-    private static _TempCanvas: HTMLCanvasElement = null;
-    private static _TempCanvasContext: CanvasRenderingContext2D = null;
+    private static _ScrollbackTemp: CharInfo[][];
+    private static _TempCanvas: HTMLCanvasElement;
+    private static _TempCanvasContext: CanvasRenderingContext2D;
     private static _Transparent: Boolean = false;
     private static _UseModernScrollback: Boolean = false;
     private static _WindMin: number = 0;
@@ -164,7 +164,13 @@ class Crt {
         this._WindMax = (this._ScreenSize.x - 1) | ((this._ScreenSize.y - 1) << 8);
 
         // Create the context
-        this._CanvasContext = this._Canvas.getContext('2d');
+        var CanvasContext = this._Canvas.getContext('2d');
+        if (CanvasContext == null) {
+            console.log('fTelnet Error: _Canvas.getContext error');
+            return false;
+        } else {
+            this._CanvasContext = CanvasContext;
+        }
         this._CanvasContext.font = '12pt monospace';
         this._CanvasContext.textBaseline = 'top';
 
@@ -173,7 +179,13 @@ class Crt {
             this._TempCanvas = document.createElement('canvas');
             this._TempCanvas.width = this._Canvas.width;
             this._TempCanvas.height = this._Canvas.height;
-            this._TempCanvasContext = this._TempCanvas.getContext('2d');
+            var TempCanvasContext = this._TempCanvas.getContext('2d');
+            if (TempCanvasContext === null) {
+                console.log('fTelnet Error: _TempCanvas.getContext error');
+                return false;
+            } else {
+                this._TempCanvasContext = TempCanvasContext;
+            }
             this._TempCanvasContext.font = '12pt monospace';
             this._TempCanvasContext.textBaseline = 'top';
             
@@ -436,13 +448,13 @@ class Crt {
         if (typeof updateBuffer === 'undefined') { updateBuffer = true; }
 
         if ((x <= this._ScreenSize.x) && (y <= this._ScreenSize.y)) {
-            var Chars = [];
-            var CharCodes = [];
+            var Chars: string[] = [];
+            var CharCodes: number[] = [];
             var TextLength;
 
             if (text === null) {
                 TextLength = 1;
-                Chars.push(null);
+                Chars.push(' ');
                 CharCodes.push(this._Transparent ? CrtFont.TRANSPARENT_CHARCODE : 32);
             } else {
                 TextLength = text.length;
@@ -453,8 +465,8 @@ class Crt {
             }
 
             for (var i: number = 0; i < TextLength; i++) {
-                var Char: ImageData = this._Font.GetChar(CharCodes[i], charInfo);
-                if (Char) {
+                var Char: ImageData | null = this._Font.GetChar(CharCodes[i], charInfo);
+                if (Char !== null) {
                     if (this._UseModernScrollback) {
                         this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height);
                     } else {
@@ -527,7 +539,7 @@ class Crt {
         for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
             this._Buffer[Y] = [];
             for (var X: number = 1; X <= this._ScreenSize.x; X++) {
-                this._Buffer[Y][X] = new CharInfo(null, this.LIGHTGRAY, false, false, false);
+                this._Buffer[Y][X] = new CharInfo(' ', this.LIGHTGRAY, false, false, false);
             }
         }
 
@@ -690,7 +702,6 @@ class Crt {
             var i: number;
             var X: number;
             var XEnd: number;
-            var Y: number;
             var YDest: number;
             var YSource: number;
 
@@ -904,52 +915,54 @@ class Crt {
             NewMovePoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
         }
 
-        // Bail if move wasn't large enough
-        if ((this._MouseMovePoint.x == NewMovePoint.x) && (this._MouseMovePoint.y == NewMovePoint.y)) return;
+        if (this._MouseMovePoint !== null) {
+            // Bail if move wasn't large enough
+            if ((this._MouseMovePoint.x == NewMovePoint.x) && (this._MouseMovePoint.y == NewMovePoint.y)) return;
 
-        // Check if we need to flip the points
-        var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
-        var MovePoint = new Point(this._MouseMovePoint.x, this._MouseMovePoint.y);
-        if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
-            var TempPoint = DownPoint;
-            DownPoint = MovePoint;
-            MovePoint = TempPoint;
-        }
-
-        // Redraw each cell without highlighting
-        for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
-            // Determine how many cells to copy on this row
-            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
-            var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
-
-            // And now copy the cells from this row
-            for (var x: number = FirstX; x <= LastX; x++) {
-                var CI: CharInfo = this._Buffer[y][x];
-                CI.Reverse = false;
-                this.FastWrite(CI.Ch, x, y, CI, false);
+            // Check if we need to flip the points
+            var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+            var MovePoint = new Point(this._MouseMovePoint.x, this._MouseMovePoint.y);
+            if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
+                var TempPoint = DownPoint;
+                DownPoint = MovePoint;
+                MovePoint = TempPoint;
             }
-        }
 
-        // Check if we need to flip the points
-        DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
-        MovePoint = new Point(NewMovePoint.x, NewMovePoint.y);
-        if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
-            var TempPoint = DownPoint;
-            DownPoint = MovePoint;
-            MovePoint = TempPoint;
-        }
+            // Redraw each cell without highlighting
+            for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
+                // Determine how many cells to copy on this row
+                var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+                var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
 
-        // Redraw each cell with highlighting
-        for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
-            // Determine how many cells to copy on this row
-            var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
-            var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
+                // And now copy the cells from this row
+                for (var x: number = FirstX; x <= LastX; x++) {
+                    var CI: CharInfo = this._Buffer[y][x];
+                    CI.Reverse = false;
+                    this.FastWrite(CI.Ch, x, y, CI, false);
+                }
+            }
 
-            // And now copy the cells from this row
-            for (var x: number = FirstX; x <= LastX; x++) {
-                var CI: CharInfo = this._Buffer[y][x];
-                CI.Reverse = true;
-                this.FastWrite(CI.Ch, x, y, CI, false);
+            // Check if we need to flip the points
+            DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+            MovePoint = new Point(NewMovePoint.x, NewMovePoint.y);
+            if ((DownPoint.y > MovePoint.y) || ((DownPoint.y == MovePoint.y) && (DownPoint.x > MovePoint.x))) {
+                var TempPoint = DownPoint;
+                DownPoint = MovePoint;
+                MovePoint = TempPoint;
+            }
+
+            // Redraw each cell with highlighting
+            for (var y: number = DownPoint.y; y <= MovePoint.y; y++) {
+                // Determine how many cells to copy on this row
+                var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+                var LastX: number = (y == MovePoint.y) ? MovePoint.x : this._ScreenSize.x;
+
+                // And now copy the cells from this row
+                for (var x: number = FirstX; x <= LastX; x++) {
+                    var CI: CharInfo = this._Buffer[y][x];
+                    CI.Reverse = true;
+                    this.FastWrite(CI.Ch, x, y, CI, false);
+                }
             }
         }
 
@@ -967,69 +980,71 @@ class Crt {
             UpPoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
         }
 
-        // Ignore single cell copies
-        var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
-        if ((DownPoint.x == UpPoint.x) && (DownPoint.y == UpPoint.y)) {
-            // Single cell click, so check for hyperlink
-            if ((this._Buffer[DownPoint.y][DownPoint.x].Ch !== null) && (this._Buffer[DownPoint.y][DownPoint.x].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][DownPoint.x].Ch.charCodeAt(0) <= 126)) {
-                // Didn't click on a space, so backtrack to the previous space
-                var StartX = DownPoint.x;
-                var EndX = DownPoint.x;
+        if (this._MouseDownPoint !== null) {
+            // Ignore single cell copies
+            var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+            if ((DownPoint.x == UpPoint.x) && (DownPoint.y == UpPoint.y)) {
+                // Single cell click, so check for hyperlink
+                if ((this._Buffer[DownPoint.y][DownPoint.x].Ch !== null) && (this._Buffer[DownPoint.y][DownPoint.x].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][DownPoint.x].Ch.charCodeAt(0) <= 126)) {
+                    // Didn't click on a space, so backtrack to the previous space
+                    var StartX = DownPoint.x;
+                    var EndX = DownPoint.x;
 
-                // Find the previous space, or start of line TODO Find previous non-typable or space
-                while ((StartX > 1) && (this._Buffer[DownPoint.y][StartX - 1].Ch !== null) && (this._Buffer[DownPoint.y][StartX - 1].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][StartX - 1].Ch.charCodeAt(0) <= 126)) {
-                    StartX--;
-                }
+                    // Find the previous space, or start of line TODO Find previous non-typable or space
+                    while ((StartX > 1) && (this._Buffer[DownPoint.y][StartX - 1].Ch !== null) && (this._Buffer[DownPoint.y][StartX - 1].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][StartX - 1].Ch.charCodeAt(0) <= 126)) {
+                        StartX--;
+                    }
 
-                // Find the next space, or end of line TODO Find next non-typable or space
-                while ((EndX < this._ScreenSize.x) && (this._Buffer[DownPoint.y][EndX + 1].Ch !== null) && (this._Buffer[DownPoint.y][EndX + 1].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][EndX + 1].Ch.charCodeAt(0) <= 126)) {
-                    EndX++;
-                }
+                    // Find the next space, or end of line TODO Find next non-typable or space
+                    while ((EndX < this._ScreenSize.x) && (this._Buffer[DownPoint.y][EndX + 1].Ch !== null) && (this._Buffer[DownPoint.y][EndX + 1].Ch.charCodeAt(0) > 32) && (this._Buffer[DownPoint.y][EndX + 1].Ch.charCodeAt(0) <= 126)) {
+                        EndX++;
+                    }
 
-                // Build the string
-                var ClickedWord = '';
-                for (var x: number = StartX; x <= EndX; x++) {
-                    ClickedWord += this._Buffer[DownPoint.y][x].Ch;
-                }
+                    // Build the string
+                    var ClickedWord = '';
+                    for (var x: number = StartX; x <= EndX; x++) {
+                        ClickedWord += this._Buffer[DownPoint.y][x].Ch;
+                    }
 
-                // Check for hyperlink
-                if ((ClickedWord.toLowerCase().indexOf('http://') === 0) || (ClickedWord.toLowerCase().indexOf('https://') === 0)) {
-                    if (confirm('Would you like to open this url in a new window?\n\n' + ClickedWord)) {
-                        window.open(ClickedWord);
+                    // Check for hyperlink
+                    if ((ClickedWord.toLowerCase().indexOf('http://') === 0) || (ClickedWord.toLowerCase().indexOf('https://') === 0)) {
+                        if (confirm('Would you like to open this url in a new window?\n\n' + ClickedWord)) {
+                            window.open(ClickedWord);
+                        }
                     }
                 }
-            }
-        } else {
-            // Check if we need to flip the points
-            if ((DownPoint.y > UpPoint.y) || ((DownPoint.y == UpPoint.y) && (DownPoint.x > UpPoint.x))) {
-                var TempPoint = DownPoint;
-                DownPoint = UpPoint;
-                UpPoint = TempPoint;
-            }
-
-            // Get the text behind those points
-            var Text: string = '';
-            for (var y: number = DownPoint.y; y <= UpPoint.y; y++) {
-                // Determine how many cells to copy on this row
-                var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
-                var LastX: number = (y == UpPoint.y) ? UpPoint.x : this._ScreenSize.x;
-
-                // And now copy the cells from this row
-                for (var x: number = FirstX; x <= LastX; x++) {
-                    var CI: CharInfo = this._Buffer[y][x];
-                    CI.Reverse = false;
-                    this.FastWrite(CI.Ch, x, y, CI, false);
-
-                    Text += (this._Buffer[y][x].Ch === null) ? ' ' : this._Buffer[y][x].Ch;
+            } else {
+                // Check if we need to flip the points
+                if ((DownPoint.y > UpPoint.y) || ((DownPoint.y == UpPoint.y) && (DownPoint.x > UpPoint.x))) {
+                    var TempPoint = DownPoint;
+                    DownPoint = UpPoint;
+                    UpPoint = TempPoint;
                 }
 
-                // Add linefeeds, if necessary
-                if (y < DownPoint.y) Text += "\r\n";
-            }
+                // Get the text behind those points
+                var Text: string = '';
+                for (var y: number = DownPoint.y; y <= UpPoint.y; y++) {
+                    // Determine how many cells to copy on this row
+                    var FirstX: number = (y == DownPoint.y) ? DownPoint.x : 1;
+                    var LastX: number = (y == UpPoint.y) ? UpPoint.x : this._ScreenSize.x;
 
-            // Copy to the clipboard
-            this._ClipboardText = Text;
-            Clipboard.SetData(Text);
+                    // And now copy the cells from this row
+                    for (var x: number = FirstX; x <= LastX; x++) {
+                        var CI: CharInfo = this._Buffer[y][x];
+                        CI.Reverse = false;
+                        this.FastWrite(CI.Ch, x, y, CI, false);
+
+                        Text += (this._Buffer[y][x].Ch === null) ? ' ' : this._Buffer[y][x].Ch;
+                    }
+
+                    // Add linefeeds, if necessary
+                    if (y < DownPoint.y) Text += "\r\n";
+                }
+
+                // Copy to the clipboard
+                this._ClipboardText = Text;
+                Clipboard.SetData(Text);
+            }
         }
 
         // Reset variables
@@ -1038,6 +1053,8 @@ class Crt {
     }
 
     private static OnMouseUpForWindow(me: MouseEvent): void {
+        me = me; // Avoid unused parameter error
+
         // Mouse up over window, check if we need to erase the highlighting
         if ((this._MouseDownPoint != null) && (this._MouseMovePoint != null)) {
             var DownPoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
@@ -1103,14 +1120,16 @@ class Crt {
         });
     }
 
-    public static ReadKey(): KeyPressEvent {
-        if (this._KeyBuf.length === 0) { return null; }
-
-        var KPE: KeyPressEvent = this._KeyBuf.shift();
-        if (this._LocalEcho) {
-            this.Write(KPE.keyString);
+    public static ReadKey(): KeyPressEvent | null {
+        var KPE = this._KeyBuf.shift();
+        if (typeof KPE === 'undefined') {
+            return null;
+        } else {
+            if (this._LocalEcho) {
+                this.Write(KPE.keyString);
+            }
+            return KPE;
         }
-        return KPE;
     }
 
     public static ReDraw(): void {
@@ -1330,7 +1349,7 @@ class Crt {
             // TODO If this works the other custom scroller needs to be updated too
             for (var y: number = 0; y < count; y++) {
                 for (var x: number = left; x <= right; x++) {
-                    this.FastWrite(null, x, bottom - count + 1 + y, charInfo, false);
+                    this.FastWrite(' ', x, bottom - count + 1 + y, charInfo, false);
                 }
             }
         }
@@ -1435,7 +1454,7 @@ class Crt {
         var Y: number = 0;
 
         // Save the old details
-        var OldBuffer: CharInfo[][];
+        var OldBuffer: CharInfo[][] | null = null;
         if (this._Buffer !== null) {
             OldBuffer = [];
             for (Y = 1; Y <= this._ScreenSize.y; Y++) {

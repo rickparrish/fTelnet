@@ -18,7 +18,7 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 class Benchmark {
-    private _StartTime: Date = null;
+    private _StartTime: Date;
 
     public get Elapsed(): number {
         return (new Date()).getTime() - this._StartTime.getTime();

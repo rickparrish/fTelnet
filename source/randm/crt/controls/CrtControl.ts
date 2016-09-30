@@ -19,16 +19,16 @@
 */
 class CrtControl {
     private _BackColour: number = Crt.BLACK;
-    private _Background: CharInfo[][] = null;
+    private _Background: CharInfo[][];
     private _Controls: CrtControl[] = [];
     private _ForeColour: number = Crt.LIGHTGRAY;
     private _Height: number;
     private _Left: number;
-    private _Parent: CrtControl = null;
+    private _Parent: CrtControl | null;
     private _Top: number;
     private _Width: number;
 
-    constructor(parent: CrtControl, left: number, top: number, width: number, height: number) {
+    constructor(parent: CrtControl | null, left: number, top: number, width: number, height: number) {
         this._Parent = parent;
         this._Left = left;
         this._Top = top;
@@ -38,7 +38,7 @@ class CrtControl {
         this.SaveBackground();
 
         if (this._Parent !== null) {
-            parent.AddControl(this);
+            this._Parent.AddControl(this);
         }
     }
 
@@ -104,13 +104,14 @@ class CrtControl {
 
     public Paint(force: boolean): void {
         // Override in base class
+        force = force; // Avoid unused parameter error
     }
 
-    public get Parent(): CrtControl {
+    public get Parent(): CrtControl | null {
         return this._Parent;
     }
 
-    public set Parent(value: CrtControl) {
+    public set Parent(value: CrtControl | null) {
         this.RestoreBackground();
         this._Parent = value;
         this.SaveBackground();
@@ -120,8 +121,8 @@ class CrtControl {
     private RestoreBackground(): void {
         var Left: number = this._Left;
         var Top: number = this._Top;
-        var P: CrtControl = this._Parent;
-        while (P) {
+        var P: CrtControl | null = this._Parent;
+        while (P !== null) {
             Left += P.Left;
             Top += P.Top;
             P = P.Parent;
@@ -132,8 +133,8 @@ class CrtControl {
     private SaveBackground(): void {
         var Left: number = this._Left;
         var Top: number = this._Top;
-        var P: CrtControl = this._Parent;
-        while (P) {
+        var P: CrtControl | null = this._Parent;
+        while (P !== null) {
             Left += P.Left;
             Top += P.Top;
             P = P.Parent;

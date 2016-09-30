@@ -20,7 +20,7 @@ class Clipboard {
             try {
                 document.execCommand('paste');
             } catch (err) {
-                textArea.value = prompt("Press CTRL-V then Enter to paste the text from your clipboard");
+                textArea.value = prompt("Press CTRL-V then Enter to paste the text from your clipboard") || '';
             }
 
             document.body.removeChild(textArea);
@@ -28,7 +28,7 @@ class Clipboard {
         } else if (window.clipboardData) {
             return window.clipboardData.getData("Text");
         } else {
-            return prompt("Press CTRL-V then Enter to paste the text from your clipboard");
+            return prompt("Press CTRL-V then Enter to paste the text from your clipboard") || '';
         }
     }
 

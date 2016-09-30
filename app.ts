@@ -1,6 +1,8 @@
 /// <reference path='source/fTelnet.ts' />
 
 // TODO List:
+// Check all instances of == null, === null, != null, !== null
+//   All instances of undefined as well
 // Setting LocalEcho = true before connect wasn't working for someone (setting after connect did work)
 // Maybe underline detected hyperlinks?
 // Add version number displayed to user somewhere (menu popup?)
@@ -32,7 +34,7 @@
 
 // IE9 (using IE11 developer tools): 
 //   Download failed (CRC error)
-//   Upload failed (fTelentUpload.files is undefined, need to use fTelentUpload.value)
+//   Upload failed (fTelnetUpload.files is undefined, need to use fTelnetUpload.value)
 
 // IE8 (using IE11 developer tools):
 //   Canvas not supported

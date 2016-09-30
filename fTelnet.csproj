@@ -10,7 +10,7 @@
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TypeScriptToolsVersion>1.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.0</TypeScriptToolsVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -39,13 +39,30 @@
     <TypeScriptCompile Include="source\3rdparty\GetScrollbarWidth.ts" />
     <TypeScriptCompile Include="source\3rdparty\DetectMobileBrowser.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Rectangle.ts" />
-    <None Include="source\randm\graph\rip\PopUp.ts.exclude" />
     <TypeScriptCompile Include="source\randm\Benchmark.ts" />
-    <TypeScriptCompile Include="source\randm\graph\StrokeFont.ts" />
+    <None Include="source\randm\graph\BitmapFont.ts.exclude" />
+    <None Include="source\randm\graph\FillSettings.ts.exclude" />
+    <None Include="source\randm\graph\FillStyle.ts.exclude" />
+    <TypeScriptCompile Include="source\randm\graph\Graph.ts" />
+    <None Include="source\randm\graph\Graph.ts.exclude" />
+    <None Include="source\randm\graph\IPutPixelFunction.ts.exclude" />
+    <None Include="source\randm\graph\LineSettings.ts.exclude" />
+    <None Include="source\randm\graph\LineStyle.ts.exclude" />
+    <None Include="source\randm\graph\LineThickness.ts.exclude" />
+    <None Include="source\randm\graph\rip\ButtonStyle.ts.exclude" />
+    <None Include="source\randm\graph\rip\MouseButton.ts.exclude" />
+    <TypeScriptCompile Include="source\randm\graph\rip\RIP.ts" />
+    <None Include="source\randm\graph\rip\RIP.ts.exclude" />
+    <None Include="source\randm\graph\rip\RIPParserState.ts.exclude" />
+    <None Include="source\randm\graph\StrokeFont.ts.exclude" />
+    <None Include="source\randm\graph\TextJustification.ts.exclude" />
+    <None Include="source\randm\graph\TextOrientation.ts.exclude" />
+    <None Include="source\randm\graph\TextSettings.ts.exclude" />
+    <None Include="source\randm\graph\ViewPortSettings.ts.exclude" />
+    <None Include="source\randm\graph\WriteMode.ts.exclude" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginNegotiationState.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginConnection.ts" />
-    <TypeScriptCompile Include="source\randm\graph\IPutPixelFunction.ts" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -91,22 +108,7 @@
     <TypeScriptCompile Include="source\randm\StringUtils.ts" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="source\randm\graph\BitmapFont.ts" />
-    <TypeScriptCompile Include="source\randm\graph\FillStyle.ts" />
-    <TypeScriptCompile Include="source\randm\graph\Graph.ts" />
-    <TypeScriptCompile Include="source\randm\graph\LineStyle.ts" />
-    <TypeScriptCompile Include="source\randm\graph\LineThickness.ts" />
-    <TypeScriptCompile Include="source\randm\graph\rip\RIP.ts" />
-    <TypeScriptCompile Include="source\randm\graph\rip\RIPParserState.ts" />
-    <TypeScriptCompile Include="source\randm\graph\rip\ButtonStyle.ts" />
-    <TypeScriptCompile Include="source\randm\graph\rip\MouseButton.ts" />
-    <TypeScriptCompile Include="source\randm\graph\TextJustification.ts" />
-    <TypeScriptCompile Include="source\randm\graph\TextOrientation.ts" />
-    <TypeScriptCompile Include="source\randm\graph\FillSettings.ts" />
-    <TypeScriptCompile Include="source\randm\graph\LineSettings.ts" />
-    <TypeScriptCompile Include="source\randm\graph\TextSettings.ts" />
-    <TypeScriptCompile Include="source\randm\graph\ViewPortSettings.ts" />
-    <TypeScriptCompile Include="source\randm\graph\WriteMode.ts" />
+    <Content Include="source\randm\graph\rip\PopUp.ts.exclude" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -124,6 +126,9 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
@@ -156,6 +161,18 @@
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
     <TypeScriptOutFile>release\ftelnet.debug.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptModuleKind>None</TypeScriptModuleKind>
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+    <TypeScriptStrictNullChecks>True</TypeScriptStrictNullChecks>
+    <TypeScriptNoUnusedParameters>True</TypeScriptNoUnusedParameters>
+    <TypeScriptNoUnusedLocals>True</TypeScriptNoUnusedLocals>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TypeScriptRemoveComments>true</TypeScriptRemoveComments>

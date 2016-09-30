@@ -141,7 +141,7 @@ class YModemReceive {
     private OnTimer(): void {
         // Check for abort
         while (Crt.KeyPressed()) {
-            var KPE: KeyPressEvent = Crt.ReadKey();
+            var KPE: KeyPressEvent | null = Crt.ReadKey();
             if ((KPE !== null) && (KPE.keyString.length > 0) && (KPE.keyString.charCodeAt(0) === this.CAN)) {
                 this.Cancel('User requested abort');
             }

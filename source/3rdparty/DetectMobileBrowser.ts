@@ -1,6 +1,6 @@
 ﻿// From: http://detectmobilebrowsers.com/
 class DetectMobileBrowser {
-    private static _IsMobile: boolean = null;
+    private static _IsMobile: boolean | null = null;
 
     public static get IsMobile(): boolean {
         if (this._IsMobile === null) {
