@@ -40,21 +40,23 @@ class CrtFonts {
 
         // Sort biggest to smallest
         for (var key in CrtFonts._Fonts) {
-            CrtFonts._Fonts[key].sort((a: Point, b: Point): number => {
-                if (b.x - a.x === 0) {
-                    return b.y - a.y;
-                } else {
-                    return b.x - a.x;
-                }
-            });
+            if (CrtFonts._Fonts.hasOwnProperty(key)) {
+                CrtFonts._Fonts[key].sort((a: Point, b: Point): number => {
+                    if (b.x - a.x === 0) {
+                        return b.y - a.y;
+                    } else {
+                        return b.x - a.x;
+                    }
+                });
+            }
         }
     }
 
-    public static GetBestFit(font: string, maxWidth: number, maxHeight: number): Point | null {
+    public static GetBestFit(font: string, maxWidth: number, maxHeight: number): Point | undefined {
         // Check how many matches we found
         if (typeof this._Fonts[font] === 'undefined') {
             // None, it's not a valid font
-            return null;
+            return undefined;
         } else if (this._Fonts[font].length === 1) {
             // One, so return it
             return this._Fonts[font][0];

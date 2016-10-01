@@ -38,7 +38,7 @@ class RIP {
     private static _ButtonInverted: boolean = false;
     private static _ButtonPressed: number = -1;
     private static _ButtonStyle: ButtonStyle = new ButtonStyle();
-    private static _Clipboard: ImageData | null = null;
+    private static _Clipboard: ImageData;
     private static _Command: string = '';
     private static _DoTextCommand: boolean = false;
     private static _InputBuffer: number[] = [];
@@ -1121,10 +1121,8 @@ class RIP {
     }
 
     // TODO
-    //public static ReadKey(): KeyPressEvent
+    //public static ReadKey(): KeyPressEvent | undefined
     //{
-    //	if (this._KeyBuf.length === 0) return null;
-
     //	return this._KeyBuf.shift();
     //}
 
@@ -1150,7 +1148,7 @@ class RIP {
 
         Graph.GraphDefaults();
 
-        this._Clipboard = null;
+        delete this._Clipboard;
     }
 
     private static RIP_ARC(): void {

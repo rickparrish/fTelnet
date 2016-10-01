@@ -108,12 +108,12 @@ class TelnetConnection extends WebSocketConnection {
 
                 this.SendSubnegotiateEnd();
             } else {
-                //TODOX alert('failed to get remote ip');
+                // TODOX alert('failed to get remote ip');
             }
-        }
+        };
         xhr.onerror = (): void => {
             // TODOX alert('failed to get remote ip');
-        }
+        };
         xhr.send();
     }
 
@@ -175,12 +175,12 @@ class TelnetConnection extends WebSocketConnection {
 
                 this.SendSubnegotiateEnd();
             } else {
-                //TODOX alert('failed to get remote ip');
+                // TODOX alert('failed to get remote ip');
             }
-        }
+        };
         xhr.onerror = (): void => {
             // TODOX alert('failed to get remote ip');
-        }
+        };
         xhr.send();
     }
 

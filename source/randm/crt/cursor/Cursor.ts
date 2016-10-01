@@ -55,7 +55,7 @@ class Cursor {
             this._Canvas.style.position = 'absolute';
             this._Canvas.style.zIndex = '100'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
             var CanvasContext = this._Canvas.getContext('2d');
-            if (CanvasContext !== null) this._Context = CanvasContext; // TODOX Handle error if CanvasContext is null
+            if (CanvasContext !== null) { this._Context = CanvasContext; } // TODOX Handle error if CanvasContext is null
             parent.appendChild(this._Canvas);
 
             // Draw the initial position

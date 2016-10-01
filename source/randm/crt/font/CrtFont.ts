@@ -60,26 +60,26 @@ class CrtFont {
     private _Size: Point;
 
     constructor() {
-        this._Canvas ;
-        this._CanvasContext;
+        // this._Canvas;
+        // this._CanvasContext;
         this._CharMap = [];
         this._Name = 'CP437';
         this._Loading = 0;
         this._NewName = 'CP437';
         this._NewSize = new Point(9, 16);
-        this._Png;
+        // this._Png;
         this._Size = new Point(9, 16);
 
         this._Canvas = document.createElement('canvas');
         if (this._Canvas.getContext) {
             var CanvasContext = this._Canvas.getContext('2d');
-            if (CanvasContext !== null) this._CanvasContext = CanvasContext; // TODOX Handle error when CanvasContext is null
+            if (CanvasContext !== null) { this._CanvasContext = CanvasContext; } // TODOX Handle error when CanvasContext is null
             this.Load(this._Name, this._Size.x, this._Size.y);
         }
     }
 
-    public GetChar(charCode: number, charInfo: CharInfo): ImageData | null {
-        if (this._Loading > 0) { return null; }
+    public GetChar(charCode: number, charInfo: CharInfo): ImageData | undefined {
+        if (this._Loading > 0) { return undefined; }
 
         // Validate values
         var Alpha = 255;
@@ -89,7 +89,7 @@ class CrtFont {
             charInfo.Attr = 0;
             charInfo.Reverse = false;
         } else if ((charCode < 0) || (charCode > 255) || (charInfo.Attr < 0) || (charInfo.Attr > 255)) {
-            return null;
+            return undefined;
         }
 
         var CharMapKey: string = charCode + '-' + charInfo.Attr + '-' + charInfo.Reverse;
@@ -157,7 +157,7 @@ class CrtFont {
     }
 
     public Load(font: string, maxWidth: number, maxHeight: number): boolean {
-        var BestFit: Point | null = null;
+        var BestFit: Point | undefined;
         if (font.indexOf('_') >= 0) {
             // Passed in a specific font size (ie RIP_8x8), so don't use GetBestFit
             if (CrtFonts.HasFont(font)) {
@@ -172,12 +172,12 @@ class CrtFont {
         }
 
         // Confirm a match was found
-        if (BestFit === null) {
+        if (typeof BestFit === 'undefined') {
             console.log('fTelnet Error: Font CP=' + font + ' does not exist');
             return false;
         } else {
             // Check if we're requesting the same font we already have
-            if ((this._Png != null) && (this._Name === font) && (this._Size.x === BestFit.x) && (this._Size.y === BestFit.y)) {
+            if ((typeof this._Png !== 'undefined') && (this._Name === font) && (this._Size.x === BestFit.x) && (this._Size.y === BestFit.y)) {
                 return true;
             }
 

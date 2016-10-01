@@ -4,6 +4,8 @@ release/ftelnet.debug.js
 release/*.js.map
 release/keyboard/*.css.map
 
+packages/
+
 # User-specific files
 *.suo
 *.user

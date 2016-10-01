@@ -320,7 +320,7 @@ class VirtualKeyboard {
     public static set Visible(value: boolean) {
         this._Visible = value;
 
-        if (this._Div != null) {
+        if (typeof this._Div !== 'undefined') {
             this._Div.style.display = (value ? 'block' : 'none');
         }
     }

@@ -1,23 +1,23 @@
 ﻿// From: http://stackoverflow.com/a/13382873/342378
 class GetScrollbarWidth {
-    private static _Width: number | null = null;
+    private static _Width: number;
 
     public static get Width(): number {
-        if (this._Width === null) {
-            var outer = document.createElement("div");
-            outer.style.visibility = "hidden";
-            outer.style.width = "100px";
-            outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
+        if (typeof this._Width === 'undefined') {
+            var outer = document.createElement('div');
+            outer.style.visibility = 'hidden';
+            outer.style.width = '100px';
+            outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
 
             document.body.appendChild(outer);
 
             var widthNoScroll = outer.offsetWidth;
             // force scrollbars
-            outer.style.overflow = "scroll";
+            outer.style.overflow = 'scroll';
 
             // add innerdiv
-            var inner = document.createElement("div");
-            inner.style.width = "100%";
+            var inner = document.createElement('div');
+            inner.style.width = '100%';
             outer.appendChild(inner);
 
             var widthWithScroll = inner.offsetWidth;

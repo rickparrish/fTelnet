@@ -46,4 +46,3 @@ enum AnsiParserState {
     /// </summary>
 	IntermediateByte = 4
 }
-

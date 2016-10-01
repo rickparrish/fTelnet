@@ -35,7 +35,7 @@ class MouseButton {
     }
 
     public DoResetScreen(): boolean {
-        return ((this._Flags & 4) == 4);
+        return ((this._Flags & 4) === 4);
     }
 
     public get HotKey(): string {
@@ -43,7 +43,7 @@ class MouseButton {
     }
 
     public IsInvertable(): Boolean {
-        return ((this._Flags & 2) == 2);
+        return ((this._Flags & 2) === 2);
     }
 
     public get HostCommand(): string {

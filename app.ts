@@ -12,15 +12,15 @@
 // RIP fonts need to be optimized
 // Resize window in RIP mode changed font size, and it shouldn't do that
 // Add option to play <audio> when connect is clicked (maybe also when connected and disconnected?)
-//Unhandled ESC sequence: Enable auto wrap
-//ftelnet.min.js:105 Unknown ESC sequence: PB(?1049) IB() FB(h)
-//ftelnet.min.js:124 Unknown ESC sequence: PB(1, 24) IB() FB(r)
-//ftelnet.min.js:112 Unknown ESC sequence: PB(4) IB() FB(l)
-//ftelnet.min.js:105 Unknown ESC sequence: PB(34) IB() FB(h)
-//3ftelnet.min.js:105 Unknown ESC sequence: PB(?1) IB() FB(h)
-//ftelnet.min.js:112 Unknown ESC sequence: PB(?1049) IB() FB(l)
-//ftelnet.min.js:112 Unknown ESC sequence: PB(?1) IB() FB(l)
-//nano uses ascii 15 (shift in) -- might need an option to say "don't print these control characters" and then let the sysop list the characters to ignore
+// Unhandled ESC sequence: Enable auto wrap
+// ftelnet.min.js:105 Unknown ESC sequence: PB(?1049) IB() FB(h)
+// ftelnet.min.js:124 Unknown ESC sequence: PB(1, 24) IB() FB(r)
+// ftelnet.min.js:112 Unknown ESC sequence: PB(4) IB() FB(l)
+// ftelnet.min.js:105 Unknown ESC sequence: PB(34) IB() FB(h)
+// 3ftelnet.min.js:105 Unknown ESC sequence: PB(?1) IB() FB(h)
+// ftelnet.min.js:112 Unknown ESC sequence: PB(?1049) IB() FB(l)
+// ftelnet.min.js:112 Unknown ESC sequence: PB(?1) IB() FB(l)
+// nano uses ascii 15 (shift in) -- might need an option to say "don't print these control characters" and then let the sysop list the characters to ignore
 //                                 or maybe just a "don't print control characters" option, which will ignore all of them
 // atob-btoa keeps reverting to unicode or something...BOM keeps getting inserted when compiling for some reason
 

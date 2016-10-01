@@ -17,6 +17,8 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="app.css" />
@@ -40,6 +42,7 @@
     <TypeScriptCompile Include="source\3rdparty\DetectMobileBrowser.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Rectangle.ts" />
     <TypeScriptCompile Include="source\randm\Benchmark.ts" />
+    <Content Include="packages.config" />
     <None Include="source\randm\graph\BitmapFont.ts.exclude" />
     <None Include="source\randm\graph\FillSettings.ts.exclude" />
     <None Include="source\randm\graph\FillStyle.ts.exclude" />
@@ -109,6 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="source\randm\graph\rip\PopUp.ts.exclude" />
+    <Content Include="tslint.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -183,4 +187,11 @@
     <PostBuildEvent>copy $(ProjectDir)release\IELessThan9Check.js + $(ProjectDir)release\Blob.js + $(ProjectDir)release\FileSaver.js + $(ProjectDir)release\ftelnet.debug.js $(ProjectDir)release\ftelnet.combined.js
 jsmin &lt;$(ProjectDir)release\ftelnet.combined.js &gt;$(ProjectDir)release\ftelnet.min.js</PostBuildEvent>
   </PropertyGroup>
+  <Import Project="packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets" Condition="Exists('packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets'))" />
+  </Target>
 </Project>

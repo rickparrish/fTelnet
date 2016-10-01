@@ -1769,7 +1769,7 @@ class Graph {
             ABitBlt = WriteMode.Copy;
         }
 
-        if (ABitMap !== null) {
+        if (typeof ABitMap !== 'undefined') {
             var AX1: number = AX;
             var AY1: number = AY;
             var AX2: number = AX1 + ABitMap.width - 1;

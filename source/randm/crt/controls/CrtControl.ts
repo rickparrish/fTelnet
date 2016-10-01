@@ -24,11 +24,11 @@ class CrtControl {
     private _ForeColour: number = Crt.LIGHTGRAY;
     private _Height: number;
     private _Left: number;
-    private _Parent: CrtControl | null;
+    private _Parent: CrtControl | undefined;
     private _Top: number;
     private _Width: number;
 
-    constructor(parent: CrtControl | null, left: number, top: number, width: number, height: number) {
+    constructor(parent: CrtControl | undefined, left: number, top: number, width: number, height: number) {
         this._Parent = parent;
         this._Left = left;
         this._Top = top;
@@ -37,7 +37,7 @@ class CrtControl {
 
         this.SaveBackground();
 
-        if (this._Parent !== null) {
+        if (typeof this._Parent !== 'undefined') {
             this._Parent.AddControl(this);
         }
     }
@@ -107,11 +107,11 @@ class CrtControl {
         force = force; // Avoid unused parameter error
     }
 
-    public get Parent(): CrtControl | null {
+    public get Parent(): CrtControl | undefined {
         return this._Parent;
     }
 
-    public set Parent(value: CrtControl | null) {
+    public set Parent(value: CrtControl | undefined) {
         this.RestoreBackground();
         this._Parent = value;
         this.SaveBackground();
@@ -121,8 +121,8 @@ class CrtControl {
     private RestoreBackground(): void {
         var Left: number = this._Left;
         var Top: number = this._Top;
-        var P: CrtControl | null = this._Parent;
-        while (P !== null) {
+        var P: CrtControl | undefined = this._Parent;
+        while (typeof P !== 'undefined') {
             Left += P.Left;
             Top += P.Top;
             P = P.Parent;
@@ -133,8 +133,8 @@ class CrtControl {
     private SaveBackground(): void {
         var Left: number = this._Left;
         var Top: number = this._Top;
-        var P: CrtControl | null = this._Parent;
-        while (P !== null) {
+        var P: CrtControl | undefined = this._Parent;
+        while (typeof P !== 'undefined') {
             Left += P.Left;
             Top += P.Top;
             P = P.Parent;
@@ -143,11 +143,11 @@ class CrtControl {
     }
 
     public get ScreenLeft(): number {
-        return this._Left + ((this._Parent === null) ? 0 : this._Parent.Left);
+        return this._Left + ((typeof this._Parent === 'undefined') ? 0 : this._Parent.Left);
     }
 
     public get ScreenTop(): number {
-        return this._Top + ((this._Parent === null) ? 0 : this._Parent.Top);
+        return this._Top + ((typeof this._Parent === 'undefined') ? 0 : this._Parent.Top);
     }
 
     public Show(): void {

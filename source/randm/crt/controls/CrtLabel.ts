@@ -38,7 +38,7 @@ class CrtLabel extends CrtControl {
         force = force; // Avoid unused parameter error
 
         // Draw the message
-        var Lines: string[] = this._Text.replace("\r\n", "\n").split("\n");
+        var Lines: string[] = this._Text.replace('\r\n', '\n').split('\n');
         for (var i: number = 0; i < Lines.length; i++) {
             // Break if the line number is greater than the height
             if (i === this.Height) {

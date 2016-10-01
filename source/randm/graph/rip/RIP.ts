@@ -23,5 +23,6 @@ class RIP {
     }
 
     public static ResetWindows(): void {
+        // Intentionally empty since RIP support is disabled
     }
 }

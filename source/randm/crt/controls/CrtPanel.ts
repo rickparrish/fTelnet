@@ -22,7 +22,7 @@ class CrtPanel extends CrtControl {
     private _Text: string;
     private _TextAlign: ContentAlignment;
 
-    constructor(parent: CrtControl | null, left: number, top: number, width: number, height: number, border: BorderStyle, foreColour: number, backColour: number, text: string, textAlign: ContentAlignment) {
+    constructor(parent: CrtControl | undefined, left: number, top: number, width: number, height: number, border: BorderStyle, foreColour: number, backColour: number, text: string, textAlign: ContentAlignment) {
         super(parent, left, top, width, height);
 
         this._Border = border;

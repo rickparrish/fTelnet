@@ -28,10 +28,10 @@ package randm.graph.rip {
 		private static const BUTTON_HEIGHT: int = 18;
 		
 		private static var FButtons: Vector.<TPopUpButton>;
-		private static var FCallBack: Function = null;
+		private static var FCallBack: Function;
 		private static var FPrompt: String = "Choose one of the following:";
 		private static var FRequired: Boolean = false;
-		private static var FStage: Stage = null;
+		private static var FStage: Stage;
 
 		public static function init(AStage: Stage): void 
 		{
@@ -40,7 +40,7 @@ package randm.graph.rip {
 		
 		public static function show(AData: String, ACallBack: Function): void
 		{
-			if (FStage == null) {
+			if (typeof FStage === 'undefined') {
 				trace("PopUp class has not been initialised!");
 				return;
 			}
@@ -55,7 +55,7 @@ package randm.graph.rip {
 			var Question: String = String(QuestionAnswers[0]);
 			if (Question.length > 0) {
 				// Check if a response is required
-				if (Question.substr(0, 1) == "*") {
+				if (Question.substr(0, 1) === "*") {
 					// Yep!
 					FPrompt = Question.substr(1, Question.length - 1);
 					FRequired = true;
@@ -99,7 +99,7 @@ package randm.graph.rip {
 					allButtons[i].removeEventListener(MouseEvent.CLICK, myFunction);
 				}
 				closeAlert(APopUp);
-				if (FCallBack != null) FCallBack(event.target.name);
+				if (typeof FCallBack !== 'undefined') FCallBack(event.target.name);
 			}
 		}
 
@@ -109,7 +109,6 @@ package randm.graph.rip {
 			promptBackground.removeEventListener(MouseEvent.MOUSE_UP, doStopDrag);
 			FStage.removeChild(APopUp);
 			FStage.focus = Crt.Canvas;
-			APopUp = null;
 		}
 		
 		private static function createBackground(): Sprite 
@@ -314,7 +313,7 @@ internal class TPopUpButton
 	{
 		// Check if there's a custom label
 		var DataLabel: Array = AData.split("@");
-		if (DataLabel.length == 1) {
+		if (DataLabel.length === 1) {
 			// Nope, so label and data are the same
 			FData = DataLabel[0];
 			FLabel = DataLabel[0];

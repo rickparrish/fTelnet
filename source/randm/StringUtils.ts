@@ -39,7 +39,7 @@ class StringUtils {
         var fTelnetScriptParts = (<HTMLScriptElement>document.getElementById('fTelnetScript')).src.split('?');
         var fTelnetScriptUrl = fTelnetScriptParts[0];
         var fTelnetScriptPath = fTelnetScriptUrl.substring(0, fTelnetScriptUrl.lastIndexOf('/'));
-        var fTelnetVersion = (fTelnetScriptParts.length == 1) ? "v=1" : fTelnetScriptParts[1];
+        var fTelnetVersion = (fTelnetScriptParts.length === 1) ? 'v=1' : fTelnetScriptParts[1];
         return fTelnetScriptPath + '/' + filename + '?' + fTelnetVersion;
     }
 

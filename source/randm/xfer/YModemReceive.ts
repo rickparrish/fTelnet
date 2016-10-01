@@ -110,7 +110,7 @@ class YModemReceive {
         this._Blink = Crt.Blink;
         Crt.Blink = false;
         Crt.HideCursor();
-        this.pnlMain = new CrtPanel(null, 10, 5, 60, 14, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Receive Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
+        this.pnlMain = new CrtPanel(undefined, 10, 5, 60, 14, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Receive Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
         this.lblFileCount = new CrtLabel(this.pnlMain, 2, 2, 56, 'Receiving file 1', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
         this.lblFileName = new CrtLabel(this.pnlMain, 2, 4, 56, 'File Name: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
         this.lblFileSize = new CrtLabel(this.pnlMain, 2, 5, 56, 'File Size: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
@@ -141,8 +141,8 @@ class YModemReceive {
     private OnTimer(): void {
         // Check for abort
         while (Crt.KeyPressed()) {
-            var KPE: KeyPressEvent | null = Crt.ReadKey();
-            if ((KPE !== null) && (KPE.keyString.length > 0) && (KPE.keyString.charCodeAt(0) === this.CAN)) {
+            var KPE: KeyPressEvent | undefined = Crt.ReadKey();
+            if ((typeof KPE !== 'undefined') && (KPE.keyString.length > 0) && (KPE.keyString.charCodeAt(0) === this.CAN)) {
                 this.Cancel('User requested abort');
             }
         }

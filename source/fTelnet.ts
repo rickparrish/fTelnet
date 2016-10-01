@@ -27,7 +27,7 @@ class fTelnet {
 
     // Private variables
     private static _ClientContainer: HTMLDivElement;
-    private static _Connection: WebSocketConnection | null = null;
+    private static _Connection: WebSocketConnection;
     private static _DataTimer: number;
     private static _FocusWarningBar: HTMLDivElement;
     private static _fTelnetContainer: HTMLElement;
@@ -39,7 +39,7 @@ class fTelnet {
     private static _ScrollbackBar: HTMLDivElement;
     private static _StatusBar: HTMLDivElement;
     private static _StatusBarLabel: HTMLSpanElement;
-    private static _Timer: number | null = null;
+    private static _Timer: number;
     private static _UseModernScrollback: boolean = false;
     private static _YModemReceive: YModemReceive;
     private static _YModemSend: YModemSend;
@@ -250,7 +250,7 @@ class fTelnet {
             }
         } else {
             this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
-            if (this._ScrollbackBar !== null) this._ScrollbackBar.style.display = 'none';
+            if (typeof this._ScrollbackBar !== 'undefined') { this._ScrollbackBar.style.display = 'none'; }
             this._FocusWarningBar.style.display = 'none';
             return false;
         }
@@ -306,16 +306,16 @@ class fTelnet {
 
     public static ClipboardCopy(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
         alert('Click and drag your mouse over the text you want to copy');
     }
 
     public static ClipboardPaste(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
-        if (this._Connection === null) { return; }
+        if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
 
         var Text = Clipboard.GetData();
@@ -341,9 +341,9 @@ class fTelnet {
 
     public static Connect(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
-        if ((this._Connection !== null) && (this._Connection.connected)) { return; }
+        if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) { return; }
 
         // Create new connection
         switch (this._ConnectionType) {
@@ -389,15 +389,15 @@ class fTelnet {
     }
 
     public static get Connected(): boolean {
-        if (this._Connection === null) { return false; }
+        if (typeof this._Connection === 'undefined') { return false; }
         return this._Connection.connected;
     }
 
     public static Disconnect(prompt: boolean): boolean {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
-        if (this._Connection === null) { return true; }
+        if (typeof this._Connection === 'undefined') { return true; }
         if (!this._Connection.connected) { return true; }
 
         if (!prompt || confirm('Are you sure you want to disconnect?')) {
@@ -408,7 +408,7 @@ class fTelnet {
             this._Connection.onlocalecho.off();
             this._Connection.onsecurityerror.off();
             this._Connection.close();
-            this._Connection = null;
+            delete this._Connection;
 
             this.OnConnectionClose();
             return true;
@@ -419,18 +419,18 @@ class fTelnet {
 
     public static Download(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
-        if (this._Connection === null) { return; }
+        if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
 
         // Transfer the file
         this._YModemReceive = new YModemReceive(this._Connection);
 
         // Setup listeners for during transfer
-        if (this._Timer !== null) {
+        if (typeof this._Timer !== 'undefined') {
             clearInterval(this._Timer);
-            this._Timer = null;
+            delete this._Timer;
         }
         this._YModemReceive.ontransfercomplete.on((): void => { this.OnDownloadComplete(); });
 
@@ -465,9 +465,9 @@ class fTelnet {
 
     public static EnterScrollback(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
-        if (this._ScrollbackBar !== null) {
+        if (typeof this._ScrollbackBar !== 'undefined') {
             if (this._ScrollbackBar.style.display = 'none') {
                 Crt.EnterScrollback();
                 this._ScrollbackBar.style.display = 'block';
@@ -476,7 +476,7 @@ class fTelnet {
     }
 
     public static ExitScrollback(): void {
-        if (this._ScrollbackBar !== null) {
+        if (typeof this._ScrollbackBar !== 'undefined') {
             if (this._ScrollbackBar.style.display = 'block') {
                 Crt.ExitScrollback();
                 this._ScrollbackBar.style.display = 'none';
@@ -502,7 +502,7 @@ class fTelnet {
 
     public static FullScreenToggle(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
         if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
             if (this._fTelnetContainer.requestFullscreen) {
@@ -512,7 +512,6 @@ class fTelnet {
             } else if (this._fTelnetContainer.mozRequestFullScreen) {
                 this._fTelnetContainer.mozRequestFullScreen();
             } else if (this._fTelnetContainer.webkitRequestFullscreen) {
-                //Make TypeScript 1.5.4 happy this._fTelnetContainer.webkitRequestFullscreen((<any>Element).ALLOW_KEYBOARD_INPUT);
                 this._fTelnetContainer.webkitRequestFullscreen();
             }
         } else {
@@ -544,25 +543,25 @@ class fTelnet {
         this._LocalEcho = value;
 
         Crt.LocalEcho = value;
-        if ((this._Connection !== null) && (this._Connection.connected)) {
+        if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {
             this._Connection.LocalEcho = value;
         }
     }
 
     private static OnAnsiESC5n(): void {
-        if (this._Connection === null) { return; }
+        if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
         this._Connection.writeString('\x1B[0n');
     }
 
     private static OnAnsiESC6n(): void {
-        if (this._Connection === null) { return; }
+        if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
         this._Connection.writeString(Ansi.CursorPosition());
     }
 
     private static OnAnsiESC255n(): void {
-        if (this._Connection === null) { return; }
+        if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
         this._Connection.writeString(Ansi.CursorPosition(Crt.WindCols, Crt.WindRows));
     }
@@ -573,7 +572,7 @@ class fTelnet {
 
     private static OnAnsiRIPDetect(): void {
         if (this._Emulation === 'RIP') {
-            if (this._Connection === null) { return; }
+            if (typeof this._Connection === 'undefined') { return; }
             if (!this._Connection.connected) { return; }
             this._Connection.writeString('RIPSCRIP015400');
         }
@@ -612,7 +611,7 @@ class fTelnet {
                 TerminalType = this._Emulation + '/' + this._BitsPerSecond;
             }
 
-            if (this._Connection === null) { return; }
+            if (typeof this._Connection === 'undefined') { return; }
             if (!this._Connection.connected) { return; }
             this._Connection.writeString(String.fromCharCode(0) + this._RLoginClientUsername + String.fromCharCode(0) + this._RLoginServerUsername + String.fromCharCode(0) + TerminalType + String.fromCharCode(0));
             this._Connection.flush();
@@ -623,8 +622,8 @@ class fTelnet {
 
     private static OnConnectionData(): void {
         // If the timer is disabled then we're transferring data and don't want to process it here
-        if (this._Timer !== null) {
-            if (this._Connection !== null) {
+        if (typeof this._Timer !== 'undefined') {
+            if (typeof this._Connection !== 'undefined') {
                 // Determine how long it took between frames
                 var MSecElapsed: number = new Date().getTime() - this._LastTimer;
                 if (MSecElapsed < 1) { MSecElapsed = 1; }
@@ -679,13 +678,13 @@ class fTelnet {
     private static OnCrtKeyPressed(): void {
         // If the timer is active, then handle the keypress (if it's not active then we're uploading/downloading and don't want to interrupt its handling of keypresses)
         // TODO Maybe we should handle the CTRL-X to abort here instead of in the ymodem classes
-        if (this._Timer !== null) {
+        if (typeof this._Timer !== 'undefined') {
             while (Crt.KeyPressed()) {
-                var KPE: KeyPressEvent | null = Crt.ReadKey();
+                var KPE: KeyPressEvent | undefined = Crt.ReadKey();
 
-                if (KPE !== null) {
+                if (typeof KPE !== 'undefined') {
                     if (KPE.keyString.length > 0) {
-                        if ((this._Connection !== null) && (this._Connection.connected)) {
+                        if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {
                             // Handle translating Enter key
                             if (KPE.keyString === '\r\n') {
                                 this._Connection.writeString(this._Enter);
@@ -719,12 +718,12 @@ class fTelnet {
         }
 
         // TODO -10 is 5px of left and right padding -- would be good if this wasn't hardcoded since it can be customized in the .css
-        if (this._FocusWarningBar != null) { this._FocusWarningBar.style.width = NewWidth - 10 + 'px'; }
-        if (this._ScrollbackBar != null) { this._ScrollbackBar.style.width = NewWidth - 10 + 'px'; }
-        if (this._StatusBar != null) { this._StatusBar.style.width = NewWidth - 10 + 'px'; }
+        if (typeof this._FocusWarningBar !== 'undefined') { this._FocusWarningBar.style.width = NewWidth - 10 + 'px'; }
+        if (typeof this._ScrollbackBar !== 'undefined') { this._ScrollbackBar.style.width = NewWidth - 10 + 'px'; }
+        if (typeof this._StatusBar !== 'undefined') { this._StatusBar.style.width = NewWidth - 10 + 'px'; }
 
         // Pick virtual keyboard width
-        if ((document.getElementById('fTelnetScript') !== null) && (document.getElementById('fTelnetKeyboardCss') != null)) {
+        if ((document.getElementById('fTelnetScript') !== null) && (document.getElementById('fTelnetKeyboardCss') !== null)) {
             var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480];
             for (var i: number = 0; i < KeyboardSizes.length; i++) {
                 if ((NewWidth >= KeyboardSizes[i]) || (i === (KeyboardSizes.length - 1))) {
@@ -749,7 +748,7 @@ class fTelnet {
     }
 
     private static OnTimer(): void {
-        if ((this._Connection !== null) && (this._Connection.connected)) {
+        if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {
             // Check for focus change
             if (document.hasFocus() && !this._HasFocus) {
                 this._HasFocus = true;
@@ -784,7 +783,7 @@ class fTelnet {
     }
 
     public static OnUploadFileSelected(): void {
-        if (this._Connection === null) { return; }
+        if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
 
         var fTelnetUpload: HTMLInputElement = <HTMLInputElement>document.getElementById('fTelnetUpload');
@@ -793,9 +792,9 @@ class fTelnet {
         this._YModemSend = new YModemSend(this._Connection);
 
         // Setup the listeners
-        if (this._Timer !== null) {
+        if (typeof this._Timer !== 'undefined') {
             clearInterval(this._Timer);
-            this._Timer = null;
+            delete this._Timer;
         }
         this._YModemSend.ontransfercomplete.on((): void => { this.OnUploadComplete(); });
 
@@ -894,7 +893,7 @@ class fTelnet {
     public static set StatusBarVisible(value: boolean) {
         this._StatusBarVisible = value;
 
-        if (this._StatusBar != null) {
+        if (typeof this._StatusBar !== 'undefined') {
             this._StatusBar.style.display = (value ? 'block' : 'none');
         }
     }
@@ -907,13 +906,13 @@ class fTelnet {
 
     public static Upload(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
-        if (this._Connection === null) { return; }
+        if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
 
         var Upload = document.getElementById('fTelnetUpload');
-        if (Upload !== null) Upload.click();
+        if (Upload !== null) { Upload.click(); }
     }
 
     private static UploadFile(file: File, fileCount: number): void {
@@ -941,7 +940,7 @@ class fTelnet {
 
     public static set VirtualKeyboardVisible(value: boolean) {
         // Hide the menu buttons (in case we clicked the Connect menu button)
-        if (this._MenuButtons !== null) this._MenuButtons.style.display = 'none';
+        if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
         this._VirtualKeyboardVisible = value;
         VirtualKeyboard.Visible = value;
