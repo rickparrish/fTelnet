@@ -20,14 +20,16 @@
 /// <reference path="../WebSocketConnection.ts" />
 class TelnetConnection extends WebSocketConnection {
     // Private variables
+    private _Crt: Crt;
     private _NegotiatedOptions: number[];
     private _NegotiationState: TelnetNegotiationState;
     private _TerminalTypeIndex: number;
     private _TerminalTypes: string[];
 
-    constructor() {
+    constructor(crt: Crt) {
         super();
 
+        this._Crt = crt;
         this._NegotiatedOptions = [];
         for (var i: number = 0; i < 256; i++) {
             this._NegotiatedOptions[i] = 0;
@@ -189,10 +191,10 @@ class TelnetConnection extends WebSocketConnection {
         this.SendSubnegotiate(TelnetOption.WindowSize);
 
         var Size: number[] = [];
-        Size[0] = (Crt.WindCols >> 8) & 0xff;
-        Size[1] = Crt.WindCols & 0xff;
-        Size[2] = (Crt.WindRows >> 8) & 0xff;
-        Size[3] = Crt.WindRows & 0xff;
+        Size[0] = (this._Crt.WindCols >> 8) & 0xff;
+        Size[1] = this._Crt.WindCols & 0xff;
+        Size[2] = (this._Crt.WindRows >> 8) & 0xff;
+        Size[3] = this._Crt.WindRows & 0xff;
 
         var ToSendBytes: number[] = [];
         for (var i: number = 0; i < Size.length; i++) {

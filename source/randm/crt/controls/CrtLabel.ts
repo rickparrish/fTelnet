@@ -21,8 +21,8 @@ class CrtLabel extends CrtControl {
     private _Text: string;
     private _TextAlign: ContentAlignment;
 
-    constructor(parent: CrtControl, left: number, top: number, width: number, text: string, textAlign: ContentAlignment, foreColour: number, backColour: number) {
-        super(parent, left, top, width, 1);
+    constructor(crt: Crt, parent: CrtControl, left: number, top: number, width: number, text: string, textAlign: ContentAlignment, foreColour: number, backColour: number) {
+        super(crt, parent, left, top, width, 1);
 
         this._Text = text;
         this._TextAlign = textAlign;
@@ -50,7 +50,7 @@ class CrtLabel extends CrtControl {
                 case ContentAlignment.Center:
                     if (Lines[i].length >= this.Width) {
                         // Text is greater than available space so chop it off with PadRight()
-                        Crt.FastWrite(Lines[i].substring(0, this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                        this._Crt.FastWrite(Lines[i].substring(0, this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
                     } else {
                         // Text needs to be centered
                         var i: number = 0;
@@ -62,14 +62,14 @@ class CrtLabel extends CrtControl {
                         for (i = 0; i < this.Width - Lines[i].length - LeftSpaces.length; i++) {
                             RightSpaces += ' ';
                         }
-                        Crt.FastWrite(LeftSpaces + Lines[i] + RightSpaces, this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                        this._Crt.FastWrite(LeftSpaces + Lines[i] + RightSpaces, this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
                     }
                     break;
                 case ContentAlignment.Left:
-                    Crt.FastWrite(StringUtils.PadRight(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(StringUtils.PadRight(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
                     break;
                 case ContentAlignment.Right:
-                    Crt.FastWrite(StringUtils.PadLeft(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(StringUtils.PadLeft(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
                     break;
             }
         }

@@ -17,7 +17,7 @@
 // ftelnet.min.js:124 Unknown ESC sequence: PB(1, 24) IB() FB(r)
 // ftelnet.min.js:112 Unknown ESC sequence: PB(4) IB() FB(l)
 // ftelnet.min.js:105 Unknown ESC sequence: PB(34) IB() FB(h)
-// 3ftelnet.min.js:105 Unknown ESC sequence: PB(?1) IB() FB(h)
+// ftelnet.min.js:105 Unknown ESC sequence: PB(?1) IB() FB(h)
 // ftelnet.min.js:112 Unknown ESC sequence: PB(?1049) IB() FB(l)
 // ftelnet.min.js:112 Unknown ESC sequence: PB(?1) IB() FB(l)
 // nano uses ascii 15 (shift in) -- might need an option to say "don't print these control characters" and then let the sysop list the characters to ignore

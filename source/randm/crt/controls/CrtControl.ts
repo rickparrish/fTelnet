@@ -21,6 +21,7 @@ class CrtControl {
     private _BackColour: number = Crt.BLACK;
     private _Background: CharInfo[][];
     private _Controls: CrtControl[] = [];
+    protected _Crt: Crt;
     private _ForeColour: number = Crt.LIGHTGRAY;
     private _Height: number;
     private _Left: number;
@@ -28,7 +29,8 @@ class CrtControl {
     private _Top: number;
     private _Width: number;
 
-    constructor(parent: CrtControl | undefined, left: number, top: number, width: number, height: number) {
+    constructor(crt: Crt, parent: CrtControl | undefined, left: number, top: number, width: number, height: number) {
+        this._Crt = crt;
         this._Parent = parent;
         this._Left = left;
         this._Top = top;
@@ -127,7 +129,7 @@ class CrtControl {
             Top += P.Top;
             P = P.Parent;
         }
-        Crt.RestoreScreen(this._Background, Left, Top, Left + this._Width - 1, Top + this._Height - 1);
+        this._Crt.RestoreScreen(this._Background, Left, Top, Left + this._Width - 1, Top + this._Height - 1);
     }
 
     private SaveBackground(): void {
@@ -139,7 +141,7 @@ class CrtControl {
             Top += P.Top;
             P = P.Parent;
         }
-        this._Background = Crt.SaveScreen(Left, Top, Left + this._Width - 1, Top + this._Height - 1);
+        this._Background = this._Crt.SaveScreen(Left, Top, Left + this._Width - 1, Top + this._Height - 1);
     }
 
     public get ScreenLeft(): number {

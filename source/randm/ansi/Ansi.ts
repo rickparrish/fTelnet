@@ -22,27 +22,32 @@
 /// <reference path='../actionscript/Point.ts' />
 class Ansi {
     // Events
-    public static onesc5n: IEvent = new TypedEvent();
-    public static onesc6n: IEvent = new TypedEvent();
-    public static onesc255n: IEvent = new TypedEvent();
-    public static onescQ: IMessageEvent = new TypedEvent();
-    public static onripdetect: IEvent = new TypedEvent();
-    public static onripdisable: IEvent = new TypedEvent();
-    public static onripenable: IEvent = new TypedEvent();
+    public onesc5n: IEvent = new TypedEvent();
+    public onesc6n: IEvent = new TypedEvent();
+    public onesc255n: IEvent = new TypedEvent();
+    public onescQ: IMessageEvent = new TypedEvent();
+    public onripdetect: IEvent = new TypedEvent();
+    public onripdisable: IEvent = new TypedEvent();
+    public onripenable: IEvent = new TypedEvent();
 
-    private static ANSI_COLORS: number[] = [0, 4, 2, 6, 1, 5, 3, 7];
+    private ANSI_COLORS: number[] = [0, 4, 2, 6, 1, 5, 3, 7];
 
-    private static _AnsiAttr: number = 7;
-    private static _AnsiBuffer: string = '';
-    private static _AnsiIntermediates: string[] = [];
-    private static _AnsiParams: string[] = [];
-    private static _AnsiParserState: AnsiParserState = AnsiParserState.None;
-    private static _AnsiXY: Point = new Point(1, 1);
+    private _AnsiAttr: number = 7;
+    private _AnsiBuffer: string = '';
+    private _AnsiIntermediates: string[] = [];
+    private _AnsiParams: string[] = [];
+    private _AnsiParserState: AnsiParserState = AnsiParserState.None;
+    private _AnsiXY: Point = new Point(1, 1);
+    private _Crt: Crt;
 
-    // Source for most commands: 
+    constructor(crt: Crt) {
+        this._Crt = crt;
+    }
+
+    // Source for most commands:
     // http://cvs.synchro.net/cgi-bin/viewcvs.cgi/*checkout*/src/conio/cterm.txt?content-type=text%2Fplain&revision=HEAD
     // Commands not found in above document noted with NOT IN CTERM.TXT
-    private static AnsiCommand(finalByte: string): void {
+    private AnsiCommand(finalByte: string): void {
         var Colour: number = 0;
         var x: number = 0;
         var y: number = 0;
@@ -74,7 +79,7 @@ class Ansi {
 	                        resulting hole being filled with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 x = Math.max(1, this.GetNextParam(1));
-                Crt.InsChar(x);
+                this._Crt.InsChar(x);
                 break;
             case '{': /* CSI = [ p1 [ ; p2 ] ] {
                         NON-STANDARD EXTENSION.
@@ -99,8 +104,8 @@ class Ansi {
 	                        at the screen boundary.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
-                y = Math.max(1, Crt.WhereY() - y);
-                Crt.GotoXY(Crt.WhereX(), y);
+                y = Math.max(1, this._Crt.WhereY() - y);
+                this._Crt.GotoXY(this._Crt.WhereX(), y);
                 break;
             case 'B': /* CSI [ p1 ] B
 	                        Cursor Down
@@ -110,8 +115,8 @@ class Ansi {
 	                        at the screen boundary.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
-                y = Math.min(Crt.WindRows, Crt.WhereY() + y);
-                Crt.GotoXY(Crt.WhereX(), y);
+                y = Math.min(this._Crt.WindRows, this._Crt.WhereY() + y);
+                this._Crt.GotoXY(this._Crt.WhereX(), y);
                 break;
             case 'C': /* CSI [ p1 ] C
 	                        Cursor Right
@@ -121,8 +126,8 @@ class Ansi {
 	                        at the screen boundary.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 x = Math.max(1, this.GetNextParam(1));
-                x = Math.min(Crt.WindCols, Crt.WhereX() + x);
-                Crt.GotoXY(x, Crt.WhereY());
+                x = Math.min(this._Crt.WindCols, this._Crt.WhereX() + x);
+                this._Crt.GotoXY(x, this._Crt.WhereY());
                 break;
             case 'c': /* CSI [ p1 ] c
 	                        Device Attributes
@@ -148,8 +153,8 @@ class Ansi {
                         at the screen boundary.
                         SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                     x = Math.max(1, this.GetNextParam(1));
-                    x = Math.max(1, Crt.WhereX() - x);
-                    Crt.GotoXY(x, Crt.WhereY());
+                    x = Math.max(1, this._Crt.WhereX() - x);
+                    this._Crt.GotoXY(x, this._Crt.WhereY());
                 } else if (this._AnsiIntermediates.indexOf(' ') !== -1) {
                     /* CSI [ p1 [ ; p2 ] ] sp D
                         Font Selection
@@ -208,7 +213,7 @@ class Ansi {
                     y = this.GetNextParam(0);
                     if ((x === 0) && (y >= 0) && (y <= 40)) {
                         // TODO Should pick based on available screen space, not on biggest to smallest
-                        Crt.SetFont('SyncTerm-' + y.toString(10));
+                        this._Crt.SetFont('SyncTerm-' + y.toString(10));
                     } else {
                         console.log('Unhandled ESC sequence: Secondary Font Selection (set font ' + x + ' to ' + y + ')');
                     }
@@ -223,8 +228,8 @@ class Ansi {
 	                        number of lines filling newly added lines with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
-                y = Math.min(Crt.WindRows, Crt.WhereY() + y);
-                Crt.GotoXY(1, y);
+                y = Math.min(this._Crt.WindRows, this._Crt.WhereY() + y);
+                this._Crt.GotoXY(1, y);
                 break;
             case 'F': /* CSI [ p1 ] F
 	                        Cursor Preceding Line
@@ -234,8 +239,8 @@ class Ansi {
 	                        at the screen boundary.
                             SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
-                y = Math.max(1, Crt.WhereY() - y);
-                Crt.GotoXY(1, y);
+                y = Math.max(1, this._Crt.WhereY() - y);
+                this._Crt.GotoXY(1, y);
                 break;
             case 'G': /* CSI [ p1 ] G
 	                        Cursor Character Absolute
@@ -243,8 +248,8 @@ class Ansi {
 	                        Movies the cursor to column p1 of the current row.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 x = Math.max(1, this.GetNextParam(1));
-                if ((x >= 1) && (x <= Crt.WindCols)) {
-                    Crt.GotoXY(x, Crt.WhereY());
+                if ((x >= 1) && (x <= this._Crt.WindCols)) {
+                    this._Crt.GotoXY(x, this._Crt.WhereY());
                 }
                 break;
             case 'H':
@@ -256,7 +261,7 @@ class Ansi {
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
                 x = Math.max(1, this.GetNextParam(1));
-                Crt.GotoXY(x, y);
+                this._Crt.GotoXY(x, y);
                 break;
             case 'h':
                 if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
@@ -288,7 +293,7 @@ class Ansi {
 	                                NON-STANDARD EXTENSION
 	                                Display the cursor
 	                                SOURCE: 'Installing and Using the VT320 Video Terminal' */
-                        Crt.ShowCursor();
+                        this._Crt.ShowCursor();
                         break;
                     case '?31': /* CSI ? 31 h
 	                                NON-STANDARD EXTENSION
@@ -328,9 +333,9 @@ class Ansi {
 
 	                        SOURCE BANSI.TXT */
                 switch (this.GetNextParam(0)) {
-                    case 0: Crt.ClrEos(); break;
-                    case 1: Crt.ClrBos(); break;
-                    case 2: Crt.ClrScr(); break;
+                    case 0: this._Crt.ClrEos(); break;
+                    case 1: this._Crt.ClrBos(); break;
+                    case 2: this._Crt.ClrScr(); break;
                 }
                 break;
             case 'K': /* CSI [ p1 ] K
@@ -343,9 +348,9 @@ class Ansi {
 	                        Erased characters are set to the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 switch (this.GetNextParam(0)) {
-                    case 0: Crt.ClrEol(); break;
-                    case 1: Crt.ClrBol(); break;
-                    case 2: Crt.ClrLine(); break;
+                    case 0: this._Crt.ClrEol(); break;
+                    case 1: this._Crt.ClrBol(); break;
+                    case 2: this._Crt.ClrLine(); break;
                 }
                 break;
             case 'L': /* CSI [ p1 ] L
@@ -356,7 +361,7 @@ class Ansi {
 	                        the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
-                Crt.InsLine(y);
+                this._Crt.InsLine(y);
                 break;
             case 'l':
                 if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
@@ -388,7 +393,7 @@ class Ansi {
 	                                NON-STANDARD EXTENSION
 	                                Hide the cursor
 	                                SOURCE: 'Installing and Using the VT320 Video Terminal' */
-                        Crt.HideCursor();
+                        this._Crt.HideCursor();
                         break;
                     case '?31': /* CSI ? 31 l
 	                                NON-STANDARD EXTENSION
@@ -454,7 +459,7 @@ class Ansi {
                         SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf
                         SOURCE: BANSI.TXT */
                     y = Math.max(1, this.GetNextParam(1));
-                    Crt.DelLine(y);
+                    this._Crt.DelLine(y);
                 }
                 break;
             case 'm': /* CSI [ p1 [ ; pX ... ] ] m
@@ -504,49 +509,49 @@ class Ansi {
                     x = this.GetNextParam(0);
                     switch (x) {
                         case 0: // Default attribute, white on black
-                            Crt.NormVideo();
+                            this._Crt.NormVideo();
                             break;
                         case 1: // Bright Intensity
-                            Crt.HighVideo();
+                            this._Crt.HighVideo();
                             break;
                         case 2: // Dim intensty
-                            Crt.LowVideo();
+                            this._Crt.LowVideo();
                             break;
                         case 3: // NOT IN CTERM.TXT Italic: on (not widely supported)
                             break;
                         case 4: // NOT IN CTERM.TXT Underline: Single
                             break;
                         case 5: // Blink (By definition, slow blink)
-                            Crt.SetBlink(true);
-                            Crt.SetBlinkRate(500);
+                            this._Crt.SetBlink(true);
+                            this._Crt.SetBlinkRate(500);
                             break;
                         case 6: // Blink (By definition, fast blink)
-                            Crt.SetBlink(true);
-                            Crt.SetBlinkRate(250);
+                            this._Crt.SetBlink(true);
+                            this._Crt.SetBlinkRate(250);
                             break;
                         case 7: // Negative Image - Reverses FG and BG
-                            Crt.ReverseVideo();
+                            this._Crt.ReverseVideo();
                             break;
                         case 8: // Concealed characters, sets the forground colour to the background colour.
-                            this._AnsiAttr = Crt.TextAttr;
-                            Crt.Conceal();
+                            this._AnsiAttr = this._Crt.TextAttr;
+                            this._Crt.Conceal();
                             break;
                         case 21: // NOT IN CTERM.TXT Underline: Double (not widely supported)
                             break;
                         case 22: // Normal intensity
-                            Crt.LowVideo();
+                            this._Crt.LowVideo();
                             break;
                         case 24: // NOT IN CTERM.TXT Underline: None
                             break;
                         case 25: // Steady (Not blinking)
-                            Crt.SetBlink(false);
+                            this._Crt.SetBlink(false);
                             break;
                         case 27: // Positive Image - Reverses FG and BG  
                             // NOTE: This should be a separate attribute than 7 but this implementation makes them equal
-                            Crt.ReverseVideo();
+                            this._Crt.ReverseVideo();
                             break;
                         case 28: // NOT IN CTERM.TXT Reveal (conceal off)
-                            Crt.TextAttr = this._AnsiAttr;
+                            this._Crt.TextAttr = this._AnsiAttr;
                             break;
                         case 30: // Set foreground color, normal intensity
                         case 31:
@@ -557,13 +562,13 @@ class Ansi {
                         case 36:
                         case 37:
                             Colour = this.ANSI_COLORS[x - 30];
-                            if (Crt.TextAttr % 16 > 7) { Colour += 8; }
-                            Crt.TextColor(Colour);
+                            if (this._Crt.TextAttr % 16 > 7) { Colour += 8; }
+                            this._Crt.TextColor(Colour);
                             break;
                         case 39: // Default foreground (same as white)
                             Colour = this.ANSI_COLORS[37 - 30];
-                            if (Crt.TextAttr % 16 > 7) { Colour += 8; }
-                            Crt.TextColor(Colour);
+                            if (this._Crt.TextAttr % 16 > 7) { Colour += 8; }
+                            this._Crt.TextColor(Colour);
                             break;
                         case 40: // Set background color, normal intensity
                         case 41:
@@ -574,11 +579,11 @@ class Ansi {
                         case 46:
                         case 47:
                             Colour = this.ANSI_COLORS[x - 40];
-                            Crt.TextBackground(Colour);
+                            this._Crt.TextBackground(Colour);
                             break;
                         case 49: // Default background (same as black)
                             Colour = this.ANSI_COLORS[40 - 40];
-                            Crt.TextBackground(Colour);
+                            this._Crt.TextBackground(Colour);
                             break;
                     }
                 }
@@ -628,7 +633,7 @@ class Ansi {
 	                        at the end of the line are filled with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 x = Math.max(1, this.GetNextParam(1));
-                Crt.DelChar(x);
+                this._Crt.DelChar(x);
                 break;
             case 'Q': /* CSI p1 ; p2 ; p3 Q
                             NON-STANDARD EXTENSION.
@@ -691,7 +696,7 @@ class Ansi {
 	                        bottom are filled with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
-                Crt.ScrollUpScreen(y);
+                this._Crt.ScrollUpScreen(y);
                 break;
             case 's':
                 if (this._AnsiIntermediates.length === 0) {
@@ -702,7 +707,7 @@ class Ansi {
                         although this is non-standard, it's so widely used in the BBS world
                         that any terminal program MUST implement it.
                         SOURCE: ANSI.SYS */
-                    this._AnsiXY = new Point(Crt.WhereX(), Crt.WhereY());
+                    this._AnsiXY = new Point(this._Crt.WhereX(), this._Crt.WhereY());
                 } else {
                     /* CSI ? [ p1 [ pX ... ] ] s
                         NON-STANDARD EXTENSION
@@ -721,7 +726,7 @@ class Ansi {
 	                        top are filled with the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
-                Crt.ScrollDownWindow(y);
+                this._Crt.ScrollDownWindow(y);
                 break;
             case 'U': /* CSI U
 	                        NON-STANDARD (Disabled in current code)
@@ -739,7 +744,7 @@ class Ansi {
                         Move the cursor to the last position saved by CSI s.  If no position has
                         been saved, the cursor is not moved.
                         SOURCE: ANSI.SYS */
-                    Crt.GotoXY(this._AnsiXY.x, this._AnsiXY.y);
+                    this._Crt.GotoXY(this._AnsiXY.x, this._AnsiXY.y);
                 } else {
                     /* CSI ? [ p1 [ pX ... ] ]  u
                         NON-STANDARD EXTENSION
@@ -759,7 +764,7 @@ class Ansi {
 	                        Erased characters are set to the current attribute.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 x = Math.max(1, this.GetNextParam(1));
-                Crt.DelChar(x);
+                this._Crt.DelChar(x);
                 break;
             case 'Z': /* CSI [ p1 ] Z
 	                        Cursor Backward Tabulation
@@ -775,31 +780,31 @@ class Ansi {
         }
     }
 
-    public static ClrBol(): string {
+    public ClrBol(): string {
         return '\x1B[1K';
     }
 
-    public static ClrBos(): string {
+    public ClrBos(): string {
         return '\x1B[1J';
     }
 
-    public static ClrEol(): string {
+    public ClrEol(): string {
         return '\x1B[K';
     }
 
-    public static ClrEos(): string {
+    public ClrEos(): string {
         return '\x1B[J';
     }
 
-    public static ClrLine(): string {
+    public ClrLine(): string {
         return '\x1B[2K';
     }
 
-    public static ClrScr(): string {
+    public ClrScr(): string {
         return '\x1B[2J';
     }
 
-    public static CursorDown(count: number): string {
+    public CursorDown(count: number): string {
         if (count === 1) {
             return '\x1B[B';
         } else {
@@ -807,7 +812,7 @@ class Ansi {
         }
     }
 
-    public static CursorLeft(count: number): string {
+    public CursorLeft(count: number): string {
         if (count === 1) {
             return '\x1B[D';
         } else {
@@ -815,18 +820,18 @@ class Ansi {
         }
     }
 
-    public static CursorPosition(x?: number, y?: number): string {
-        if (typeof x === 'undefined') { x = Crt.WhereXA(); }
-        if (typeof y === 'undefined') { y = Crt.WhereYA(); }
+    public CursorPosition(x?: number, y?: number): string {
+        if (typeof x === 'undefined') { x = this._Crt.WhereXA(); }
+        if (typeof y === 'undefined') { y = this._Crt.WhereYA(); }
 
         return '\x1B[' + y + ';' + x + 'R';
     }
 
-    public static CursorRestore(): string {
+    public CursorRestore(): string {
         return '\x1B[u';
     }
 
-    public static CursorRight(count: number): string {
+    public CursorRight(count: number): string {
         if (count === 1) {
             return '\x1B[C';
         } else {
@@ -834,11 +839,11 @@ class Ansi {
         }
     }
 
-    public static CursorSave(): string {
+    public CursorSave(): string {
         return '\x1B[s';
     }
 
-    public static CursorUp(count: number): string {
+    public CursorUp(count: number): string {
         if (count === 1) {
             return '\x1B[A';
         } else {
@@ -846,7 +851,7 @@ class Ansi {
         }
     }
 
-    private static GetNextParam(defaultValue: number): number {
+    private GetNextParam(defaultValue: number): number {
         var Result = this._AnsiParams.shift();
         if (typeof Result === 'undefined') {
             return defaultValue;
@@ -855,7 +860,7 @@ class Ansi {
         }
     }
 
-    public static GotoX(x: number): string {
+    public GotoX(x: number): string {
         if (x === 1) {
             return this.CursorLeft(255);
         } else {
@@ -863,11 +868,11 @@ class Ansi {
         }
     }
 
-    public static GotoXY(x: number, y: number): string {
+    public GotoXY(x: number, y: number): string {
         return '\x1B[' + y.toString() + ';' + x.toString() + 'H';
     }
 
-    public static GotoY(y: number): string {
+    public GotoY(y: number): string {
         if (y === 1) {
             return this.CursorUp(255);
         } else {
@@ -875,16 +880,16 @@ class Ansi {
         }
     }
 
-    public static TextAttr(attr: number): string {
+    public TextAttr(attr: number): string {
         return this.TextColor(attr % 16) + this.TextBackground(Math.floor(attr / 16));
     }
 
-    public static TextBackground(colour: number): string {
+    public TextBackground(colour: number): string {
         while (colour >= 8) { colour -= 8; }
         return '\x1B[' + (40 + this.ANSI_COLORS[colour]).toString() + 'm';
     }
 
-    public static TextColor(colour: number): string {
+    public TextColor(colour: number): string {
         switch (colour % 16) {
             case 0:
             case 1:
@@ -894,7 +899,7 @@ class Ansi {
             case 5:
             case 6:
             case 7:
-                return '\x1B[0;' + (30 + this.ANSI_COLORS[colour % 16]).toString() + 'm' + this.TextBackground(Crt.TextAttr / 16);
+                return '\x1B[0;' + (30 + this.ANSI_COLORS[colour % 16]).toString() + 'm' + this.TextBackground(this._Crt.TextAttr / 16);
             case 8:
             case 9:
             case 10:
@@ -908,10 +913,10 @@ class Ansi {
         return '';
     }
 
-    public static Write(text: string): void {
+    public Write(text: string): void {
         // Check for Atari/C64 mode, which doesn't use ANSI
-        if (Crt.Atari || Crt.C64) {
-            Crt.Write(text);
+        if (this._Crt.Atari || this._Crt.C64) {
+            this._Crt.Write(text);
         } else {
             var Buffer: string = '';
 
@@ -932,7 +937,7 @@ class Ansi {
                 } else if (this._AnsiParserState === AnsiParserState.Bracket) {
                     if (text.charAt(i) === '!') {
                         // Handle ESC[!, which is rip detect
-                        Crt.Write(Buffer);
+                        this._Crt.Write(Buffer);
                         Buffer = '';
 
                         // Handle the command
@@ -950,7 +955,7 @@ class Ansi {
                         this._AnsiParserState = AnsiParserState.IntermediateByte;
                     } else if ((text.charAt(i) >= '@') && (text.charAt(i) <= '~')) {
                         // Final byte, output whatever we have buffered
-                        Crt.Write(Buffer);
+                        this._Crt.Write(Buffer);
                         Buffer = '';
 
                         // Handle the command
@@ -970,7 +975,7 @@ class Ansi {
                         this._AnsiBuffer = '';
 
                         // Output whatever we have buffered
-                        Crt.Write(Buffer);
+                        this._Crt.Write(Buffer);
                         Buffer = '';
 
                         // Handle the command
@@ -998,7 +1003,7 @@ class Ansi {
                         this._AnsiBuffer = '';
 
                         // Output whatever we have buffered
-                        Crt.Write(Buffer);
+                        this._Crt.Write(Buffer);
                         Buffer = '';
 
                         // Handle the command
@@ -1021,7 +1026,7 @@ class Ansi {
                         this._AnsiIntermediates.push(text.charAt(i));
                     } else if ((text.charAt(i) >= '@') && (text.charAt(i) <= '~')) {
                         // Final byte byte, output whatever we have buffered
-                        Crt.Write(Buffer);
+                        this._Crt.Write(Buffer);
                         Buffer = '';
 
                         // Handle the command
@@ -1039,11 +1044,11 @@ class Ansi {
                 }
             }
 
-            Crt.Write(Buffer);
+            this._Crt.Write(Buffer);
         }
     }
 
-    public static WriteLn(text: string): void {
+    public WriteLn(text: string): void {
         this.Write(text + '\r\n');
     }
 }

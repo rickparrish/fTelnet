@@ -46,7 +46,6 @@
     <None Include="source\randm\graph\BitmapFont.ts.exclude" />
     <None Include="source\randm\graph\FillSettings.ts.exclude" />
     <None Include="source\randm\graph\FillStyle.ts.exclude" />
-    <TypeScriptCompile Include="source\randm\graph\Graph.ts" />
     <None Include="source\randm\graph\Graph.ts.exclude" />
     <None Include="source\randm\graph\IPutPixelFunction.ts.exclude" />
     <None Include="source\randm\graph\LineSettings.ts.exclude" />
@@ -54,7 +53,6 @@
     <None Include="source\randm\graph\LineThickness.ts.exclude" />
     <None Include="source\randm\graph\rip\ButtonStyle.ts.exclude" />
     <None Include="source\randm\graph\rip\MouseButton.ts.exclude" />
-    <TypeScriptCompile Include="source\randm\graph\rip\RIP.ts" />
     <None Include="source\randm\graph\rip\RIP.ts.exclude" />
     <None Include="source\randm\graph\rip\RIPParserState.ts.exclude" />
     <None Include="source\randm\graph\StrokeFont.ts.exclude" />

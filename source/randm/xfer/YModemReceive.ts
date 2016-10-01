@@ -34,6 +34,7 @@ class YModemReceive {
     // Private variables
     private _Blink: boolean = false;
     private _Connection: WebSocketConnection;
+    private _Crt: Crt;
     private _ExpectingHeader: boolean = true;
     private _File: FileRecord;
     private _Files: FileRecord[] = [];
@@ -53,7 +54,8 @@ class YModemReceive {
     private pbFileReceived: CrtProgressBar;
     private pnlMain: CrtPanel;
 
-    constructor(connection: WebSocketConnection) {
+    constructor(crt: Crt, connection: WebSocketConnection) {
+        this._Crt = crt;
         this._Connection = connection;
     }
 
@@ -96,8 +98,8 @@ class YModemReceive {
     private Dispatch(): void {
         // Remove the panel
         this.pnlMain.Hide();
-        Crt.Blink = this._Blink;
-        Crt.ShowCursor();
+        this._Crt.Blink = this._Blink;
+        this._Crt.ShowCursor();
 
         this.ontransfercomplete.trigger();
     }
@@ -107,17 +109,17 @@ class YModemReceive {
         this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
 
         // Create the transfer dialog
-        this._Blink = Crt.Blink;
-        Crt.Blink = false;
-        Crt.HideCursor();
-        this.pnlMain = new CrtPanel(undefined, 10, 5, 60, 14, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Receive Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
-        this.lblFileCount = new CrtLabel(this.pnlMain, 2, 2, 56, 'Receiving file 1', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-        this.lblFileName = new CrtLabel(this.pnlMain, 2, 4, 56, 'File Name: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-        this.lblFileSize = new CrtLabel(this.pnlMain, 2, 5, 56, 'File Size: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-        this.lblFileReceived = new CrtLabel(this.pnlMain, 2, 6, 56, 'File Recv: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-        this.pbFileReceived = new CrtProgressBar(this.pnlMain, 2, 7, 56, ProgressBarStyle.Continuous);
-        this.lblTotalReceived = new CrtLabel(this.pnlMain, 2, 9, 56, 'Total Recv: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-        this.lblStatus = new CrtLabel(this.pnlMain, 2, 11, 56, 'Status: Transferring file(s)', ContentAlignment.Left, Crt.WHITE, Crt.BLUE);
+        this._Blink = this._Crt.Blink;
+        this._Crt.Blink = false;
+        this._Crt.HideCursor();
+        this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 14, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Receive Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
+        this.lblFileCount = new CrtLabel(this._Crt, this.pnlMain, 2, 2, 56, 'Receiving file 1', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+        this.lblFileName = new CrtLabel(this._Crt, this.pnlMain, 2, 4, 56, 'File Name: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+        this.lblFileSize = new CrtLabel(this._Crt, this.pnlMain, 2, 5, 56, 'File Size: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+        this.lblFileReceived = new CrtLabel(this._Crt, this.pnlMain, 2, 6, 56, 'File Recv: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+        this.pbFileReceived = new CrtProgressBar(this._Crt, this.pnlMain, 2, 7, 56, ProgressBarStyle.Continuous);
+        this.lblTotalReceived = new CrtLabel(this._Crt, this.pnlMain, 2, 9, 56, 'Total Recv: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+        this.lblStatus = new CrtLabel(this._Crt, this.pnlMain, 2, 11, 56, 'Status: Transferring file(s)', ContentAlignment.Left, Crt.WHITE, Crt.BLUE);
     }
 
     public FileAt(index: number): FileRecord {
@@ -140,8 +142,8 @@ class YModemReceive {
 
     private OnTimer(): void {
         // Check for abort
-        while (Crt.KeyPressed()) {
-            var KPE: KeyPressEvent | undefined = Crt.ReadKey();
+        while (this._Crt.KeyPressed()) {
+            var KPE: KeyPressEvent | undefined = this._Crt.ReadKey();
             if ((typeof KPE !== 'undefined') && (KPE.keyString.length > 0) && (KPE.keyString.charCodeAt(0) === this.CAN)) {
                 this.Cancel('User requested abort');
             }

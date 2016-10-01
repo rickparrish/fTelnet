@@ -35,6 +35,7 @@ class YModemSend {
     private _Block: number = 0;
     private _Blink: boolean = false;
     private _Connection: WebSocketConnection;
+    private _Crt: Crt;
     private _EOTCount: number = 0;
     private _File: FileRecord;
     private _FileBytesSent: number = 0;
@@ -57,7 +58,8 @@ class YModemSend {
     private pbTotalSent: CrtProgressBar;
     private pnlMain: CrtPanel;
 
-    constructor(connection: WebSocketConnection) {
+    constructor(crt: Crt, connection: WebSocketConnection) {
+        this._Crt = crt;
         this._Connection = connection;
     }
 
@@ -100,8 +102,8 @@ class YModemSend {
     private Dispatch(): void {
         // Remove the panel
         this.pnlMain.Hide();
-        Crt.Blink = this._Blink;
-        Crt.ShowCursor();
+        this._Crt.Blink = this._Blink;
+        this._Crt.ShowCursor();
 
         this.ontransfercomplete.trigger();
     }
@@ -118,8 +120,8 @@ class YModemSend {
 
     private OnTimer(): void {
         // Check for abort
-        while (Crt.KeyPressed()) {
-            var KPE: KeyPressEvent | undefined = Crt.ReadKey();
+        while (this._Crt.KeyPressed()) {
+            var KPE: KeyPressEvent | undefined = this._Crt.ReadKey();
             if ((typeof KPE !== 'undefined') && (KPE.keyString.length > 0) && (KPE.keyString.charCodeAt(0) === this.CAN)) {
                 this.Cancel('User requested abort');
             }
@@ -422,20 +424,20 @@ class YModemSend {
             }
 
             // Create the transfer dialog
-            this._Blink = Crt.Blink;
-            Crt.Blink = false;
-            Crt.HideCursor();
-            this.pnlMain = new CrtPanel(undefined, 10, 5, 60, 16, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Send Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
-            this.lblFileCount = new CrtLabel(this.pnlMain, 2, 2, 56, 'Sending file 1 of ' + this._FileCount.toString(), ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-            this.lblFileName = new CrtLabel(this.pnlMain, 2, 4, 56, 'File Name: ' + this._Files[0].name, ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-            this.lblFileSize = new CrtLabel(this.pnlMain, 2, 5, 56, 'File Size: ' + StringUtils.AddCommas(this._Files[0].size) + ' bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-            this.lblFileSent = new CrtLabel(this.pnlMain, 2, 6, 56, 'File Sent: 0 bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-            this.pbFileSent = new CrtProgressBar(this.pnlMain, 2, 7, 56, ProgressBarStyle.Continuous);
-            this.lblTotalSize = new CrtLabel(this.pnlMain, 2, 9, 56, 'Total Size: ' + StringUtils.AddCommas(this._TotalBytes) + ' bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-            this.lblTotalSent = new CrtLabel(this.pnlMain, 2, 10, 56, 'Total Sent: 0 bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
-            this.pbTotalSent = new CrtProgressBar(this.pnlMain, 2, 11, 56, ProgressBarStyle.Continuous);
+            this._Blink = this._Crt.Blink;
+            this._Crt.Blink = false;
+            this._Crt.HideCursor();
+            this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 16, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Send Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
+            this.lblFileCount = new CrtLabel(this._Crt, this.pnlMain, 2, 2, 56, 'Sending file 1 of ' + this._FileCount.toString(), ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+            this.lblFileName = new CrtLabel(this._Crt, this.pnlMain, 2, 4, 56, 'File Name: ' + this._Files[0].name, ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+            this.lblFileSize = new CrtLabel(this._Crt, this.pnlMain, 2, 5, 56, 'File Size: ' + StringUtils.AddCommas(this._Files[0].size) + ' bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+            this.lblFileSent = new CrtLabel(this._Crt, this.pnlMain, 2, 6, 56, 'File Sent: 0 bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+            this.pbFileSent = new CrtProgressBar(this._Crt, this.pnlMain, 2, 7, 56, ProgressBarStyle.Continuous);
+            this.lblTotalSize = new CrtLabel(this._Crt, this.pnlMain, 2, 9, 56, 'Total Size: ' + StringUtils.AddCommas(this._TotalBytes) + ' bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+            this.lblTotalSent = new CrtLabel(this._Crt, this.pnlMain, 2, 10, 56, 'Total Sent: 0 bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
+            this.pbTotalSent = new CrtProgressBar(this._Crt, this.pnlMain, 2, 11, 56, ProgressBarStyle.Continuous);
             this.pbTotalSent.Maximum = this._TotalBytes;
-            this.lblStatus = new CrtLabel(this.pnlMain, 2, 13, 56, 'Status: Transferring file(s)', ContentAlignment.Left, Crt.WHITE, Crt.BLUE);
+            this.lblStatus = new CrtLabel(this._Crt, this.pnlMain, 2, 13, 56, 'Status: Transferring file(s)', ContentAlignment.Left, Crt.WHITE, Crt.BLUE);
         }
     }
 }

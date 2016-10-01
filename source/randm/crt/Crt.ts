@@ -31,9 +31,9 @@ class Crt {
     /// </summary>
 
     // Events
-    public static onfontchange: IEvent = new TypedEvent();
-    public static onkeypressed: IEvent = new TypedEvent();
-    public static onscreensizechange: IEvent = new TypedEvent();
+    public onfontchange: IEvent = new TypedEvent();
+    public onkeypressed: IEvent = new TypedEvent();
+    public onscreensizechange: IEvent = new TypedEvent();
 
     /*  Color Constants
     ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -76,41 +76,41 @@ class Crt {
     public static PETSCII_LIGHTGRAY: number = 15;
 
     /* Private variables */
-    private static _AllowDynamicFontResize: Boolean = true;
-    private static _Atari: boolean = false;
-    private static _ATASCIIEscaped: boolean = false;
-    private static _BareLFtoCRLF: boolean = false;
-    private static _Blink: boolean = true;
-    private static _BlinkHidden: boolean = false;
-    private static _Buffer: CharInfo[][];
-    private static _C64: boolean = false;
-    private static _Canvas: HTMLCanvasElement;
-    private static _CanvasContext: CanvasRenderingContext2D;
-    private static _CharInfo: CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
-    private static _ClipboardText: string = '';
-    private static _Container: HTMLElement;
-    private static _Cursor: Cursor;
-    private static _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
-    private static _Font: CrtFont;
-    private static _InScrollback: boolean = false;
-    private static _KeyBuf: KeyPressEvent[] = [];
-    private static _LastChar: number = 0x00;
-    private static _LocalEcho: boolean = false;
-    private static _MouseDownPoint: Point;
-    private static _MouseMovePoint: Point;
-    private static _ScreenSize: Point = new Point(80, 25);
-    private static _Scrollback: CharInfo[][];
-    private static _ScrollbackPosition: number = -1;
-    private static _ScrollbackSize: number = 250; // TODO Quick hack to make Edge happy, change back to 500 after finding IndexSizeError fix
-    private static _ScrollbackTemp: CharInfo[][];
-    private static _TempCanvas: HTMLCanvasElement;
-    private static _TempCanvasContext: CanvasRenderingContext2D;
-    private static _Transparent: Boolean = false;
-    private static _UseModernScrollback: Boolean = false;
-    private static _WindMin: number = 0;
-    private static _WindMax: number = (80 - 1) | ((25 - 1) << 8);
+    private _AllowDynamicFontResize: Boolean = true;
+    private _Atari: boolean = false;
+    private _ATASCIIEscaped: boolean = false;
+    private _BareLFtoCRLF: boolean = false;
+    private _Blink: boolean = true;
+    private _BlinkHidden: boolean = false;
+    private _Buffer: CharInfo[][];
+    private _C64: boolean = false;
+    private _Canvas: HTMLCanvasElement;
+    private _CanvasContext: CanvasRenderingContext2D;
+    private _CharInfo: CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
+    private _ClipboardText: string = '';
+    private _Container: HTMLElement;
+    private _Cursor: Cursor;
+    private _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
+    private _Font: CrtFont;
+    private _InScrollback: boolean = false;
+    private _KeyBuf: KeyPressEvent[] = [];
+    private _LastChar: number = 0x00;
+    private _LocalEcho: boolean = false;
+    private _MouseDownPoint: Point;
+    private _MouseMovePoint: Point;
+    private _ScreenSize: Point = new Point(80, 25);
+    private _Scrollback: CharInfo[][];
+    private _ScrollbackPosition: number = -1;
+    private _ScrollbackSize: number = 250; // TODO Quick hack to make Edge happy, change back to 500 after finding IndexSizeError fix
+    private _ScrollbackTemp: CharInfo[][];
+    private _TempCanvas: HTMLCanvasElement;
+    private _TempCanvasContext: CanvasRenderingContext2D;
+    private _Transparent: Boolean = false;
+    private _UseModernScrollback: Boolean = false;
+    private _WindMin: number = 0;
+    private _WindMax: number = (80 - 1) | ((25 - 1) << 8);
 
-    public static Init(container: HTMLElement, useModernScrollback: boolean): boolean {
+    constructor(container: HTMLElement, useModernScrollback: boolean) {
         this._Container = container;
         this._UseModernScrollback = useModernScrollback;
 
@@ -140,7 +140,7 @@ class Crt {
         // Check for Canvas support
         if (!this._Canvas.getContext) {
             console.log('fTelnet Error: Canvas not supported');
-            return false;
+            // TODOX return false;
         }
 
         // Add crt to container
@@ -155,7 +155,7 @@ class Crt {
         this.InitBuffers(true);
 
         // Create the cursor
-        this._Cursor = new Cursor(this._Container, CrtFont.ANSI_COLOURS[this.LIGHTGRAY], this._Font.Size);
+        this._Cursor = new Cursor(this._Container, CrtFont.ANSI_COLOURS[Crt.LIGHTGRAY], this._Font.Size);
         this._Cursor.onhide.on((): void => { this.OnBlinkHide(); });
         this._Cursor.onshow.on((): void => { this.OnBlinkShow(); });
 
@@ -167,7 +167,7 @@ class Crt {
         var CanvasContext = this._Canvas.getContext('2d');
         if (CanvasContext === null) {
             console.log('fTelnet Error: _Canvas.getContext error');
-            return false;
+            // TODOX return false;
         } else {
             this._CanvasContext = CanvasContext;
         }
@@ -182,7 +182,7 @@ class Crt {
             var TempCanvasContext = this._TempCanvas.getContext('2d');
             if (TempCanvasContext === null) {
                 console.log('fTelnet Error: _TempCanvas.getContext error');
-                return false;
+                // TODOX return false;
             } else {
                 this._TempCanvasContext = TempCanvasContext;
             }
@@ -197,18 +197,18 @@ class Crt {
         // Clear the screen
         this.ClrScr();
 
-        return true;
+        // TODOX return true;
     }
 
-    public static get Atari(): boolean {
+    public get Atari(): boolean {
         return this._Atari;
     }
 
-    public static set Atari(value: boolean) {
+    public set Atari(value: boolean) {
         this._Atari = value;
     }
 
-    public static Beep(): void {
+    public Beep(): void {
         /*TODO
         var Duration = 44100 * 0.3; // 0.3 = 300ms
         var Frequency = 440; // 440hz
@@ -216,39 +216,39 @@ class Crt {
         */
     }
 
-    public static get Blink(): boolean {
+    public get Blink(): boolean {
         return this._Blink;
     }
 
-    public static set Blink(value: boolean) {
+    public set Blink(value: boolean) {
         this._Blink = value;
     }
 
-    public static get BareLFtoCRLF(): boolean {
+    public get BareLFtoCRLF(): boolean {
         return this._BareLFtoCRLF;
     }
 
-    public static set BareLFtoCRLF(value: boolean) {
+    public set BareLFtoCRLF(value: boolean) {
         this._BareLFtoCRLF = value;
     }
 
-    public static get C64(): boolean {
+    public get C64(): boolean {
         return this._C64;
     }
 
-    public static set C64(value: boolean) {
+    public set C64(value: boolean) {
         this._C64 = value;
     }
 
-    public static get Canvas(): HTMLCanvasElement {
+    public get Canvas(): HTMLCanvasElement {
         return this._Canvas;
     }
 
-    public static get ClipboardText(): string {
+    public get ClipboardText(): string {
         return this._ClipboardText;
     }
 
-    public static ClrBol(): void {
+    public ClrBol(): void {
         /// <summary>
         /// Clears all characters from the cursor position to the start of the line
         /// without moving the cursor.
@@ -263,7 +263,7 @@ class Crt {
         this.FastWrite(StringUtils.NewString(' ', this.WhereX()), this.WindMinX + 1, this.WhereYA(), this._CharInfo);
     }
 
-    public static ClrBos(): void {
+    public ClrBos(): void {
         /// <summary>
         /// Clears the active window from the cursor's current line to the start of the window
         /// </summary>
@@ -282,7 +282,7 @@ class Crt {
         this.ClrBol();
     }
 
-    public static ClrEol(): void {
+    public ClrEol(): void {
         /// <summary>
         /// Clears all characters from the cursor position to the end of the line
         /// without moving the cursor.
@@ -297,7 +297,7 @@ class Crt {
         this.FastWrite(StringUtils.NewString(' ', (this.WindMaxX + 1) - this.WhereX() + 1), this.WhereXA(), this.WhereYA(), this._CharInfo);
     }
 
-    public static ClrEos(): void {
+    public ClrEos(): void {
         /// <summary>
         /// Clears the active window from the cursor's current line to the end of the window
         /// </summary>
@@ -316,7 +316,7 @@ class Crt {
         this.ClrEol();
     }
 
-    public static ClrLine(): void {
+    public ClrLine(): void {
         /// <summary>
         /// Clears all characters from the cursor position's current line
         /// without moving the cursor.
@@ -331,7 +331,7 @@ class Crt {
         this.FastWrite(StringUtils.NewString(' ', this.WindCols), this.WindMinX + 1, this.WhereYA(), this._CharInfo);
     }
 
-    public static ClrScr(): void {
+    public ClrScr(): void {
         /// <summary>
         /// Clears the active windows and returns the cursor to the upper-left corner.
         /// </summary>
@@ -347,16 +347,16 @@ class Crt {
         this.GotoXY(1, 1);
     }
 
-    public static Conceal(): void {
+    public Conceal(): void {
         // Set the foreground to the background
         this.TextColor((this.TextAttr & 0xF0) >> 4);
     }
 
-    public static get Cursor(): Cursor {
+    public get Cursor(): Cursor {
         return this._Cursor;
     }
 
-    public static DelChar(count?: number): void {
+    public DelChar(count?: number): void {
         if (typeof count === 'undefined') { count = 1; }
 
         var i: number;
@@ -368,7 +368,7 @@ class Crt {
         }
     }
 
-    public static DelLine(count?: number): void {
+    public DelLine(count?: number): void {
         /// <summary>
         /// Deletes the line containing the cursor.
         /// </summary>
@@ -384,7 +384,7 @@ class Crt {
         this.ScrollUpCustom(this.WindMinX + 1, this.WhereYA(), this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
     }
 
-    public static EnterScrollback(): void {
+    public EnterScrollback(): void {
         // Don't run this function if modern scrollback is enabled
         if (this._UseModernScrollback) { return; }
 
@@ -420,7 +420,7 @@ class Crt {
         }
     }
 
-    public static ExitScrollback(): void {
+    public ExitScrollback(): void {
         // Restore the screen contents
         if (typeof this._Buffer !== 'undefined') {
             for (var Y = 1; Y <= this._ScreenSize.y; Y++) {
@@ -433,7 +433,7 @@ class Crt {
         this._InScrollback = false;
     }
 
-    public static FastWrite(text: string, x: number, y: number, charInfo: CharInfo, updateBuffer?: boolean): void {
+    public FastWrite(text: string, x: number, y: number, charInfo: CharInfo, updateBuffer?: boolean): void {
         /// <summary>
         /// Writes a string of text at the desired X/Y coordinate with the given text attribute.
         /// 
@@ -489,7 +489,7 @@ class Crt {
         }
     }
 
-    public static FillScreen(ch: string): void {
+    public FillScreen(ch: string): void {
         var Line: string = StringUtils.NewString(ch.charAt(0), this.ScreenCols);
 
         for (var Y: number = 1; Y <= this.ScreenRows; Y++) {
@@ -497,11 +497,11 @@ class Crt {
         }
     }
 
-    public static get Font(): CrtFont {
+    public get Font(): CrtFont {
         return this._Font;
     }
 
-    public static GotoXY(x: number, y: number): void {
+    public GotoXY(x: number, y: number): void {
         /// <summary>
         /// Moves the cursor to the given coordinates within the virtual screen.
         /// </summary>
@@ -517,11 +517,11 @@ class Crt {
         }
     }
 
-    public static HideCursor(): void {
+    public HideCursor(): void {
         this._Cursor.Visible = false;
     }
 
-    public static HighVideo(): void {
+    public HighVideo(): void {
         /// <summary>
         /// Selects high-intensity characters.
         /// </summary>
@@ -534,12 +534,12 @@ class Crt {
     }
 
     // TODO Have to do this here because the static constructor doesn't seem to like the X and Y variables
-    private static InitBuffers(initScrollback: boolean): void {
+    private InitBuffers(initScrollback: boolean): void {
         this._Buffer = [];
         for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
             this._Buffer[Y] = [];
             for (var X: number = 1; X <= this._ScreenSize.x; X++) {
-                this._Buffer[Y][X] = new CharInfo(' ', this.LIGHTGRAY, false, false, false);
+                this._Buffer[Y][X] = new CharInfo(' ', Crt.LIGHTGRAY, false, false, false);
             }
         }
 
@@ -548,7 +548,7 @@ class Crt {
         }
     }
 
-    public static InsChar(count?: number): void {
+    public InsChar(count?: number): void {
         if (typeof count === 'undefined') { count = 1; }
 
         var i: number;
@@ -560,7 +560,7 @@ class Crt {
         }
     }
 
-    public static InsLine(count?: number): void {
+    public InsLine(count?: number): void {
         /// <summary>
         /// Inserts an empty line at the cursor position.
         /// </summary>
@@ -579,15 +579,15 @@ class Crt {
 
     }
 
-    public static KeyPressed(): boolean {
+    public KeyPressed(): boolean {
         return (this._KeyBuf.length > 0);
     }
 
-    public static set LocalEcho(value: boolean) {
+    public set LocalEcho(value: boolean) {
         this._LocalEcho = value;
     }
 
-    public static LowVideo(): void {
+    public LowVideo(): void {
         /// <summary>
         /// Selects low intensity characters.
         /// </summary>
@@ -599,7 +599,7 @@ class Crt {
         this.TextAttr &= 0xF7;
     }
 
-    private static MousePositionToScreenPosition(x: number, y: number): Point {
+    private MousePositionToScreenPosition(x: number, y: number): Point {
         // Adjust for modern scrollback offset
         if (this._UseModernScrollback) {
             y -= this._ScrollbackSize * this._Font.Height;
@@ -609,7 +609,7 @@ class Crt {
         return new Point(Math.floor(x / this._Font.Width) + 1, Math.floor(y / this._Font.Height) + 1);
     }
 
-    public static NormVideo(): void {
+    public NormVideo(): void {
         /// <summary>
         /// Selects the original text attribute read from the cursor location at startup.
         /// </summary>
@@ -619,16 +619,16 @@ class Crt {
         /// was started.
         /// </remarks>
         if (this._C64) {
-            this._CharInfo.Attr = this.PETSCII_WHITE;
+            this._CharInfo.Attr = Crt.PETSCII_WHITE;
         } else {
-            this._CharInfo.Attr = this.LIGHTGRAY;
+            this._CharInfo.Attr = Crt.LIGHTGRAY;
         }
         this._CharInfo.Blink = false;
         this._CharInfo.Underline = false;
         this._CharInfo.Reverse = false;
     }
 
-    private static OnBlinkHide(): void {
+    private OnBlinkHide(): void {
         // Only hide the text if blink is enabled
         if (this._Blink) {
             this._BlinkHidden = true;
@@ -645,7 +645,7 @@ class Crt {
         }
     }
 
-    private static OnBlinkShow(): void {
+    private OnBlinkShow(): void {
         // Show the text if blink is enabled, or we need a reset (which happens when blink is diabled while in the hidden state)
         if (this._Blink || this._BlinkHidden) {
             this._BlinkHidden = false;
@@ -667,7 +667,7 @@ class Crt {
         this._Cursor.WindowOffset = NewOffset;
     }
 
-    private static OnFontChanged(): void {
+    private OnFontChanged(): void {
         // Resize the cursor
         this._Cursor.Size = this._Font.Size;
 
@@ -694,7 +694,7 @@ class Crt {
         this.onfontchange.trigger();
     }
 
-    private static OnKeyDown(ke: KeyboardEvent): void {
+    private OnKeyDown(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
 
@@ -850,7 +850,7 @@ class Crt {
         }
     }
 
-    private static OnKeyPress(ke: KeyboardEvent): void {
+    private OnKeyPress(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
         if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
 
@@ -892,7 +892,7 @@ class Crt {
         }
     }
 
-    private static OnMouseDown(me: MouseEvent): void {
+    private OnMouseDown(me: MouseEvent): void {
         if (typeof me.offsetX !== 'undefined') {
             this._MouseDownPoint = this.MousePositionToScreenPosition(me.offsetX, me.offsetY);
         } else {
@@ -902,7 +902,7 @@ class Crt {
         this._MouseMovePoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
     }
 
-    private static OnMouseMove(me: MouseEvent): void {
+    private OnMouseMove(me: MouseEvent): void {
         // Bail if mouse is not down
         if (typeof this._MouseDownPoint === 'undefined') { return; }
 
@@ -970,7 +970,7 @@ class Crt {
         this._MouseMovePoint = NewMovePoint;
     }
 
-    private static OnMouseUp(me: MouseEvent): void {
+    private OnMouseUp(me: MouseEvent): void {
         // Get new screen point
         var UpPoint: Point;
         if (typeof me.offsetX !== 'undefined') {
@@ -1052,7 +1052,7 @@ class Crt {
         delete this._MouseMovePoint;
     }
 
-    private static OnMouseUpForWindow(me: MouseEvent): void {
+    private OnMouseUpForWindow(me: MouseEvent): void {
         me = me; // Avoid unused parameter error
 
         // Mouse up over window, check if we need to erase the highlighting
@@ -1091,14 +1091,14 @@ class Crt {
         delete this._MouseMovePoint;
     }
 
-    private static OnResize(): void {
+    private OnResize(): void {
         // See if we can switch to a different font size
         if (this._AllowDynamicFontResize) {
-            Crt.SetFont(this._Font.Name);
+            this.SetFont(this._Font.Name);
         }
     }
 
-    public static PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
+    public PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
         this.OnKeyDown(<KeyboardEvent>{
             altKey: alt,
             charCode: pushedCharCode,
@@ -1109,7 +1109,7 @@ class Crt {
         });
     }
 
-    public static PushKeyPress(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
+    public PushKeyPress(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
         this.OnKeyPress(<KeyboardEvent>{
             altKey: alt,
             charCode: pushedCharCode,
@@ -1120,7 +1120,7 @@ class Crt {
         });
     }
 
-    public static ReadKey(): KeyPressEvent | undefined {
+    public ReadKey(): KeyPressEvent | undefined {
         var KPE = this._KeyBuf.shift();
         if (typeof KPE === 'undefined') {
             return undefined;
@@ -1132,7 +1132,7 @@ class Crt {
         }
     }
 
-    public static ReDraw(): void {
+    public ReDraw(): void {
         for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
             for (var X: number = 1; X <= this._ScreenSize.x; X++) {
                 this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
@@ -1140,7 +1140,7 @@ class Crt {
         }
     }
 
-    public static RestoreScreen(buffer: CharInfo[][], left: number, top: number, right: number, bottom: number): void {
+    public RestoreScreen(buffer: CharInfo[][], left: number, top: number, right: number, bottom: number): void {
         var Height: number = bottom - top + 1;
         var Width: number = right - left + 1;
 
@@ -1151,14 +1151,14 @@ class Crt {
         }
     }
 
-    public static ReverseVideo(): void {
+    public ReverseVideo(): void {
         /// <summary>
         /// Reverses the foreground and background text attributes
         /// </summary>
         this.TextAttr = ((this.TextAttr & 0xF0) >> 4) | ((this.TextAttr & 0x0F) << 4);
     }
 
-    public static SaveScreen(left: number, top: number, right: number, bottom: number): CharInfo[][] {
+    public SaveScreen(left: number, top: number, right: number, bottom: number): CharInfo[][] {
         var Height: number = bottom - top + 1;
         var Width: number = right - left + 1;
         var Result: CharInfo[][] = [];
@@ -1173,15 +1173,15 @@ class Crt {
         return Result;
     }
 
-    public static get ScreenCols(): number {
+    public get ScreenCols(): number {
         return this._ScreenSize.x;
     }
 
-    public static get ScreenRows(): number {
+    public get ScreenRows(): number {
         return this._ScreenSize.y;
     }
 
-    public static ScrollDownCustom(left: number, top: number, right: number, bottom: number, count: number, charInfo: CharInfo, updateBuffer?: boolean): void {
+    public ScrollDownCustom(left: number, top: number, right: number, bottom: number, count: number, charInfo: CharInfo, updateBuffer?: boolean): void {
         /// <summary>
         /// Scrolls the given window down the given number of lines (leaving blank lines at the top), 
         /// filling the void with the given character with the given text attribute
@@ -1255,7 +1255,7 @@ class Crt {
         }
     }
 
-    public static ScrollDownScreen(count: number): void {
+    public ScrollDownScreen(count: number): void {
         /// <summary>
         /// Scrolls the screen down the given number of lines (leaving blanks at the top)
         /// </summary>
@@ -1263,7 +1263,7 @@ class Crt {
         this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, count, this._CharInfo);
     }
 
-    public static ScrollDownWindow(count: number): void {
+    public ScrollDownWindow(count: number): void {
         /// <summary>
         /// Scrolls the current window down the given number of lines (leaving blanks at the top)
         /// </summary>
@@ -1271,7 +1271,7 @@ class Crt {
         this.ScrollDownCustom(this.WindMinX + 1, this.WindMinY + 1, this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
     }
 
-    public static ScrollUpCustom(left: number, top: number, right: number, bottom: number, count: number, charInfo: CharInfo, updateBuffer?: boolean): void {
+    public ScrollUpCustom(left: number, top: number, right: number, bottom: number, count: number, charInfo: CharInfo, updateBuffer?: boolean): void {
         /// <summary>
         /// Scrolls the given window up the given number of lines (leaving blank lines at the bottom), 
         /// filling the void with the given character with the given text attribute
@@ -1401,7 +1401,7 @@ class Crt {
         }
     }
 
-    public static ScrollUpScreen(count: number): void {
+    public ScrollUpScreen(count: number): void {
         /// <summary>
         /// Scrolls the screen up the given number of lines (leaving blanks at the bottom)
         /// </summary>
@@ -1409,7 +1409,7 @@ class Crt {
         this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, count, this._CharInfo);
     }
 
-    public static ScrollUpWindow(count: number): void {
+    public ScrollUpWindow(count: number): void {
         /// <summary>
         /// Scrolls the current window up the given number of lines (leaving blanks at the bottom)
         /// </summary>
@@ -1417,15 +1417,15 @@ class Crt {
         this.ScrollUpCustom(this.WindMinX + 1, this.WindMinY + 1, this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
     }
 
-    public static SetBlink(value: boolean): void {
+    public SetBlink(value: boolean): void {
         this._CharInfo.Blink = value;
     }
 
-    public static SetBlinkRate(milliSeconds: number): void {
+    public SetBlinkRate(milliSeconds: number): void {
         this._Cursor.BlinkRate = milliSeconds;
     }
 
-    public static SetFont(font: string): boolean {
+    public SetFont(font: string): boolean {
         /// <summary>
         /// Try to set the console font size to characters with the given X and Y size
         /// </summary>
@@ -1443,7 +1443,7 @@ class Crt {
     }
 
     // TODO Doesn't seem to be working
-    public static SetScreenSize(columns: number, rows: number): void {
+    public SetScreenSize(columns: number, rows: number): void {
         // Check if we're in scrollback
         if (this._InScrollback) { return; }
 
@@ -1501,11 +1501,11 @@ class Crt {
         this.onscreensizechange.trigger();
     }
 
-    public static ShowCursor(): void {
+    public ShowCursor(): void {
         this._Cursor.Visible = true;
     }
 
-    public static get TextAttr(): number {
+    public get TextAttr(): number {
         /// <summary>
         /// Stores currently selected text attributes
         /// </summary>
@@ -1518,11 +1518,11 @@ class Crt {
         return this._CharInfo.Attr;
     }
 
-    public static set TextAttr(value: number) {
+    public set TextAttr(value: number) {
         this._CharInfo.Attr = value;
     }
 
-    public static TextBackground(colour: number): void {
+    public TextBackground(colour: number): void {
         /// <summary>
         /// Selects the background color.
         /// </summary>
@@ -1539,7 +1539,7 @@ class Crt {
         this.TextAttr = (this.TextAttr & 0x0F) | ((colour & 0x0F) << 4);
     }
 
-    public static TextColor(colour: number): void {
+    public TextColor(colour: number): void {
         /// <summary>
         /// Selects the foreground character color.
         /// </summary>
@@ -1562,12 +1562,12 @@ class Crt {
         this.TextAttr = (this.TextAttr & 0xF0) | (colour & 0x0F);
     }
 
-    public static set Transparent(value: Boolean) {
+    public set Transparent(value: Boolean) {
         this._Transparent = value;
         // TODO Redraw
     }
 
-    public static WhereX(): number {
+    public WhereX(): number {
         /// <summary>
         /// Returns the CP's X coordinate of the current cursor location.
         /// </summary>
@@ -1578,7 +1578,7 @@ class Crt {
         return this._Cursor.Position.x;
     }
 
-    public static WhereXA(): number {
+    public WhereXA(): number {
         /// <summary>
         /// Returns the CP's X coordinate of the current cursor location.
         /// </summary>
@@ -1596,11 +1596,11 @@ class Crt {
     /// WhereY is window-specific.
     /// </remarks>
     /// <returns>The 1-based row of the window the cursor is currently in</returns>
-    public static WhereY(): number {
+    public WhereY(): number {
         return this._Cursor.Position.y;
     }
 
-    public static WhereYA(): number {
+    public WhereYA(): number {
         /// <summary>
         /// Returns the CP's Y coordinate of the current cursor location.
         /// </summary>
@@ -1611,56 +1611,56 @@ class Crt {
         return this.WhereY() + this.WindMinY;
     }
 
-    public static get WindCols(): number {
+    public get WindCols(): number {
         /// <summary>
         /// The number of columns found in the currently defined window
         /// </summary>
         return this.WindMaxX - this.WindMinX + 1;
     }
 
-    public static get WindMax(): number {
+    public get WindMax(): number {
         /// <summary>
         /// The 0-based lower right coordinate of the current window
         /// </summary>
         return this._WindMax;
     }
 
-    public static get WindMaxX(): number {
+    public get WindMaxX(): number {
         /// <summary>
         /// The 0-based left column of the current window
         /// </summary>
         return (this.WindMax & 0x00FF);
     }
 
-    public static get WindMaxY(): number {
+    public get WindMaxY(): number {
         /// <summary>
         /// The 0-based right column of the current window
         /// </summary>
         return ((this.WindMax & 0xFF00) >> 8);
     }
 
-    public static get WindMin(): number {
+    public get WindMin(): number {
         /// <summary>
         /// The 0-based upper left coordinate of the current window
         /// </summary>
         return this._WindMin;
     }
 
-    public static get WindMinX(): number {
+    public get WindMinX(): number {
         /// <summary>
         /// The 0-based top row of the current window
         /// </summary>
         return (this.WindMin & 0x00FF);
     }
 
-    public static get WindMinY(): number {
+    public get WindMinY(): number {
         /// <summary>
         /// The 0-based bottom row of the current window
         /// </summary>
         return ((this.WindMin & 0xFF00) >> 8);
     }
 
-    public static Window(left: number, top: number, right: number, bottom: number): void {
+    public Window(left: number, top: number, right: number, bottom: number): void {
         /// <summary>
         /// Defines a text window on the screen.
         /// </summary>
@@ -1699,14 +1699,14 @@ class Crt {
         }
     }
 
-    public static get WindRows(): number {
+    public get WindRows(): number {
         /// <summary>
         /// The number of rows found in the currently defined window
         /// </summary>
         return this.WindMaxY - this.WindMinY + 1;
     }
 
-    public static Write(text: string): void {
+    public Write(text: string): void {
         /// <summary>
         /// Writes a given line of text to the screen.
         /// </summary>
@@ -1723,7 +1723,7 @@ class Crt {
         }
     }
 
-    private static WriteASCII(text: string): void {
+    private WriteASCII(text: string): void {
         if (typeof text === 'undefined') { text = ''; }
 
         var X: number = this.WhereX();
@@ -1832,7 +1832,7 @@ class Crt {
         }
     }
 
-    private static WriteATASCII(text: string): void {
+    private WriteATASCII(text: string): void {
         if (typeof text === 'undefined') { text = ''; }
 
         var X: number = this.WhereX();
@@ -2000,7 +2000,7 @@ class Crt {
         }
     }
 
-    private static WritePETSCII(text: string): void {
+    private WritePETSCII(text: string): void {
         if (typeof text === 'undefined') { text = ''; }
 
         var X: number = this.WhereX();
@@ -2023,7 +2023,7 @@ class Crt {
                 i += 0; // Make JSLint happy (doesn't like empty block)
             } else if (text.charCodeAt(i) === 0x05) {
                 // Changes the text color to white. 
-                this.TextColor(this.PETSCII_WHITE);
+                this.TextColor(Crt.PETSCII_WHITE);
             } else if (text.charCodeAt(i) === 0x07) {
                 // Beep (extra, not documented)
                 this.Beep();
@@ -2074,7 +2074,7 @@ class Crt {
                 }
             } else if (text.charCodeAt(i) === 0x1C) {
                 // Changes the text color to red. 
-                this.TextColor(this.PETSCII_RED);
+                this.TextColor(Crt.PETSCII_RED);
             } else if (text.charCodeAt(i) === 0x1D) {
                 // Advances the cursor one character position without printing anything. 
                 if (X === this.WindCols) {
@@ -2086,19 +2086,19 @@ class Crt {
                 DoGoto = true;
             } else if (text.charCodeAt(i) === 0x1E) {
                 // Changes the text color to green. 
-                this.TextColor(this.PETSCII_GREEN);
+                this.TextColor(Crt.PETSCII_GREEN);
             } else if (text.charCodeAt(i) === 0x1F) {
                 // Changes the text color to blue. 
-                this.TextColor(this.PETSCII_BLUE);
+                this.TextColor(Crt.PETSCII_BLUE);
             } else if (text.charCodeAt(i) === 0x81) {
                 // Changes the text color to orange. 
-                this.TextColor(this.PETSCII_ORANGE);
+                this.TextColor(Crt.PETSCII_ORANGE);
             } else if (text.charCodeAt(i) === 0x8E) {
                 // Select the uppercase/semigraphics character set. 
                 this.SetFont('C64-Upper');
             } else if (text.charCodeAt(i) === 0x90) {
                 // Changes the text color to black. 
-                this.TextColor(this.PETSCII_BLACK);
+                this.TextColor(Crt.PETSCII_BLACK);
             } else if (text.charCodeAt(i) === 0x91) {
                 // Cursor up: Next character will be printed in subsequent column one text line further up the screen. 
                 if (Y > 1) {
@@ -2121,28 +2121,28 @@ class Crt {
                 this.InsChar(1);
             } else if (text.charCodeAt(i) === 0x95) {
                 // Changes the text color to brown. 
-                this.TextColor(this.PETSCII_BROWN);
+                this.TextColor(Crt.PETSCII_BROWN);
             } else if (text.charCodeAt(i) === 0x96) {
                 // Changes the text color to light red.
-                this.TextColor(this.PETSCII_LIGHTRED);
+                this.TextColor(Crt.PETSCII_LIGHTRED);
             } else if (text.charCodeAt(i) === 0x97) {
                 // Changes the text color to dark gray. 
-                this.TextColor(this.PETSCII_DARKGRAY);
+                this.TextColor(Crt.PETSCII_DARKGRAY);
             } else if (text.charCodeAt(i) === 0x98) {
                 // Changes the text color to gray. 
-                this.TextColor(this.PETSCII_GRAY);
+                this.TextColor(Crt.PETSCII_GRAY);
             } else if (text.charCodeAt(i) === 0x99) {
                 // Changes the text color to light green. 
-                this.TextColor(this.PETSCII_LIGHTGREEN);
+                this.TextColor(Crt.PETSCII_LIGHTGREEN);
             } else if (text.charCodeAt(i) === 0x9A) {
                 // Changes the text color to light blue. 
-                this.TextColor(this.PETSCII_LIGHTBLUE);
+                this.TextColor(Crt.PETSCII_LIGHTBLUE);
             } else if (text.charCodeAt(i) === 0x9B) {
                 // Changes the text color to light gray. 
-                this.TextColor(this.PETSCII_LIGHTGRAY);
+                this.TextColor(Crt.PETSCII_LIGHTGRAY);
             } else if (text.charCodeAt(i) === 0x9C) {
                 // Changes the text color to purple. 
-                this.TextColor(this.PETSCII_PURPLE);
+                this.TextColor(Crt.PETSCII_PURPLE);
             } else if (text.charCodeAt(i) === 0x9D) {
                 // Moves the cursor one character position backwards, without printing or deleting anything. 
                 if ((X > 1) || (Y > 1)) {
@@ -2156,10 +2156,10 @@ class Crt {
                 }
             } else if (text.charCodeAt(i) === 0x9E) {
                 // Changes the text color to yellow. 
-                this.TextColor(this.PETSCII_YELLOW);
+                this.TextColor(Crt.PETSCII_YELLOW);
             } else if (text.charCodeAt(i) === 0x9F) {
                 // Changes the text color to cyan. 
-                this.TextColor(this.PETSCII_CYAN);
+                this.TextColor(Crt.PETSCII_CYAN);
             } else if (text.charCodeAt(i) !== 0) {
                 // Append character to buffer
                 Buf += String.fromCharCode(text.charCodeAt(i) & 0xFF);
@@ -2195,7 +2195,7 @@ class Crt {
         }
     }
 
-    public static WriteLn(text?: string): void {
+    public WriteLn(text?: string): void {
         /// <summary>
         /// Writes a given line of text to the screen, followed by a carriage return and line feed.
         /// </summary>
