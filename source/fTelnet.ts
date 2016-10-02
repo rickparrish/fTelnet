@@ -43,6 +43,7 @@ class fTelnet {
     private _StatusBar: HTMLDivElement;
     private _StatusBarLabel: HTMLSpanElement;
     private _Timer: number;
+    private _UploadInput: HTMLInputElement;
     private _UseModernScrollback: boolean = false;
     private _VirtualKeyboard: VirtualKeyboard;
     private _YModemReceive: YModemReceive;
@@ -188,12 +189,39 @@ class fTelnet {
         if (this._UseModernScrollback) {
             this._ScrollbackBar.innerHTML = 'SCROLLBACK: Scroll back down to the bottom to exit scrollback mode';
         } else {
-            // TODOX Calls to Crt.* and fTelnet.* will fail now that it is not global scope
-            this._ScrollbackBar.innerHTML = 'SCROLLBACK: <a href="#" onclick="Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); return false;">Line Up</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); return false;">Line Down</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); return false;">Page Up</a> | ' +
-            '<a href="#" onclick="Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); return false;">Page Down</a> | ' +
-            '<a href="#" onclick="fTelnet.ExitScrollback(); return false;">Exit</a>';
+            var ScrollbackLabel: HTMLSpanElement = document.createElement('span');
+            ScrollbackLabel.innerHTML = 'SCROLLBACK:';
+            this._ScrollbackBar.appendChild(ScrollbackLabel);
+
+            var ScrollbackLineUp: HTMLAnchorElement = document.createElement('a');
+            ScrollbackLineUp.href = '#';
+            ScrollbackLineUp.innerHTML = 'Line Up';
+            ScrollbackLineUp.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); e.preventDefault(); return false; });
+            this._ScrollbackBar.appendChild(ScrollbackLineUp);
+
+            var ScrollbackLineDown: HTMLAnchorElement = document.createElement('a');
+            ScrollbackLineDown.href = '#';
+            ScrollbackLineDown.innerHTML = 'Line Down';
+            ScrollbackLineDown.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); e.preventDefault(); return false; });
+            this._ScrollbackBar.appendChild(ScrollbackLineDown);
+
+            var ScrollbackPageUp: HTMLAnchorElement = document.createElement('a');
+            ScrollbackPageUp.href = '#';
+            ScrollbackPageUp.innerHTML = 'Page Up';
+            ScrollbackPageUp.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); e.preventDefault(); return false; });
+            this._ScrollbackBar.appendChild(ScrollbackPageUp);
+
+            var ScrollbackPageDown: HTMLAnchorElement = document.createElement('a');
+            ScrollbackPageDown.href = '#';
+            ScrollbackPageDown.innerHTML = 'Page Down';
+            ScrollbackPageDown.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); e.preventDefault(); return false; });
+            this._ScrollbackBar.appendChild(ScrollbackPageDown);
+
+            var ScrollbackExit: HTMLAnchorElement = document.createElement('a');
+            ScrollbackExit.href = '#';
+            ScrollbackExit.innerHTML = 'Exit';
+            ScrollbackExit.addEventListener('click', (e: MouseEvent): boolean => { this.ExitScrollback(); e.preventDefault(); return false; });
+            this._ScrollbackBar.appendChild(ScrollbackExit);
         }
         this._ScrollbackBar.style.display = 'none';
         this._fTelnetContainer.appendChild(this._ScrollbackBar);
@@ -230,16 +258,92 @@ class fTelnet {
         // Create the menu buttons
         this._MenuButtons = document.createElement('div');
         this._MenuButtons.className = 'fTelnetMenuButtons';
-        // TODOX Calls to fTelnet.* will fail now that it is not global scope
-        this._MenuButtons.innerHTML = '<table cellpadding="5" cellspacing="1"><tr><td><a href="#" onclick="fTelnet.Connect(); return false;">Connect</a></td>'
-            + '<td><a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a></td></tr>'
-            + (DetectMobileBrowser.IsMobile ? '' : '<tr><td><a href="#" onclick="fTelnet.ClipboardCopy(); return false;">Copy</a></td>')
-            + (DetectMobileBrowser.IsMobile ? '' : '<td><a href="#" onclick="fTelnet.ClipboardPaste(); return false;">Paste</a></td></tr>')
-            + '<tr><td><a href="#" onclick="fTelnet.Upload(); return false;">Upload</a></td>'
-            + '<td><a href="#" onclick="fTelnet.Download(); return false;">Download</a></td></tr>'
-            + '<tr><td><a href="#" onclick="fTelnet.VirtualKeyboardVisible = !fTelnet.VirtualKeyboardVisible; return false;">Keyboard</a></td>'
-            + '<td><a href="#" onclick="fTelnet.FullScreenToggle(); return false;">Full&nbsp;Screen</a></td></tr>'
-            + (!this._UseModernScrollback ? '<tr><td colspan="2"><a href="#" onclick="fTelnet.EnterScrollback(); return false;">View Scrollback Buffer</a></td></tr>' : '');
+        var MenuButtonsTable: HTMLTableElement = document.createElement('table');
+
+        var MenuButtonsRow1: HTMLTableRowElement = document.createElement('tr');
+        var MenuButtonsRow1Cell1: HTMLTableCellElement = document.createElement('td');
+        var MenuButtonsConnect: HTMLAnchorElement = document.createElement('a');
+        MenuButtonsConnect.href = '#';
+        MenuButtonsConnect.innerHTML = 'Connect';
+        MenuButtonsConnect.addEventListener('click', (me: MouseEvent): boolean => { this.Connect(); me.preventDefault(); return false; });
+        MenuButtonsRow1Cell1.appendChild(MenuButtonsConnect);
+        MenuButtonsRow1.appendChild(MenuButtonsRow1Cell1);
+        var MenuButtonsRow1Cell2: HTMLTableCellElement = document.createElement('td');
+        var MenuButtonsDisconnect: HTMLAnchorElement = document.createElement('a');
+        MenuButtonsDisconnect.href = '#';
+        MenuButtonsDisconnect.innerHTML = 'Disconnect';
+        MenuButtonsDisconnect.addEventListener('click', (me: MouseEvent): boolean => { this.Disconnect(true); me.preventDefault(); return false; });
+        MenuButtonsRow1Cell2.appendChild(MenuButtonsDisconnect);
+        MenuButtonsRow1.appendChild(MenuButtonsRow1Cell2);
+        MenuButtonsTable.appendChild(MenuButtonsRow1);
+
+        if (!DetectMobileBrowser.IsMobile) {
+            var MenuButtonsRow2: HTMLTableRowElement = document.createElement('tr');
+            var MenuButtonsRow2Cell1: HTMLTableCellElement = document.createElement('td');
+            var MenuButtonsCopy: HTMLAnchorElement = document.createElement('a');
+            MenuButtonsCopy.href = '#';
+            MenuButtonsCopy.innerHTML = 'Copy';
+            MenuButtonsCopy.addEventListener('click', (me: MouseEvent): boolean => { this.ClipboardCopy(); me.preventDefault(); return false; });
+            MenuButtonsRow2Cell1.appendChild(MenuButtonsCopy);
+            MenuButtonsRow2.appendChild(MenuButtonsRow2Cell1);
+            var MenuButtonsRow2Cell2: HTMLTableCellElement = document.createElement('td');
+            var MenuButtonsPaste: HTMLAnchorElement = document.createElement('a');
+            MenuButtonsPaste.href = '#';
+            MenuButtonsPaste.innerHTML = 'Paste';
+            MenuButtonsPaste.addEventListener('click', (me: MouseEvent): boolean => { this.ClipboardPaste(); me.preventDefault(); return false; });
+            MenuButtonsRow2Cell2.appendChild(MenuButtonsPaste);
+            MenuButtonsRow2.appendChild(MenuButtonsRow2Cell2);
+            MenuButtonsTable.appendChild(MenuButtonsRow2);
+        }
+
+        var MenuButtonsRow3: HTMLTableRowElement = document.createElement('tr');
+        var MenuButtonsRow3Cell1: HTMLTableCellElement = document.createElement('td');
+        var MenuButtonsUpload: HTMLAnchorElement = document.createElement('a');
+        MenuButtonsUpload.href = '#';
+        MenuButtonsUpload.innerHTML = 'Upload';
+        MenuButtonsUpload.addEventListener('click', (me: MouseEvent): boolean => { this.Upload(); me.preventDefault(); return false; });
+        MenuButtonsRow3Cell1.appendChild(MenuButtonsUpload);
+        MenuButtonsRow3.appendChild(MenuButtonsRow3Cell1);
+        var MenuButtonsRow3Cell2: HTMLTableCellElement = document.createElement('td');
+        var MenuButtonsDownload: HTMLAnchorElement = document.createElement('a');
+        MenuButtonsDownload.href = '#';
+        MenuButtonsDownload.innerHTML = 'Download';
+        MenuButtonsDownload.addEventListener('click', (me: MouseEvent): boolean => { this.Download(); me.preventDefault(); return false; });
+        MenuButtonsRow3Cell2.appendChild(MenuButtonsDownload);
+        MenuButtonsRow3.appendChild(MenuButtonsRow3Cell2);
+        MenuButtonsTable.appendChild(MenuButtonsRow3);
+
+        var MenuButtonsRow4: HTMLTableRowElement = document.createElement('tr');
+        var MenuButtonsRow4Cell1: HTMLTableCellElement = document.createElement('td');
+        var MenuButtonsKeyboard: HTMLAnchorElement = document.createElement('a');
+        MenuButtonsKeyboard.href = '#';
+        MenuButtonsKeyboard.innerHTML = 'Keyboard';
+        MenuButtonsKeyboard.addEventListener('click', (me: MouseEvent): boolean => { this.VirtualKeyboardVisible = !this.VirtualKeyboardVisible; me.preventDefault(); return false; });
+        MenuButtonsRow4Cell1.appendChild(MenuButtonsKeyboard);
+        MenuButtonsRow4.appendChild(MenuButtonsRow4Cell1);
+        var MenuButtonsRow4Cell2: HTMLTableCellElement = document.createElement('td');
+        var MenuButtonsFullScreen: HTMLAnchorElement = document.createElement('a');
+        MenuButtonsFullScreen.href = '#';
+        MenuButtonsFullScreen.innerHTML = 'Full&nbsp;Screen';
+        MenuButtonsFullScreen.addEventListener('click', (me: MouseEvent): boolean => { this.FullScreenToggle(); me.preventDefault(); return false; });
+        MenuButtonsRow4Cell2.appendChild(MenuButtonsFullScreen);
+        MenuButtonsRow4.appendChild(MenuButtonsRow4Cell2);
+        MenuButtonsTable.appendChild(MenuButtonsRow4);
+
+        if (!this._UseModernScrollback) {
+            var MenuButtonsRow5: HTMLTableRowElement = document.createElement('tr');
+            var MenuButtonsRow5Cell1: HTMLTableCellElement = document.createElement('td');
+            MenuButtonsRow5Cell1.colSpan = 2;
+            var MenuButtonsScrollback: HTMLAnchorElement = document.createElement('a');
+            MenuButtonsScrollback.href = '#';
+            MenuButtonsScrollback.innerHTML = 'View Scrollback Buffer';
+            MenuButtonsScrollback.addEventListener('click', (me: MouseEvent): boolean => { this.EnterScrollback(); me.preventDefault(); return false; });
+            MenuButtonsRow5Cell1.appendChild(MenuButtonsScrollback);
+            MenuButtonsRow5.appendChild(MenuButtonsRow5Cell1);
+            MenuButtonsTable.appendChild(MenuButtonsRow5);
+        }
+
+        this._MenuButtons.appendChild(MenuButtonsTable);
         this._MenuButtons.style.display = 'none';
         this._MenuButtons.style.zIndex = '150';  // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
         this._fTelnetContainer.appendChild(this._MenuButtons);
@@ -287,12 +391,12 @@ class fTelnet {
         this._Timer = setInterval((): void => { this.OnTimer(); }, 250);
 
         // Add our upload control
-        var fTelnetUpload: HTMLInputElement = <HTMLInputElement>document.createElement('input');
-        fTelnetUpload.type = 'file';
-        fTelnetUpload.className = 'fTelnetUpload';
-        fTelnetUpload.onchange = (): void => { this.OnUploadFileSelected(); };
-        fTelnetUpload.style.display = 'none';
-        this._fTelnetContainer.appendChild(fTelnetUpload);
+        this._UploadInput = <HTMLInputElement>document.createElement('input');
+        this._UploadInput.type = 'file';
+        this._UploadInput.className = 'fTelnetUpload';
+        this._UploadInput.onchange = (): void => { this.OnUploadFileSelected(); };
+        this._UploadInput.style.display = 'none';
+        this._fTelnetContainer.appendChild(this._UploadInput);
 
         // TODOX return true;
     }
@@ -796,21 +900,18 @@ class fTelnet {
                 this._HasFocus = false;
                 this._FocusWarningBar.style.display = 'block';
             }
-
-            // Check for scrollback
-            if (this._UseModernScrollback) {
-                var ScrolledUp = (this._ClientContainer.scrollHeight - this._ClientContainer.scrollTop - this._ClientContainer.clientHeight > 1);
-                if (ScrolledUp && (this._ScrollbackBar.style.display === 'none')) {
-                    this._ScrollbackBar.style.display = 'block';
-                } else if (!ScrolledUp && (this._ScrollbackBar.style.display === 'block')) {
-                    this._ScrollbackBar.style.display = 'none';
-                }
-            }
         } else {
             if (this._FocusWarningBar.style.display === 'block') {
                 this._FocusWarningBar.style.display = 'none';
             }
-            if (this._ScrollbackBar.style.display === 'block') {
+        }
+
+        // Check for scrollback
+        if (this._UseModernScrollback) {
+            var ScrolledUp = (this._ClientContainer.scrollHeight - this._ClientContainer.scrollTop - this._ClientContainer.clientHeight > 1);
+            if (ScrolledUp && (this._ScrollbackBar.style.display === 'none')) {
+                this._ScrollbackBar.style.display = 'block';
+            } else if (!ScrolledUp && (this._ScrollbackBar.style.display === 'block')) {
                 this._ScrollbackBar.style.display = 'none';
             }
         }
@@ -825,8 +926,6 @@ class fTelnet {
         if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
 
-        var fTelnetUpload: HTMLInputElement = <HTMLInputElement>document.getElementById('fTelnetUpload');
-
         // Get the YModemSend class ready to go
         this._YModemSend = new YModemSend(this._Crt, this._Connection);
 
@@ -838,9 +937,9 @@ class fTelnet {
         this._YModemSend.ontransfercomplete.on((): void => { this.OnUploadComplete(); });
 
         // Loop through the FileList and prep them for upload
-        if (fTelnetUpload.files !== null) {
-            for (var i: number = 0; i < fTelnetUpload.files.length; i++) {
-                this.UploadFile(fTelnetUpload.files[i], fTelnetUpload.files.length);
+        if (this._UploadInput.files !== null) {
+            for (var i: number = 0; i < this._UploadInput.files.length; i++) {
+                this.UploadFile(this._UploadInput.files[i], this._UploadInput.files.length);
             }
         }
     }
@@ -950,8 +1049,7 @@ class fTelnet {
         if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
 
-        var Upload = document.getElementById('fTelnetUpload');
-        if (Upload !== null) { Upload.click(); }
+        this._UploadInput.click();
     }
 
     private UploadFile(file: File, fileCount: number): void {

@@ -36,6 +36,7 @@
   padding: 2px 0 0 6px;
   transition: background-color 0.2s ease;
   width: 46px;
+  text-align: left;
 }
 #fTelnetKeyboard .fTelnetKeyboardRow .fTelnetKeyboardKey:hover {
   background-color: #eee;

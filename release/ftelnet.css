@@ -1,5 +1,4 @@
-﻿/*TODOX This will all have to be class based instead since the ID is customizable*/
-.fTelnetContainer {
+﻿.fTelnetContainer {
     box-sizing: content-box;
     margin: auto;
 }
@@ -89,6 +88,7 @@
 
     .fTelnetScrollback a {
         color: white;
+        padding: 0 5px;
         text-decoration: none;
     }
 
