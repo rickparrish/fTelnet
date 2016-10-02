@@ -69,12 +69,16 @@ class fTelnet {
     private _RLoginTerminalType: string = '';
     private _ScreenColumns: number = 80;
     private _ScreenRows: number = 25;
-    private _SplashScreen: string = 'G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==';
+    private _SplashScreen: string = '';
     private _StatusBarVisible: boolean = true;
     private _VirtualKeyboardVisible: boolean = DetectMobileBrowser.IsMobile;
 
     // TODOX This should be a constructor, and accept an fTelnetOptions parameter
     constructor(container: HTMLElement) {
+        // TODOX Canvas test (display error in div if missing support)
+        // TODOX WebSocket test (display error in Crt if missing support)
+        // TODOX Any other tests?
+
         // If somebody passes a string id instead of an actual element, get the actual element
         if (typeof container === 'string') {
             var ActualContainer: HTMLElement | null = document.getElementById(container);
@@ -120,26 +124,13 @@ class fTelnet {
 
         // Add init message
         this._InitMessageBar = document.createElement('div');
-        this._InitMessageBar.id = 'fTelnetInitMessage';
+        this._InitMessageBar.className = 'fTelnetInitMessage';
         this._InitMessageBar.innerHTML = 'Initializing fTelnet...';
         this._fTelnetContainer.appendChild(this._InitMessageBar);
 
-        // IE less than 9.0 will throw script errors and not even load
-        if (navigator.appName === 'Microsoft Internet Explorer') {
-            var Version: number = -1;
-            var RE: RegExp = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})');
-            if (RE.exec(navigator.userAgent) !== null) { Version = parseFloat(RegExp.$1); }
-            if (Version < 9.0) {
-                var IELessThan9Message = 'fTelnet Error: Internet Explorer < 9 is not supported.\n\nPlease upgrade to IE 9 or newer, or better still would be to use Firefox or Chrome instead of IE.';
-                this._InitMessageBar.innerHTML = IELessThan9Message;
-                alert(IELessThan9Message);
-                // TODOX return false;
-            }
-        }
-
         // Create the client container (crt/graph)
         this._ClientContainer = document.createElement('div');
-        this._ClientContainer.id = 'fTelnetClientContainer';
+        this._ClientContainer.className = 'fTelnetClientContainer';
         this._fTelnetContainer.appendChild(this._ClientContainer);
 
         // Setup the client container for modern scrollback on desktop devices
@@ -186,14 +177,14 @@ class fTelnet {
 
         // Create the focus bar
         this._FocusWarningBar = document.createElement('div');
-        this._FocusWarningBar.id = 'fTelnetFocusWarning';
+        this._FocusWarningBar.className = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO ENABLE KEYBOARD INPUT ***';
         this._FocusWarningBar.style.display = 'none';
         this._fTelnetContainer.appendChild(this._FocusWarningBar);
 
         // Create the scrollback bar
         this._ScrollbackBar = document.createElement('div');
-        this._ScrollbackBar.id = 'fTelnetScrollback';
+        this._ScrollbackBar.className = 'fTelnetScrollback';
         if (this._UseModernScrollback) {
             this._ScrollbackBar.innerHTML = 'SCROLLBACK: Scroll back down to the bottom to exit scrollback mode';
         } else {
@@ -210,13 +201,13 @@ class fTelnet {
 
         // Create the status bar
         this._StatusBar = document.createElement('div');
-        this._StatusBar.id = 'fTelnetStatusBar';
+        this._StatusBar.className = 'fTelnetStatusBar';
         this._StatusBar.style.display = (this._StatusBarVisible ? 'block' : 'none');
         this._fTelnetContainer.appendChild(this._StatusBar);
 
         // Create the statusbar menu button
         this._MenuButton = document.createElement('a');
-        this._MenuButton.id = 'fTelnetMenuButton';
+        this._MenuButton.className = 'fTelnetMenuButton';
         this._MenuButton.href = '#';
         this._MenuButton.innerHTML = 'Menu';
         this._MenuButton.addEventListener('click', (e: Event): boolean => { this.OnMenuButtonClick(); e.preventDefault(); return false; }, false);
@@ -224,7 +215,7 @@ class fTelnet {
 
         // Create the statusbar connect button
         this._ConnectButton = document.createElement('a');
-        this._ConnectButton.id = 'fTelnetConnectButton';
+        this._ConnectButton.className = 'fTelnetConnectButton';
         this._ConnectButton.href = '#';
         this._ConnectButton.innerHTML = 'Connect';
         this._ConnectButton.addEventListener('click', (e: Event): boolean => { this.Connect(); e.preventDefault(); return false; }, false);
@@ -232,13 +223,13 @@ class fTelnet {
 
         // Create the statusbar label
         this._StatusBarLabel = document.createElement('span');
-        this._StatusBarLabel.id = 'fTelnetStatusBarLabel';
+        this._StatusBarLabel.className = 'fTelnetStatusBarLabel';
         this._StatusBarLabel.innerHTML = 'Not connected';
         this._StatusBar.appendChild(this._StatusBarLabel);
 
         // Create the menu buttons
         this._MenuButtons = document.createElement('div');
-        this._MenuButtons.id = 'fTelnetMenuButtons';
+        this._MenuButtons.className = 'fTelnetMenuButtons';
         // TODOX Calls to fTelnet.* will fail now that it is not global scope
         this._MenuButtons.innerHTML = '<table cellpadding="5" cellspacing="1"><tr><td><a href="#" onclick="fTelnet.Connect(); return false;">Connect</a></td>'
             + '<td><a href="#" onclick="fTelnet.Disconnect(true); return false;">Disconnect</a></td></tr>'
@@ -276,15 +267,21 @@ class fTelnet {
         // } else {
         //     this._Ansi.Write(atob(this._SplashScreen));
         // }
-        this._Ansi.Write(atob(this._SplashScreen));
+        if (this._SplashScreen === '') {
+            this._Ansi.Write(atob('G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bWZUZWxuZXQgLS0gVGVsbmV0IGZvciB0aGUgV2ViICAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDkt'));
+            this._Ansi.Write(new Date().getFullYear().toString());
+            this._Ansi.Write(atob('IFImTSBTb2Z0d2FyZS4gIEFsbCBSaWdodHMgUmVzZXJ2ZWQNChtbMDszNG3ExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE'));
+        } else {
+            this._Ansi.Write(atob(this._SplashScreen));
+        }
 
         // TODOX This used to be run when Crt.Init() failed.  Maybe have a fTelnet.Supported getter that handles all the validation of features
-        //} else {
-        //    this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
-        //    if (typeof this._ScrollbackBar !== 'undefined') { this._ScrollbackBar.style.display = 'none'; }
-        //    this._FocusWarningBar.style.display = 'none';
-        //    // TODOX return false;
-        //}
+        // } else {
+        //     this._InitMessageBar.innerHTML = 'fTelnet Error: Unable to init Crt class';
+        //     if (typeof this._ScrollbackBar !== 'undefined') { this._ScrollbackBar.style.display = 'none'; }
+        //     this._FocusWarningBar.style.display = 'none';
+        //     // TODOX return false;
+        // }
 
         // Create our main timer
         this._Timer = setInterval((): void => { this.OnTimer(); }, 250);
@@ -292,7 +289,7 @@ class fTelnet {
         // Add our upload control
         var fTelnetUpload: HTMLInputElement = <HTMLInputElement>document.createElement('input');
         fTelnetUpload.type = 'file';
-        fTelnetUpload.id = 'fTelnetUpload';
+        fTelnetUpload.className = 'fTelnetUpload';
         fTelnetUpload.onchange = (): void => { this.OnUploadFileSelected(); };
         fTelnetUpload.style.display = 'none';
         this._fTelnetContainer.appendChild(fTelnetUpload);

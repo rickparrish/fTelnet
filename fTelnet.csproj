@@ -25,7 +25,6 @@
     <Content Include="index.html" />
     <Content Include="release\docs\index.html" />
     <Content Include="release\ftelnet.css" />
-    <Content Include="release\IELessThan9Check.js" />
     <Content Include="release\index.html" />
     <Content Include="release\index.debug.html" />
     <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
@@ -182,7 +181,7 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(ProjectDir)release\IELessThan9Check.js + $(ProjectDir)release\Blob.js + $(ProjectDir)release\FileSaver.js + $(ProjectDir)release\ftelnet.debug.js $(ProjectDir)release\ftelnet.combined.js
+    <PostBuildEvent>copy $(ProjectDir)release\Blob.js + $(ProjectDir)release\FileSaver.js + $(ProjectDir)release\ftelnet.debug.js $(ProjectDir)release\ftelnet.combined.js
 jsmin &lt;$(ProjectDir)release\ftelnet.combined.js &gt;$(ProjectDir)release\ftelnet.min.js</PostBuildEvent>
   </PropertyGroup>
   <Import Project="packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets" Condition="Exists('packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" />

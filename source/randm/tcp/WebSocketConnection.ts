@@ -18,6 +18,7 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path="../../3rdparty/TypedEvent.ts" />
+/// <reference path="../StringUtils.ts" />
 
 // Detect if a WebSocket workaround is required
 if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30')) {
@@ -34,7 +35,7 @@ if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30'))
     document.write('<script src="' + StringUtils.GetUrl('web_socket.js') + '"><\/script>');
 }
 
-var WebSocketProtocol: string = ('https:' === document.location.protocol ? 'wss' : 'ws');
+var WebSocketProtocol: string = (document.location.protocol === 'https:' ? 'wss' : 'ws');
 var WebSocketSupportsTypedArrays: boolean = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
 var WebSocketSupportsBinaryType: boolean = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));
 

@@ -1,28 +1,28 @@
 ﻿/*TODOX This will all have to be class based instead since the ID is customizable*/
-#fTelnetContainer {
+.fTelnetContainer {
     box-sizing: content-box;
     margin: auto;
 }
 
-    #fTelnetContainer #fTelnetButtons,
-    #fTelnetContainer #fTelnetScrollback,
-    #fTelnetContainer #fTelnetFocusWarning,
-    #fTelnetContainer #fTelnetClientContainer,
-    #fTelnetContainer #fTelnetStatusBar {
+    .fTelnetContainer .fTelnetButtons,
+    .fTelnetContainer .fTelnetScrollback,
+    .fTelnetContainer .fTelnetFocusWarning,
+    .fTelnetContainer .fTelnetClientContainer,
+    .fTelnetContainer .fTelnetStatusBar {
         box-sizing: content-box;
     }
 
-    #fTelnetContainer canvas {
+    .fTelnetContainer canvas {
         display: block;
         margin: auto;
     }
 
-#fTelnetClientContainer {
+.fTelnetClientContainer {
     position: relative;
     margin: auto;
 }
 
-#fTelnetConnectButton {
+.fTelnetConnectButton {
     background-color: white;
     border: 1px solid black;
     border-radius: 5px;
@@ -36,7 +36,7 @@
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
-#fTelnetFocusWarning {
+.fTelnetFocusWarning {
     background-color: red;
     color: white;
     font: 14px Arial, Helvetica, sans-serif;
@@ -45,7 +45,7 @@
     text-align: center;
 }
 
-#fTelnetMenuButton {
+.fTelnetMenuButton {
     background-color: white;
     border: 1px solid #666;
     border-radius: 5px;
@@ -57,7 +57,7 @@
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
-#fTelnetMenuButtons {
+.fTelnetMenuButtons {
     background-color: white;
     border: 1px solid #666;
     color: black;
@@ -68,7 +68,7 @@
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
-    #fTelnetMenuButtons a {
+    .fTelnetMenuButtons a {
         border: 1px solid black;
         border-radius: 5px;
         display: block;
@@ -78,7 +78,7 @@
         text-decoration: none;
     }
 
-#fTelnetScrollback {
+.fTelnetScrollback {
     background-color: green;
     color: white;
     font: 14px Arial, Helvetica, sans-serif;
@@ -87,15 +87,16 @@
     text-align: center;
 }
 
-    #fTelnetScrollback a {
+    .fTelnetScrollback a {
         color: white;
         text-decoration: none;
     }
 
-#fTelnetStatusBar {
+.fTelnetStatusBar {
     background-color: blue;
     color: white;
     font: 14px Arial, Helvetica, sans-serif;
     margin: auto;
     padding: 5px;
+    text-align: left;
 }
