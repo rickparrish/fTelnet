@@ -39,6 +39,7 @@
     <TypeScriptCompile Include="source\3rdparty\Window.d.ts" />
     <TypeScriptCompile Include="source\3rdparty\GetScrollbarWidth.ts" />
     <TypeScriptCompile Include="source\3rdparty\DetectMobileBrowser.ts" />
+    <TypeScriptCompile Include="source\fTelnet.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Rectangle.ts" />
     <TypeScriptCompile Include="source\randm\Benchmark.ts" />
     <Content Include="packages.config" />
@@ -74,7 +75,7 @@
     <TypeScriptCompile Include="source\3rdparty\Offset.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="source\fTelnet.ts" />
+    <TypeScriptCompile Include="source\fTelnetClient.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\ByteArray.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Keyboard.ts" />
     <TypeScriptCompile Include="source\randm\actionscript\Point.ts" />

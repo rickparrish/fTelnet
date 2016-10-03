@@ -1,8 +1,7 @@
-/// <reference path='source/fTelnet.ts' />
+/// <reference path='source/fTelnetClient.ts' />
 
 // TODO List:
-// Check all instances of == null, === null, != null, !== null
-//   All instances of undefined as well
+// Split fTelnet.ts up into smaller chunks (ie maybe separate class for menu buttons that raise events on click)
 // Setting LocalEcho = true before connect wasn't working for someone (setting after connect did work)
 // Maybe underline detected hyperlinks?
 // Add version number displayed to user somewhere (menu popup?)
