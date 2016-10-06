@@ -27,20 +27,14 @@
     <Content Include="release\ftelnet.css" />
     <Content Include="release\index.html" />
     <Content Include="release\index.debug.html" />
-    <TypeScriptCompile Include="source\3rdparty\atob-btoa.ts" />
     <Content Include="source\randm\crt\font\RIP\RIP-16x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-7x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-7x8.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-8x14.png" />
     <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
     <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
-    <TypeScriptCompile Include="source\3rdparty\Clipboard.ts" />
-    <TypeScriptCompile Include="source\3rdparty\ClipboardData.d.ts" />
-    <TypeScriptCompile Include="source\3rdparty\Window.d.ts" />
-    <TypeScriptCompile Include="source\3rdparty\GetScrollbarWidth.ts" />
-    <TypeScriptCompile Include="source\3rdparty\DetectMobileBrowser.ts" />
+    <TypeScriptCompile Include="source\definitions\Window.d.ts" />
     <TypeScriptCompile Include="source\fTelnet.ts" />
-    <TypeScriptCompile Include="source\randm\actionscript\Rectangle.ts" />
     <TypeScriptCompile Include="source\randm\Benchmark.ts" />
     <Content Include="packages.config" />
     <None Include="source\randm\graph\BitmapFont.ts.exclude" />
@@ -61,6 +55,7 @@
     <None Include="source\randm\graph\TextSettings.ts.exclude" />
     <None Include="source\randm\graph\ViewPortSettings.ts.exclude" />
     <None Include="source\randm\graph\WriteMode.ts.exclude" />
+    <TypeScriptCompile Include="source\randm\crt\Keyboard.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginCommand.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginNegotiationState.ts" />
     <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginConnection.ts" />
@@ -68,17 +63,10 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="source\3rdparty\Document.d.ts" />
-    <TypeScriptCompile Include="source\3rdparty\HTMLElement.d.ts" />
-    <TypeScriptCompile Include="source\3rdparty\TypedEvent.ts" />
-    <TypeScriptCompile Include="source\3rdparty\FileSaver.d.ts" />
-    <TypeScriptCompile Include="source\3rdparty\Offset.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
+    <TypeScriptCompile Include="source\definitions\Document.d.ts" />
+    <TypeScriptCompile Include="source\definitions\HTMLElement.d.ts" />
+    <TypeScriptCompile Include="source\definitions\FileSaver.d.ts" />
     <TypeScriptCompile Include="source\fTelnetClient.ts" />
-    <TypeScriptCompile Include="source\randm\actionscript\ByteArray.ts" />
-    <TypeScriptCompile Include="source\randm\actionscript\Keyboard.ts" />
-    <TypeScriptCompile Include="source\randm\actionscript\Point.ts" />
     <TypeScriptCompile Include="source\randm\ansi\Ansi.ts" />
     <TypeScriptCompile Include="source\randm\ansi\AnsiParserState.ts" />
     <TypeScriptCompile Include="source\randm\crt\CharInfo.ts" />
@@ -123,13 +111,6 @@
     <Folder Include="source\randm\crt\font\PNG\" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <PropertyGroup>
@@ -161,7 +142,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
-    <TypeScriptOutFile>release\ftelnet.debug.js</TypeScriptOutFile>
+    <TypeScriptOutFile>..\release\ftelnet.client.debug.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
@@ -181,15 +162,11 @@
     <TypeScriptSourceMap>false</TypeScriptSourceMap>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
-  <PropertyGroup>
-    <PostBuildEvent>copy $(ProjectDir)release\Blob.js + $(ProjectDir)release\FileSaver.js + $(ProjectDir)release\ftelnet.debug.js $(ProjectDir)release\ftelnet.combined.js
-jsmin &lt;$(ProjectDir)release\ftelnet.combined.js &gt;$(ProjectDir)release\ftelnet.min.js</PostBuildEvent>
-  </PropertyGroup>
-  <Import Project="packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets" Condition="Exists('packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" />
+  <Import Project="..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets" Condition="Exists('..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets'))" />
+    <Error Condition="!Exists('..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets'))" />
   </Target>
 </Project>

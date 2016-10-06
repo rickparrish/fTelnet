@@ -17,7 +17,11 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-/// <reference path="3rdparty/DetectMobileBrowser.ts" />
+/// <reference path="../../3rdparty/source/Clipboard.ts" />
+/// <reference path="../../3rdparty/source/DetectMobileBrowser.ts" />
+/// <reference path="../../3rdparty/source/GetScrollbarWidth.ts" />
+/// <reference path="../../3rdparty/source/Offset.ts" />
+/// <reference path="../../3rdparty/source/TypedEvent.ts" />
 /// <reference path="randm/ansi/Ansi.ts" />
 /// <reference path="randm/tcp/rlogin/RLoginConnection.ts" />
 // TODORIP /// <reference path="randm/graph/rip/RIP.ts" />

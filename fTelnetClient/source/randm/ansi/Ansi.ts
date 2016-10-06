@@ -18,8 +18,8 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path='AnsiParserState.ts' />
-/// <reference path='../../3rdparty/TypedEvent.ts' />
-/// <reference path='../actionscript/Point.ts' />
+/// <reference path='../../../../3rdparty/source/TypedEvent.ts' />
+/// <reference path='../../../../3rdparty/source/Point.ts' />
 class Ansi {
     // Events
     public onesc5n: IEvent = new TypedEvent();

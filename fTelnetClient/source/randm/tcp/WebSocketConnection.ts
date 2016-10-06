@@ -17,7 +17,8 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-/// <reference path="../../3rdparty/TypedEvent.ts" />
+/// <reference path="../../../../3rdparty/source/ByteArray.ts" />
+/// <reference path="../../../../3rdparty/source/TypedEvent.ts" />
 /// <reference path="../StringUtils.ts" />
 
 // Detect if a WebSocket workaround is required

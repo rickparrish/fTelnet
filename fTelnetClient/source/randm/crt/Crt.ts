@@ -18,12 +18,14 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path='CharInfo.ts' />
+/// <reference path='Keyboard.ts' />
 /// <reference path='KeyPressEvent.ts' />
 /// <reference path='cursor/Cursor.ts' />
 /// <reference path='font/CrtFont.ts' />
 /// <reference path='font/CrtFonts.ts' />
-/// <reference path='../actionscript/Keyboard.ts' />
 /// <reference path='../StringUtils.ts' />
+/// <reference path="../../../../3rdparty/source/DetectMobileBrowser.ts" />
+/// <reference path="../../../../3rdparty/source/Point.ts" />
 class Crt {
     /// <summary>
     /// A class for manipulating a console window
