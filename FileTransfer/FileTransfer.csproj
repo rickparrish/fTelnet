@@ -3,7 +3,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <ProjectGuid>{152542DA-2C72-4411-B09A-1EB144605391}</ProjectGuid>
+    <ProjectGuid>{5CC2A3C6-414F-4BCD-82B6-987459163576}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <OutputPath>bin</OutputPath>
@@ -32,20 +32,15 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="source\atob-btoa.ts" />
-    <TypeScriptCompile Include="source\ByteArray.ts" />
-    <TypeScriptCompile Include="source\Clipboard.ts" />
-    <TypeScriptCompile Include="source\DetectMobileBrowser.ts" />
-    <TypeScriptCompile Include="source\GetScrollbarWidth.ts" />
-    <TypeScriptCompile Include="source\Offset.ts" />
-    <TypeScriptCompile Include="source\Point.ts" />
-    <TypeScriptCompile Include="source\Rectangle.ts" />
-    <TypeScriptCompile Include="source\TypedEvent.ts" />
+    <TypeScriptCompile Include="source\CRC.ts" />
+    <TypeScriptCompile Include="source\FileRecord.ts" />
+    <TypeScriptCompile Include="source\FileSaver.d.ts" />
+    <TypeScriptCompile Include="source\YModemReceive.ts" />
+    <TypeScriptCompile Include="source\YModemSend.ts" />
+    <TypeScriptCompile Include="source\YModemSendState.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tslint.json" />
-    <TypeScriptCompile Include="source\Window.d.ts" />
-    <TypeScriptCompile Include="source\ClipboardData.ts" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -88,7 +83,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
-    <TypeScriptOutFile>..\release\ftelnet.3rdparty.debug.js</TypeScriptOutFile>
+    <TypeScriptOutFile>..\release\ftelnet.filetransfer.debug.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>

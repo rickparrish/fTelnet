@@ -17,11 +17,8 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-/// <reference path="../../3rdparty/source/Clipboard.ts" />
-/// <reference path="../../3rdparty/source/DetectMobileBrowser.ts" />
-/// <reference path="../../3rdparty/source/GetScrollbarWidth.ts" />
-/// <reference path="../../3rdparty/source/Offset.ts" />
-/// <reference path="../../3rdparty/source/TypedEvent.ts" />
+/// <reference path='../../release/ftelnet.3rdparty.d.ts' />
+/// <reference path='../../release/ftelnet.filetransfer.d.ts' />
 /// <reference path="randm/ansi/Ansi.ts" />
 /// <reference path="randm/tcp/rlogin/RLoginConnection.ts" />
 // TODORIP /// <reference path="randm/graph/rip/RIP.ts" />
@@ -298,22 +295,24 @@ class fTelnetClient {
             MenuButtonsTable.appendChild(MenuButtonsRow2);
         }
 
-        var MenuButtonsRow3: HTMLTableRowElement = document.createElement('tr');
-        var MenuButtonsRow3Cell1: HTMLTableCellElement = document.createElement('td');
-        var MenuButtonsUpload: HTMLAnchorElement = document.createElement('a');
-        MenuButtonsUpload.href = '#';
-        MenuButtonsUpload.innerHTML = 'Upload';
-        MenuButtonsUpload.addEventListener('click', (me: MouseEvent): boolean => { this.Upload(); me.preventDefault(); return false; });
-        MenuButtonsRow3Cell1.appendChild(MenuButtonsUpload);
-        MenuButtonsRow3.appendChild(MenuButtonsRow3Cell1);
-        var MenuButtonsRow3Cell2: HTMLTableCellElement = document.createElement('td');
-        var MenuButtonsDownload: HTMLAnchorElement = document.createElement('a');
-        MenuButtonsDownload.href = '#';
-        MenuButtonsDownload.innerHTML = 'Download';
-        MenuButtonsDownload.addEventListener('click', (me: MouseEvent): boolean => { this.Download(); me.preventDefault(); return false; });
-        MenuButtonsRow3Cell2.appendChild(MenuButtonsDownload);
-        MenuButtonsRow3.appendChild(MenuButtonsRow3Cell2);
-        MenuButtonsTable.appendChild(MenuButtonsRow3);
+        if ((typeof YModemReceive !== 'undefined') && (typeof YModemSend !== 'undefined')) {
+            var MenuButtonsRow3: HTMLTableRowElement = document.createElement('tr');
+            var MenuButtonsRow3Cell1: HTMLTableCellElement = document.createElement('td');
+            var MenuButtonsUpload: HTMLAnchorElement = document.createElement('a');
+            MenuButtonsUpload.href = '#';
+            MenuButtonsUpload.innerHTML = 'Upload';
+            MenuButtonsUpload.addEventListener('click', (me: MouseEvent): boolean => { this.Upload(); me.preventDefault(); return false; });
+            MenuButtonsRow3Cell1.appendChild(MenuButtonsUpload);
+            MenuButtonsRow3.appendChild(MenuButtonsRow3Cell1);
+            var MenuButtonsRow3Cell2: HTMLTableCellElement = document.createElement('td');
+            var MenuButtonsDownload: HTMLAnchorElement = document.createElement('a');
+            MenuButtonsDownload.href = '#';
+            MenuButtonsDownload.innerHTML = 'Download';
+            MenuButtonsDownload.addEventListener('click', (me: MouseEvent): boolean => { this.Download(); me.preventDefault(); return false; });
+            MenuButtonsRow3Cell2.appendChild(MenuButtonsDownload);
+            MenuButtonsRow3.appendChild(MenuButtonsRow3Cell2);
+            MenuButtonsTable.appendChild(MenuButtonsRow3);
+        }
 
         var MenuButtonsRow4: HTMLTableRowElement = document.createElement('tr');
         var MenuButtonsRow4Cell1: HTMLTableCellElement = document.createElement('td');

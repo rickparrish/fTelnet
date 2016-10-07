@@ -1,4 +1,4 @@
-/// <reference path='../../../3rdparty/source/ClipboardData.d.ts' />
+/// <reference path='../../../release/ftelnet.3rdparty.d.ts' />
 interface Window {
     clipboardData: ClipboardData;
 }

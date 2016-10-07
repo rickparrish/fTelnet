@@ -1,8 +1,12 @@
-release/index.debug.html
 release/ftelnet.combined.js
+release/ftelnet.3rdparty.debug.js
+release/ftelnet.client.debug.js
 release/ftelnet.debug.js
-release/*.js.map
+release/ftelnet.filetransfer.debug.js
+release/index.debug.html
 release/keyboard/*.css.map
+release/*.d.ts
+release/*.js.map
 
 packages/
 

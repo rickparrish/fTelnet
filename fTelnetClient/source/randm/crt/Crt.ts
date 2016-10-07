@@ -24,8 +24,7 @@
 /// <reference path='font/CrtFont.ts' />
 /// <reference path='font/CrtFonts.ts' />
 /// <reference path='../StringUtils.ts' />
-/// <reference path="../../../../3rdparty/source/DetectMobileBrowser.ts" />
-/// <reference path="../../../../3rdparty/source/Point.ts" />
+/// <reference path='../../../../release/ftelnet.3rdparty.d.ts' />
 class Crt {
     /// <summary>
     /// A class for manipulating a console window

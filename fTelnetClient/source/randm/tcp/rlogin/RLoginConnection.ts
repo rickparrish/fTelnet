@@ -17,7 +17,7 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-/// <reference path="../../../../../3rdparty/source/ByteArray.ts" />
+/// <reference path='../../../../../release/ftelnet.3rdparty.d.ts' />
 /// <reference path="../WebSocketConnection.ts" />
 /// <reference path="RLoginCommand.ts" />
 /// <reference path="RLoginNegotiationState.ts" />

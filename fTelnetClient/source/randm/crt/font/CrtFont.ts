@@ -17,7 +17,7 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-/// <reference path='../../../../../3rdparty/source/Point.ts' />
+/// <reference path='../../../../../release/ftelnet.3rdparty.d.ts' />
 class CrtFont {
     // Events
     public onchange: IEvent = new TypedEvent();

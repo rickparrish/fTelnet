@@ -34,7 +34,6 @@
     <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
     <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
     <TypeScriptCompile Include="source\definitions\Window.d.ts" />
-    <TypeScriptCompile Include="source\fTelnet.ts" />
     <TypeScriptCompile Include="source\randm\Benchmark.ts" />
     <Content Include="packages.config" />
     <None Include="source\randm\graph\BitmapFont.ts.exclude" />
@@ -65,7 +64,6 @@
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="source\definitions\Document.d.ts" />
     <TypeScriptCompile Include="source\definitions\HTMLElement.d.ts" />
-    <TypeScriptCompile Include="source\definitions\FileSaver.d.ts" />
     <TypeScriptCompile Include="source\fTelnetClient.ts" />
     <TypeScriptCompile Include="source\randm\ansi\Ansi.ts" />
     <TypeScriptCompile Include="source\randm\ansi\AnsiParserState.ts" />
@@ -89,11 +87,6 @@
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetOption.ts" />
     <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetConnection.ts" />
     <TypeScriptCompile Include="source\randm\tcp\WebSocketConnection.ts" />
-    <TypeScriptCompile Include="source\randm\xfer\CRC.ts" />
-    <TypeScriptCompile Include="source\randm\xfer\FileRecord.ts" />
-    <TypeScriptCompile Include="source\randm\xfer\YModemReceive.ts" />
-    <TypeScriptCompile Include="source\randm\xfer\YModemSend.ts" />
-    <TypeScriptCompile Include="source\randm\xfer\YModemSendState.ts" />
     <TypeScriptCompile Include="source\randm\StringUtils.ts" />
   </ItemGroup>
   <ItemGroup>
@@ -149,7 +142,7 @@
     <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
     <TypeScriptModuleKind>None</TypeScriptModuleKind>
     <TypeScriptOutDir />
-    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptGeneratesDeclarations>True</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />

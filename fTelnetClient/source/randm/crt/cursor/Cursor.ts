@@ -18,8 +18,7 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 /// <reference path='BlinkState.ts' />
-/// <reference path='../../../../../3rdparty/source/Offset.ts' />
-/// <reference path='../../../../../3rdparty/source/Point.ts' />
+/// <reference path='../../../../../release/ftelnet.3rdparty.d.ts' />
 class Cursor {
     // Events
     public onhide: IEvent = new TypedEvent();

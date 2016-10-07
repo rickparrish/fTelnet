@@ -5,10 +5,16 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fTelnetClient", "fTelnetClient\fTelnetClient.csproj", "{7672E7BF-8476-4EBA-832A-D058D77DEE41}"
 	ProjectSection(ProjectDependencies) = postProject
+		{5CC2A3C6-414F-4BCD-82B6-987459163576} = {5CC2A3C6-414F-4BCD-82B6-987459163576}
 		{152542DA-2C72-4411-B09A-1EB144605391} = {152542DA-2C72-4411-B09A-1EB144605391}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3rdParty", "3rdParty\3rdParty.csproj", "{152542DA-2C72-4411-B09A-1EB144605391}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileTransfer", "FileTransfer\FileTransfer.csproj", "{5CC2A3C6-414F-4BCD-82B6-987459163576}"
+	ProjectSection(ProjectDependencies) = postProject
+		{152542DA-2C72-4411-B09A-1EB144605391} = {152542DA-2C72-4411-B09A-1EB144605391}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +30,10 @@ Global
 		{152542DA-2C72-4411-B09A-1EB144605391}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{152542DA-2C72-4411-B09A-1EB144605391}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{152542DA-2C72-4411-B09A-1EB144605391}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CC2A3C6-414F-4BCD-82B6-987459163576}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CC2A3C6-414F-4BCD-82B6-987459163576}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CC2A3C6-414F-4BCD-82B6-987459163576}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CC2A3C6-414F-4BCD-82B6-987459163576}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
