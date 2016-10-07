@@ -13,12 +13,12 @@
     <p>This is a super simple sample of how to use fTelnet.  For more information, <a href="docs/index.html">see the docs</a>.</p>
 
     <div id="fTelnetContainer"></div>
-    <script src="ftelnet.min.js" id="fTelnetScript"></script>
+    <script src="ftelnet.norip.noxfer.min.js" id="fTelnetScript"></script>
     <script>
-        fTelnet.Hostname = "bbs.ftelnet.ca";
-        fTelnet.Port = 23;
-        fTelnet.ProxyHostname = "proxy-us-ga.ftelnet.ca";
-        fTelnet.Init();
+        var Client = new fTelnetClient('fTelnetContainer');
+        Client.Hostname = "bbs.ftelnet.ca";
+        Client.Port = 23;
+        Client.ProxyHostname = "proxy-us-ga.ftelnet.ca";
     </script>
 </body>
 </html>

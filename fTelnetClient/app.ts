@@ -1,5 +1,3 @@
-/// <reference path='source/fTelnetClient.ts' />
-
 // TODO List:
 // Split fTelnet.ts up into smaller chunks (ie maybe separate class for menu buttons that raise events on click)
 // Setting LocalEcho = true before connect wasn't working for someone (setting after connect did work)

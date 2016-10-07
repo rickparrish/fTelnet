@@ -27,70 +27,19 @@
     <Content Include="release\ftelnet.css" />
     <Content Include="release\index.html" />
     <Content Include="release\index.debug.html" />
-    <Content Include="source\randm\crt\font\RIP\RIP-16x14.png" />
-    <Content Include="source\randm\crt\font\RIP\RIP-7x14.png" />
-    <Content Include="source\randm\crt\font\RIP\RIP-7x8.png" />
-    <Content Include="source\randm\crt\font\RIP\RIP-8x14.png" />
-    <Content Include="source\randm\crt\font\RIP\RIP-8x8.png" />
-    <Content Include="source\randm\crt\font\RIP\StrokeFont.zip" />
     <TypeScriptCompile Include="source\definitions\Window.d.ts" />
-    <TypeScriptCompile Include="source\randm\Benchmark.ts" />
     <Content Include="packages.config" />
-    <None Include="source\randm\graph\BitmapFont.ts.exclude" />
-    <None Include="source\randm\graph\FillSettings.ts.exclude" />
-    <None Include="source\randm\graph\FillStyle.ts.exclude" />
-    <None Include="source\randm\graph\Graph.ts.exclude" />
-    <None Include="source\randm\graph\IPutPixelFunction.ts.exclude" />
-    <None Include="source\randm\graph\LineSettings.ts.exclude" />
-    <None Include="source\randm\graph\LineStyle.ts.exclude" />
-    <None Include="source\randm\graph\LineThickness.ts.exclude" />
-    <None Include="source\randm\graph\rip\ButtonStyle.ts.exclude" />
-    <None Include="source\randm\graph\rip\MouseButton.ts.exclude" />
-    <None Include="source\randm\graph\rip\RIP.ts.exclude" />
-    <None Include="source\randm\graph\rip\RIPParserState.ts.exclude" />
-    <None Include="source\randm\graph\StrokeFont.ts.exclude" />
-    <None Include="source\randm\graph\TextJustification.ts.exclude" />
-    <None Include="source\randm\graph\TextOrientation.ts.exclude" />
-    <None Include="source\randm\graph\TextSettings.ts.exclude" />
-    <None Include="source\randm\graph\ViewPortSettings.ts.exclude" />
-    <None Include="source\randm\graph\WriteMode.ts.exclude" />
-    <TypeScriptCompile Include="source\randm\crt\Keyboard.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginCommand.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginNegotiationState.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\rlogin\RLoginConnection.ts" />
     <Content Include="web.config" />
+    <TypeScriptCompile Include="source\_references.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="source\definitions\Document.d.ts" />
     <TypeScriptCompile Include="source\definitions\HTMLElement.d.ts" />
     <TypeScriptCompile Include="source\fTelnetClient.ts" />
-    <TypeScriptCompile Include="source\randm\ansi\Ansi.ts" />
-    <TypeScriptCompile Include="source\randm\ansi\AnsiParserState.ts" />
-    <TypeScriptCompile Include="source\randm\crt\CharInfo.ts" />
-    <TypeScriptCompile Include="source\randm\crt\controls\BorderStyle.ts" />
-    <TypeScriptCompile Include="source\randm\crt\controls\ContentAlignment.ts" />
-    <TypeScriptCompile Include="source\randm\crt\controls\ProgressBarStyle.ts" />
-    <TypeScriptCompile Include="source\randm\crt\controls\CrtControl.ts" />
-    <TypeScriptCompile Include="source\randm\crt\controls\CrtLabel.ts" />
-    <TypeScriptCompile Include="source\randm\crt\controls\CrtPanel.ts" />
-    <TypeScriptCompile Include="source\randm\crt\controls\CrtProgressBar.ts" />
-    <TypeScriptCompile Include="source\randm\crt\Crt.ts" />
-    <TypeScriptCompile Include="source\randm\crt\cursor\BlinkState.ts" />
-    <TypeScriptCompile Include="source\randm\crt\cursor\Cursor.ts" />
-    <TypeScriptCompile Include="source\randm\crt\font\CrtFont.ts" />
-    <TypeScriptCompile Include="source\randm\crt\font\CrtFonts.ts" />
-    <TypeScriptCompile Include="source\randm\virtualkeyboard\VirtualKeyboard.ts" />
-    <TypeScriptCompile Include="source\randm\crt\KeyPressEvent.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetCommand.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetNegotiationState.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetOption.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\telnet\TelnetConnection.ts" />
-    <TypeScriptCompile Include="source\randm\tcp\WebSocketConnection.ts" />
-    <TypeScriptCompile Include="source\randm\StringUtils.ts" />
+    <TypeScriptCompile Include="source\VirtualKeyboard.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="source\randm\graph\rip\PopUp.ts.exclude" />
     <Content Include="tslint.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
@@ -101,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="release\fonts\" />
-    <Folder Include="source\randm\crt\font\PNG\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -135,14 +83,14 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
-    <TypeScriptOutFile>..\release\ftelnet.client.debug.js</TypeScriptOutFile>
+    <TypeScriptOutFile>..\debug\ftelnet.client.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
     <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
     <TypeScriptModuleKind>None</TypeScriptModuleKind>
     <TypeScriptOutDir />
-    <TypeScriptGeneratesDeclarations>True</TypeScriptGeneratesDeclarations>
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
@@ -155,6 +103,17 @@
     <TypeScriptSourceMap>false</TypeScriptSourceMap>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(SolutionDir)debug\ftelnet.3rdparty.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.norip.noxfer.js
+jsmin &lt;$(SolutionDir)debug\ftelnet.norip.noxfer.js &gt;$(SolutionDir)release\ftelnet.norip.noxfer.min.js
+copy $(SolutionDir)debug\Blob.js + $(SolutionDir)debug\FileSaver.js + $(SolutionDir)debug\ftelnet.3rdparty.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.crtcontrols.js + $(SolutionDir)debug\ftelnet.filetransfer.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.norip.xfer.js
+jsmin &lt;$(SolutionDir)debug\ftelnet.norip.xfer.js &gt;$(SolutionDir)release\ftelnet.norip.xfer.min.js
+copy $(SolutionDir)debug\ftelnet.3rdparty.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.graph.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.rip.noxfer.js
+jsmin &lt;$(SolutionDir)debug\ftelnet.rip.noxfer.js &gt;$(SolutionDir)release\ftelnet.rip.noxfer.min.js
+copy $(SolutionDir)debug\Blob.js + $(SolutionDir)debug\FileSaver.js + $(SolutionDir)debug\ftelnet.3rdparty.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.crtcontrols.js + $(SolutionDir)debug\ftelnet.graph.js + $(SolutionDir)debug\ftelnet.filetransfer.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.rip.xfer.js
+jsmin &lt;$(SolutionDir)debug\ftelnet.rip.xfer.js &gt;$(SolutionDir)release\ftelnet.rip.xfer.min.js
+</PostBuildEvent>
+  </PropertyGroup>
   <Import Project="..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets" Condition="Exists('..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

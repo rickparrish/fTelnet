@@ -3,7 +3,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <ProjectGuid>{152542DA-2C72-4411-B09A-1EB144605391}</ProjectGuid>
+    <ProjectGuid>{1A746833-D395-4B3C-98A3-0C7018A22099}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <OutputPath>bin</OutputPath>
@@ -32,22 +32,17 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="source\atob-btoa.ts" />
-    <TypeScriptCompile Include="source\Benchmark.ts" />
-    <TypeScriptCompile Include="source\ByteArray.ts" />
-    <TypeScriptCompile Include="source\Clipboard.ts" />
-    <TypeScriptCompile Include="source\DetectMobileBrowser.ts" />
-    <TypeScriptCompile Include="source\GetScrollbarWidth.ts" />
-    <TypeScriptCompile Include="source\Offset.ts" />
-    <TypeScriptCompile Include="source\Point.ts" />
-    <TypeScriptCompile Include="source\Rectangle.ts" />
-    <TypeScriptCompile Include="source\StringUtils.ts" />
-    <TypeScriptCompile Include="source\TypedEvent.ts" />
+    <TypeScriptCompile Include="source\BorderStyle.ts" />
+    <TypeScriptCompile Include="source\ContentAlignment.ts" />
+    <TypeScriptCompile Include="source\CrtControl.ts" />
+    <TypeScriptCompile Include="source\CrtLabel.ts" />
+    <TypeScriptCompile Include="source\CrtPanel.ts" />
+    <TypeScriptCompile Include="source\CrtProgressBar.ts" />
+    <TypeScriptCompile Include="source\ProgressBarStyle.ts" />
+    <TypeScriptCompile Include="source\_references.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tslint.json" />
-    <TypeScriptCompile Include="source\Window.d.ts" />
-    <TypeScriptCompile Include="source\ClipboardData.ts" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -90,7 +85,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
-    <TypeScriptOutFile>..\debug\ftelnet.3rdparty.js</TypeScriptOutFile>
+    <TypeScriptOutFile>..\debug\ftelnet.crtcontrols.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
@@ -118,6 +113,6 @@
     <Error Condition="!Exists('..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>jsmin &lt;$(SolutionDir)debug\ftelnet.3rdparty.d.ts &gt;$(SolutionDir)debug\ftelnet.3rdparty.min.d.ts</PostBuildEvent>
+    <PostBuildEvent>jsmin &lt;$(SolutionDir)debug\ftelnet.crtcontrols.d.ts &gt;$(SolutionDir)debug\ftelnet.crtcontrols.min.d.ts</PostBuildEvent>
   </PropertyGroup>
 </Project>

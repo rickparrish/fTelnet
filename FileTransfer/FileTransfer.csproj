@@ -38,6 +38,7 @@
     <TypeScriptCompile Include="source\YModemReceive.ts" />
     <TypeScriptCompile Include="source\YModemSend.ts" />
     <TypeScriptCompile Include="source\YModemSendState.ts" />
+    <TypeScriptCompile Include="source\_references.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tslint.json" />
@@ -83,7 +84,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
-    <TypeScriptOutFile>..\release\ftelnet.filetransfer.debug.js</TypeScriptOutFile>
+    <TypeScriptOutFile>..\debug\ftelnet.filetransfer.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
@@ -110,4 +111,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>jsmin &lt;$(SolutionDir)debug\ftelnet.filetransfer.d.ts &gt;$(SolutionDir)debug\ftelnet.filetransfer.min.d.ts</PostBuildEvent>
+  </PropertyGroup>
 </Project>

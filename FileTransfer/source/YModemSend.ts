@@ -17,7 +17,6 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-/// <reference path='../../release/ftelnet.client.d.ts' />
 class YModemSend {
     // Events
     public ontransfercomplete: IEvent = new TypedEvent();

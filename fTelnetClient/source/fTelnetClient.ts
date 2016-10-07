@@ -17,11 +17,6 @@
   You should have received a copy of the GNU Affero General Public License
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
-/// <reference path='../../release/ftelnet.3rdparty.d.ts' />
-/// <reference path='../../release/ftelnet.filetransfer.d.ts' />
-/// <reference path="randm/ansi/Ansi.ts" />
-/// <reference path="randm/tcp/rlogin/RLoginConnection.ts" />
-// TODORIP /// <reference path="randm/graph/rip/RIP.ts" />
 class fTelnetClient {
     // Events
     public ondata: IMessageEvent = new TypedEvent();
