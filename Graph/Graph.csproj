@@ -35,25 +35,25 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="tslint.json" />
-    <Content Include="source\BitmapFont.ts.exclude" />
-    <Content Include="source\FillSettings.ts.exclude" />
-    <Content Include="source\FillStyle.ts.exclude" />
-    <Content Include="source\Graph.ts.exclude" />
-    <Content Include="source\IPutPixelFunction.ts.exclude" />
-    <Content Include="source\LineSettings.ts.exclude" />
-    <Content Include="source\LineStyle.ts.exclude" />
-    <Content Include="source\LineThickness.ts.exclude" />
-    <Content Include="source\rip\ButtonStyle.ts.exclude" />
-    <Content Include="source\rip\MouseButton.ts.exclude" />
-    <Content Include="source\rip\PopUp.ts.exclude" />
-    <Content Include="source\rip\RIP.ts.exclude" />
-    <Content Include="source\rip\RIPParserState.ts.exclude" />
-    <Content Include="source\StrokeFont.ts.exclude" />
-    <Content Include="source\TextJustification.ts.exclude" />
-    <Content Include="source\TextOrientation.ts.exclude" />
-    <Content Include="source\TextSettings.ts.exclude" />
-    <Content Include="source\ViewPortSettings.ts.exclude" />
-    <Content Include="source\WriteMode.ts.exclude" />
+    <TypeScriptCompile Include="source\BitmapFont.ts" />
+    <TypeScriptCompile Include="source\FillSettings.ts" />
+    <TypeScriptCompile Include="source\FillStyle.ts" />
+    <TypeScriptCompile Include="source\Graph.ts" />
+    <TypeScriptCompile Include="source\IPutPixelFunction.ts" />
+    <TypeScriptCompile Include="source\LineSettings.ts" />
+    <TypeScriptCompile Include="source\LineStyle.ts" />
+    <TypeScriptCompile Include="source\LineThickness.ts" />
+    <TypeScriptCompile Include="source\rip\ButtonStyle.ts" />
+    <TypeScriptCompile Include="source\rip\MouseButton.ts" />
+    <TypeScriptCompile Include="source\rip\PopUp.ts" />
+    <TypeScriptCompile Include="source\rip\RIP.ts" />
+    <TypeScriptCompile Include="source\rip\RIPParserState.ts" />
+    <TypeScriptCompile Include="source\StrokeFont.ts" />
+    <TypeScriptCompile Include="source\TextJustification.ts" />
+    <TypeScriptCompile Include="source\TextOrientation.ts" />
+    <TypeScriptCompile Include="source\TextSettings.ts" />
+    <TypeScriptCompile Include="source\ViewPortSettings.ts" />
+    <TypeScriptCompile Include="source\WriteMode.ts" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
