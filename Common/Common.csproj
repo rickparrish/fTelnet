@@ -87,7 +87,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
     <TypeScriptSourceMap>False</TypeScriptSourceMap>
-    <TypeScriptOutFile>..\debug\ftelnet.3rdparty.js</TypeScriptOutFile>
+    <TypeScriptOutFile>..\debug\ftelnet.common.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
@@ -115,6 +115,6 @@
     <Error Condition="!Exists('..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>jsmin &lt;$(SolutionDir)debug\ftelnet.3rdparty.d.ts &gt;$(SolutionDir)debug\ftelnet.3rdparty.min.d.ts</PostBuildEvent>
+    <PostBuildEvent>jsmin &lt;$(SolutionDir)debug\ftelnet.common.d.ts &gt;$(SolutionDir)debug\ftelnet.common.min.d.ts</PostBuildEvent>
   </PropertyGroup>
 </Project>

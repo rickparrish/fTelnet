@@ -1,7 +1,6 @@
 // From: https://typescript.codeplex.com/discussions/402228
 
 // Base IEvent interface and implementation
-
 interface IEvent {
     on(listener: () => void): void;
     off(listener?: () => void): void;

@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fTelnetClient", "fTelnetCli
 		{152542DA-2C72-4411-B09A-1EB144605391} = {152542DA-2C72-4411-B09A-1EB144605391}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3rdParty", "3rdParty\3rdParty.csproj", "{152542DA-2C72-4411-B09A-1EB144605391}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{152542DA-2C72-4411-B09A-1EB144605391}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileTransfer", "FileTransfer\FileTransfer.csproj", "{5CC2A3C6-414F-4BCD-82B6-987459163576}"
 	ProjectSection(ProjectDependencies) = postProject

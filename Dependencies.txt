@@ -1,27 +1,27 @@
-3rdparty
-crt		3rdparty
-connections	3rdparty	crt
-crtcontrols	3rdparty	crt
-graph		3rdparty	crt
-filetransfer	3rdparty	connections	crt	crtcontrols
-ftelnetclient	3rdparty	connections	crt	filetransfer	graph
+common
+crt		common
+connections	common	crt
+crtcontrols	common	crt
+graph		common	crt
+filetransfer	common	connections	crt	crtcontrols
+ftelnetclient	common	connections	crt	filetransfer	graph
 
 ftelnet-norip-noxfer
-3rdparty, crt, connections, ftelnetclient
-copy $(SolutionDir)debug\ftelnet.3rdparty.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.norip.noxfer.js
+common, crt, connections, ftelnetclient
+copy $(SolutionDir)debug\ftelnet.common.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.norip.noxfer.js
 jsmin <$(SolutionDir)debug\ftelnet.norip.noxfer.js >$(SolutionDir)release\ftelnet.norip.noxfer.min.js
 
 ftelnet-norip-xfer
-3rdparty, crt, connections, crtcontrols, filetransfer, ftelnetclient
-copy $(SolutionDir)debug\Blob.js + $(SolutionDir)debug\FileSaver.js + $(SolutionDir)debug\ftelnet.3rdparty.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.crtcontrols.js + $(SolutionDir)debug\ftelnet.filetransfer.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.norip.xfer.js
+common, crt, connections, crtcontrols, filetransfer, ftelnetclient
+copy $(SolutionDir)debug\Blob.js + $(SolutionDir)debug\FileSaver.js + $(SolutionDir)debug\ftelnet.common.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.crtcontrols.js + $(SolutionDir)debug\ftelnet.filetransfer.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.norip.xfer.js
 jsmin <$(SolutionDir)debug\ftelnet.norip.xfer.js >$(SolutionDir)release\ftelnet.norip.xfer.min.js
 
 ftelnet-rip-noxfer
-3rdparty, crt, connections, graph, ftelnetclient
-copy $(SolutionDir)debug\ftelnet.3rdparty.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.graph.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.rip.noxfer.js
+common, crt, connections, graph, ftelnetclient
+copy $(SolutionDir)debug\ftelnet.common.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.graph.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.rip.noxfer.js
 jsmin <$(SolutionDir)debug\ftelnet.rip.noxfer.js >$(SolutionDir)release\ftelnet.rip.noxfer.min.js
 
 ftelnet-rip-xfer
-3rdparty, crt, connections, crtcontrols, graph, filetransfer, ftelnetclient
-copy $(SolutionDir)debug\Blob.js + $(SolutionDir)debug\FileSaver.js + $(SolutionDir)debug\ftelnet.3rdparty.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.crtcontrols.js + $(SolutionDir)debug\ftelnet.graph.js + $(SolutionDir)debug\ftelnet.filetransfer.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.rip.xfer.js
+common, crt, connections, crtcontrols, graph, filetransfer, ftelnetclient
+copy $(SolutionDir)debug\Blob.js + $(SolutionDir)debug\FileSaver.js + $(SolutionDir)debug\ftelnet.common.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.crtcontrols.js + $(SolutionDir)debug\ftelnet.graph.js + $(SolutionDir)debug\ftelnet.filetransfer.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.rip.xfer.js
 jsmin <$(SolutionDir)debug\ftelnet.rip.xfer.js >$(SolutionDir)release\ftelnet.rip.xfer.min.js

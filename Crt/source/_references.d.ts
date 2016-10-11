@@ -1,1 +1,1 @@
-/// <reference path='../../debug/ftelnet.3rdparty.min.d.ts' />
+/// <reference path='../../debug/ftelnet.common.min.d.ts' />
