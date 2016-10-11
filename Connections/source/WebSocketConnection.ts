@@ -1,6 +1,6 @@
 /*
   fTelnet: An HTML5 WebSocket client
-  Copyright (C) 2009-2013  Rick Parrish, R&M Software
+  Copyright (C) Rick Parrish, R&M Software
 
   This file is part of fTelnet.
 
