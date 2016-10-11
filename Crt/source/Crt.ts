@@ -69,7 +69,7 @@ class Crt {
     public static PETSCII_LIGHTGRAY: number = 15;
 
     /* Private variables */
-    private _AllowDynamicFontResize: Boolean = true;
+    private _AllowDynamicFontResize: boolean = true;
     private _Atari: boolean = false;
     private _ATASCIIEscaped: boolean = false;
     private _BareLFtoCRLF: boolean = false;
@@ -191,6 +191,14 @@ class Crt {
         this.ClrScr();
 
         // TODOX return true;
+    }
+
+    public get AllowDynamicFontResize(): boolean {
+        return this._AllowDynamicFontResize;
+    }
+
+    public set AllowDynamicFontResize(value: boolean) {
+        this._AllowDynamicFontResize = value;
     }
 
     public get Atari(): boolean {

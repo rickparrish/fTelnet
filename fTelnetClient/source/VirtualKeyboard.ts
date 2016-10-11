@@ -1,3 +1,4 @@
+// TODOX RemoveEventListeners
 /*
   fTelnet: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -62,14 +63,14 @@ class VirtualKeyboard {
                 if (KeyCode !== null) {
                     if (this._Keys[KeyCode][2] > 0) { // [2] is the CharCodeShifted, which only a non-special key has
                         // Regular character
-                        Keys[i].addEventListener('click', this.OnCharCode, false);
-                        Keys[i].addEventListener('touchend', this.OnCharCode, false);
-                        Keys[i].addEventListener('touchstart', this.OnTouchStart, false);
+                        Keys[i].addEventListener('click', (e: Event) => { this.OnCharCode(e); }, false);
+                        Keys[i].addEventListener('touchend', (e: Event) => { this.OnCharCode(e); }, false);
+                        Keys[i].addEventListener('touchstart', () => { this.OnTouchStart(); }, false);
                     } else {
                         // Special character
-                        Keys[i].addEventListener('click', this.OnKeyCode, false);
-                        Keys[i].addEventListener('touchend', this.OnKeyCode, false);
-                        Keys[i].addEventListener('touchstart', this.OnTouchStart, false);
+                        Keys[i].addEventListener('click', (e: Event) => { this.OnKeyCode(e); }, false);
+                        Keys[i].addEventListener('touchend', (e: Event) => { this.OnKeyCode(e); }, false);
+                        Keys[i].addEventListener('touchstart', () => { this.OnTouchStart(); }, false);
                     }
                 }
             }

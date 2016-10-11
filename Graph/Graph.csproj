@@ -35,6 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="tslint.json" />
+    <TypeScriptCompile Include="source\_references.d.ts" />
     <TypeScriptCompile Include="source\BitmapFont.ts" />
     <TypeScriptCompile Include="source\FillSettings.ts" />
     <TypeScriptCompile Include="source\FillStyle.ts" />
@@ -45,7 +46,7 @@
     <TypeScriptCompile Include="source\LineThickness.ts" />
     <TypeScriptCompile Include="source\rip\ButtonStyle.ts" />
     <TypeScriptCompile Include="source\rip\MouseButton.ts" />
-    <TypeScriptCompile Include="source\rip\PopUp.ts" />
+    <None Include="source\rip\PopUp.ts.todo" />
     <TypeScriptCompile Include="source\rip\RIP.ts" />
     <TypeScriptCompile Include="source\rip\RIPParserState.ts" />
     <TypeScriptCompile Include="source\StrokeFont.ts" />
@@ -95,7 +96,7 @@
   </ProjectExtensions>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
-    <TypeScriptSourceMap>true</TypeScriptSourceMap>
+    <TypeScriptSourceMap>False</TypeScriptSourceMap>
     <TypeScriptOutFile>..\debug\ftelnet.graph.js</TypeScriptOutFile>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>

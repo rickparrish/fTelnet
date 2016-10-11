@@ -1,3 +1,4 @@
+// TODOX Remove getters and setters for options that don't need to change
 /*
   fTelnet: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -35,6 +36,7 @@ class fTelnetClient {
     private _LastTimer: number = 0;
     private _MenuButton: HTMLAnchorElement;
     private _MenuButtons: HTMLDivElement;
+    private _RIP: RIP;
     private _ScrollbackBar: HTMLDivElement;
     private _StatusBar: HTMLDivElement;
     private _StatusBarLabel: HTMLSpanElement;
@@ -45,51 +47,47 @@ class fTelnetClient {
     private _YModemReceive: YModemReceive;
     private _YModemSend: YModemSend;
 
-    // Settings to be loaded from HTML
-    // TODOX This should all be encapsulated into an fTelnetOptions class
-    private _BareLFtoCRLF: boolean = false;
-    private _BitsPerSecond: number = 57600;
-    private _Blink: boolean = true;
-    private _ConnectionType: string = 'telnet';
-    private _Emulation: string = 'ansi-bbs';
-    private _Enter: string = '\r';
-    private _Font: string = 'CP437';
-    private _ForceWss: boolean = false;
-    private _Hostname: string = 'bbs.ftelnet.ca';
-    private _LocalEcho: boolean = false;
-    private _Port: number = 1123;
-    private _ProxyHostname: string = '';
-    private _ProxyPort: number = 1123;
-    private _ProxyPortSecure: number = 11235;
-    private _RLoginClientUsername: string = '';
-    private _RLoginServerUsername: string = '';
-    private _RLoginTerminalType: string = '';
-    private _ScreenColumns: number = 80;
-    private _ScreenRows: number = 25;
-    private _SplashScreen: string = '';
-    private _StatusBarVisible: boolean = true;
-    private _VirtualKeyboardVisible: boolean = DetectMobileBrowser.IsMobile;
+    // Settings the user can configure (Defaults are in fTelnetOptions class)
+    private _Options: fTelnetOptions;
 
     // TODOX This should be a constructor, and accept an fTelnetOptions parameter
-    constructor(containerId: string) {
+    constructor(containerId: string, options: fTelnetOptions) {
         // TODOX Canvas test (display error in div if missing support)
         // TODOX WebSocket test (display error in Crt if missing support)
         // TODOX Any other tests?
 
-        if (typeof containerId !== 'string') {
-            var Message = 'fTelnet Error: fTelnet constructor was passed an invalid container id';
-            alert(Message);
-            throw new Error(Message);
-        }
-
-        // Ensure we have our container
-        var Container = document.getElementById(containerId);
-        if (Container === null) {
-            var Message = 'fTelnet Error: fTelnet constructor was passed an invalid container id';
+        if (typeof options === 'undefined') {
+            var Message = 'fTelnet Error: The options parameter is required (pass in an fTelnetOptions object)';
             alert(Message);
             throw new Error(Message);
         } else {
-            this._fTelnetContainer = Container;
+            this._Options = options;
+
+            // Handle options that need to do something pre-init
+            if ((this._Options.Emulation === 'RIP') && (typeof RIP !== 'undefined')) {
+                // RIP needs to force a specific font and screen size
+                this._Options.Font = 'RIP_8x8';
+                this._Options.ScreenRows = 43;
+            } else {
+                // Force ansi-bbs if they didn't ask for RIP (or if RIP is not enabled in this build)
+                this._Options.Emulation = 'ansi-bbs';
+            }
+        }
+
+        // Ensure we have our container
+        if (typeof containerId === 'string') {
+            var Container = document.getElementById(containerId);
+            if (Container === null) {
+                var Message = 'fTelnet Error: fTelnet constructor was passed an invalid container id';
+                alert(Message);
+                throw new Error(Message);
+            } else {
+                this._fTelnetContainer = Container;
+            }
+        } else {
+            var Message = 'fTelnet Error: fTelnet constructor was passed an invalid container id';
+            alert(Message);
+            throw new Error(Message);
         }
 
         // Ensure the script tag includes the id we want
@@ -129,27 +127,42 @@ class fTelnetClient {
         this._fTelnetContainer.appendChild(this._ClientContainer);
 
         // Setup the client container for modern scrollback on desktop devices
-        this._UseModernScrollback = (DetectMobileBrowser.SupportsModernScrollback && (this._Emulation !== 'RIP'));
+        this._UseModernScrollback = (DetectMobileBrowser.SupportsModernScrollback && (this._Options.Emulation !== 'RIP'));
         if (this._UseModernScrollback) {
             this._ClientContainer.style.overflowX = 'hidden';
             this._ClientContainer.style.overflowY = 'scroll';
-            this._ClientContainer.style.height = this._ScreenRows * 16 + 'px'; // Default font is 9x16
-            this._ClientContainer.style.width = (this._ScreenColumns * 9) + GetScrollbarWidth.Width + 'px'; // Default font is 9x16
+            this._ClientContainer.style.height = this._Options.ScreenRows * 16 + 'px'; // Default font is 9x16
+            this._ClientContainer.style.width = (this._Options.ScreenColumns * 9) + GetScrollbarWidth.Width + 'px'; // Default font is 9x16
             this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
         }
 
-        // Seup the crt window (TODOX Also RIP if RIP is going to be re-implemented)
+        // Seup the crt window
         this._Crt = new Crt(this._ClientContainer, this._UseModernScrollback);
         this._InitMessageBar.style.display = 'none';
 
         this._Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
         this._Crt.onkeypressed.on((): void => { this.OnCrtKeyPressed(); });
         this._Crt.onscreensizechange.on((): void => { this.OnCrtScreenSizeChanged(); });
-        this._Crt.BareLFtoCRLF = this._BareLFtoCRLF;
-        this._Crt.Blink = this._Blink;
-        this._Crt.LocalEcho = this._LocalEcho;
-        this._Crt.SetFont(this._Font);
-        this._Crt.SetScreenSize(this._ScreenColumns, this._ScreenRows);
+        this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
+        this._Crt.Blink = this._Options.Blink;
+        this._Crt.LocalEcho = this._Options.LocalEcho;
+        this._Crt.SetFont(this._Options.Font);
+        this._Crt.SetScreenSize(this._Options.ScreenColumns, this._Options.ScreenRows);
+
+        // Create the ansi cursor position handler
+        this._Ansi = new Ansi(this._Crt);
+        this._Ansi.onesc5n.on((): void => { this.OnAnsiESC5n(); });
+        this._Ansi.onesc6n.on((): void => { this.OnAnsiESC6n(); });
+        this._Ansi.onesc255n.on((): void => { this.OnAnsiESC255n(); });
+        this._Ansi.onescQ.on((font: string): void => { this.OnAnsiESCQ(font); });
+        this._Ansi.onripdetect.on((): void => { this.OnAnsiRIPDetect(); });
+        this._Ansi.onripdisable.on((): void => { this.OnAnsiRIPDisable(); });
+        this._Ansi.onripenable.on((): void => { this.OnAnsiRIPEnable(); });
+
+        // Setup the RIP/Graph window, if necessary
+        if (this._Options.Emulation === 'RIP') {
+            this._RIP = new RIP(this._Crt, this._Ansi, this._ClientContainer);
+        }
 
         // Test websocket support
         if (!('WebSocket' in window) || navigator.userAgent.match('AppleWebKit/534.30')) {
@@ -224,7 +237,7 @@ class fTelnetClient {
         // Create the status bar
         this._StatusBar = document.createElement('div');
         this._StatusBar.className = 'fTelnetStatusBar';
-        this._StatusBar.style.display = (this._StatusBarVisible ? 'block' : 'none');
+        this._StatusBar.style.display = (this._Options.StatusBarVisible ? 'block' : 'none');
         this._fTelnetContainer.appendChild(this._StatusBar);
 
         // Create the statusbar menu button
@@ -346,33 +359,28 @@ class fTelnetClient {
 
         // Create the virtual keyboard
         this._VirtualKeyboard = new VirtualKeyboard(this._Crt, this._fTelnetContainer);
-        this._VirtualKeyboard.Visible = this._VirtualKeyboardVisible;
+        this._VirtualKeyboard.Visible = this._Options.VirtualKeyboardVisible;
 
         // Size the scrollback and button divs
         this.OnCrtScreenSizeChanged();
 
-        // Create the ansi cursor position handler
-        this._Ansi = new Ansi(this._Crt);
-        this._Ansi.onesc5n.on((): void => { this.OnAnsiESC5n(); });
-        this._Ansi.onesc6n.on((): void => { this.OnAnsiESC6n(); });
-        this._Ansi.onesc255n.on((): void => { this.OnAnsiESC255n(); });
-        this._Ansi.onescQ.on((font: string): void => { this.OnAnsiESCQ(font); });
-        this._Ansi.onripdetect.on((): void => { this.OnAnsiRIPDetect(); });
-        this._Ansi.onripdisable.on((): void => { this.OnAnsiRIPDisable(); });
-        this._Ansi.onripenable.on((): void => { this.OnAnsiRIPEnable(); });
-
-        // TODORIP
-        // if (this._Emulation === 'RIP') {
-        //     RIP.Parse(atob(this._SplashScreen));
-        // } else {
-        //     this._Ansi.Write(atob(this._SplashScreen));
-        // }
-        if (this._SplashScreen === '') {
-            this._Ansi.Write(atob('G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bWZUZWxuZXQgLS0gVGVsbmV0IGZvciB0aGUgV2ViICAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDkt'));
-            this._Ansi.Write(new Date().getFullYear().toString());
-            this._Ansi.Write(atob('IFImTSBTb2Z0d2FyZS4gIEFsbCBSaWdodHMgUmVzZXJ2ZWQNChtbMDszNG3ExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE'));
+        if (this._Options.Emulation === 'RIP') {
+            if (this._Options.SplashScreen === '') {
+                // TODOX Need the base64 encoded RIP screen
+                this._RIP.Parse(atob('G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bWZUZWxuZXQgLS0gVGVsbmV0IGZvciB0aGUgV2ViICAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDkt'));
+                this._RIP.Parse(new Date().getFullYear().toString());
+                this._RIP.Parse(atob('IFImTSBTb2Z0d2FyZS4gIEFsbCBSaWdodHMgUmVzZXJ2ZWQNChtbMDszNG3ExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE'));
+            } else {
+                this._RIP.Parse(atob(this._Options.SplashScreen));
+            }
         } else {
-            this._Ansi.Write(atob(this._SplashScreen));
+            if (this._Options.SplashScreen === '') {
+                this._Ansi.Write(atob('G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bWZUZWxuZXQgLS0gVGVsbmV0IGZvciB0aGUgV2ViICAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDkt'));
+                this._Ansi.Write(new Date().getFullYear().toString());
+                this._Ansi.Write(atob('IFImTSBTb2Z0d2FyZS4gIEFsbCBSaWdodHMgUmVzZXJ2ZWQNChtbMDszNG3ExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE'));
+            } else {
+                this._Ansi.Write(atob(this._Options.SplashScreen));
+            }
         }
 
         // TODOX This used to be run when Crt.Init() failed.  Maybe have a fTelnet.Supported getter that handles all the validation of features
@@ -398,38 +406,28 @@ class fTelnetClient {
     }
 
     public get BareLFtoCRLF(): boolean {
-        return this._BareLFtoCRLF;
+        return this._Options.BareLFtoCRLF;
     }
 
     public set BareLFtoCRLF(value: boolean) {
-        this._BareLFtoCRLF = value;
+        this._Options.BareLFtoCRLF = value;
         this._Crt.BareLFtoCRLF = value;
     }
 
     public get BitsPerSecond(): number {
-        return this._BitsPerSecond;
+        return this._Options.BitsPerSecond;
     }
 
     public set BitsPerSecond(value: number) {
-        this._BitsPerSecond = value;
+        this._Options.BitsPerSecond = value;
     }
 
     public get Blink(): boolean {
-        return this._Blink;
+        return this._Options.Blink;
     }
 
     public set Blink(value: boolean) {
-        this._Blink = value;
-    }
-
-    public get ButtonBarVisible(): boolean {
-        // No longer used -- only here to avoid errors for people who used this
-        return true;
-    }
-
-    public set ButtonBarVisible(value: boolean) {
-        // No longer used -- only here to avoid errors for people who used this
-        value = value; // Avoid unused parameter error
+        this._Options.Blink = value;
     }
 
     public ClipboardCopy(): void {
@@ -460,11 +458,11 @@ class fTelnetClient {
     }
 
     public get ConnectionType(): string {
-        return this._ConnectionType;
+        return this._Options.ConnectionType;
     }
 
     public set ConnectionType(value: string) {
-        this._ConnectionType = value;
+        this._Options.ConnectionType = value;
     }
 
     public Connect(): void {
@@ -474,7 +472,7 @@ class fTelnetClient {
         if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) { return; }
 
         // Create new connection
-        switch (this._ConnectionType) {
+        switch (this._Options.ConnectionType) {
             case 'rlogin':
                 this._Connection = new RLoginConnection();
                 break;
@@ -483,7 +481,7 @@ class fTelnetClient {
                 break;
             default:
                 this._Connection = new TelnetConnection(this._Crt);
-                this._Connection.LocalEcho = this._LocalEcho;
+                this._Connection.LocalEcho = this._Options.LocalEcho;
                 this._Connection.onlocalecho.on((value: boolean): void => { this.OnConnectionLocalEcho(value); });
                 break;
         }
@@ -495,29 +493,26 @@ class fTelnetClient {
         this._Connection.onsecurityerror.on((): void => { this.OnConnectionSecurityError(); });
 
         // Reset display
-        // TODORIP
-        // if (this._Emulation === 'RIP') {
-        //     RIP.ResetWindows();
-        // } else {
-        //     this._Crt.NormVideo();
-        //     this._Crt.ClrScr();
-        // }
-        this._Crt.NormVideo();
-        this._Crt.ClrScr();
+        if (this._Options.Emulation === 'RIP') {
+            this._RIP.ResetWindows();
+        } else {
+            this._Crt.NormVideo();
+            this._Crt.ClrScr();
+        }
 
         // Make connection
-        if (this._ProxyHostname === '') {
+        if (this._Options.ProxyHostname === '') {
             this._ConnectButton.style.display = 'none';
-            this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port;
+            this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Options.Hostname + ':' + this._Options.Port;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
-            this._Connection.connect(this._Hostname, this._Port, this._ForceWss);
+            this._Connection.connect(this._Options.Hostname, this._Options.Port, this._Options.ForceWss);
         } else {
             this._ConnectButton.style.display = 'none';
-            this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname;
+            this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
-            this._Connection.connect(this._Hostname, this._Port, this._ForceWss, this._ProxyHostname, this._ProxyPort, this._ProxyPortSecure);
+            this._Connection.connect(this._Options.Hostname, this._Options.Port, this._Options.ForceWss, this._Options.ProxyHostname, this._Options.ProxyPort, this._Options.ProxyPortSecure);
         }
     }
 
@@ -572,28 +567,15 @@ class fTelnetClient {
     }
 
     public get Emulation(): string {
-        return this._Emulation;
-    }
-
-    public set Emulation(value: string) {
-        switch (value) {
-            case 'RIP':
-                this._Emulation = 'RIP';
-                this._Font = 'RIP_8x8';
-                this._ScreenRows = 43;
-                break;
-            default:
-                this._Emulation = 'ansi-bbs';
-                break;
-        }
+        return this._Options.Emulation;
     }
 
     public get Enter(): string {
-        return this._Enter;
+        return this._Options.Enter;
     }
 
     public set Enter(value: string) {
-        this._Enter = value;
+        this._Options.Enter = value;
     }
 
     public EnterScrollback(): void {
@@ -618,19 +600,19 @@ class fTelnetClient {
     }
 
     public get Font(): string {
-        return this._Font;
+        return this._Options.Font;
     }
 
     public set Font(value: string) {
-        this._Font = value;
+        this._Options.Font = value;
     }
 
     public get ForceWss(): boolean {
-        return this._ForceWss;
+        return this._Options.ForceWss;
     }
 
     public set ForceWss(value: boolean) {
-        this._ForceWss = value;
+        this._Options.ForceWss = value;
     }
 
     public FullScreenToggle(): void {
@@ -661,19 +643,19 @@ class fTelnetClient {
     }
 
     public get Hostname(): string {
-        return this._Hostname;
+        return this._Options.Hostname;
     }
 
     public set Hostname(value: string) {
-        this._Hostname = value;
+        this._Options.Hostname = value;
     }
 
     public get LocalEcho(): boolean {
-        return this._LocalEcho;
+        return this._Options.LocalEcho;
     }
 
     public set LocalEcho(value: boolean) {
-        this._LocalEcho = value;
+        this._Options.LocalEcho = value;
 
         this._Crt.LocalEcho = value;
         if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {
@@ -700,11 +682,13 @@ class fTelnetClient {
     }
 
     private OnAnsiESCQ(font: string): void {
-        this._Crt.SetFont(font);
+        if (this._Options.Emulation !== 'RIP') {
+            this._Crt.SetFont(font);
+        }
     }
 
     private OnAnsiRIPDetect(): void {
-        if (this._Emulation === 'RIP') {
+        if (this._Options.Emulation === 'RIP') {
             if (typeof this._Connection === 'undefined') { return; }
             if (!this._Connection.connected) { return; }
             this._Connection.writeString('RIPSCRIP015400');
@@ -723,7 +707,7 @@ class fTelnetClient {
         this._ConnectButton.innerHTML = 'Reconnect';
         this._ConnectButton.style.display = 'inline';
 
-        this._StatusBarLabel.innerHTML = 'Disconnected from ' + this._Hostname + ':' + this._Port;
+        this._StatusBarLabel.innerHTML = 'Disconnected from ' + this._Options.Hostname + ':' + this._Options.Port;
         this._StatusBar.style.backgroundColor = 'red';
         this._ClientContainer.style.opacity = '0.5';
     }
@@ -731,25 +715,25 @@ class fTelnetClient {
     private OnConnectionConnect(): void {
         this._Crt.ClrScr();
 
-        if (this._ProxyHostname === '') {
-            this._StatusBarLabel.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port;
+        if (this._Options.ProxyHostname === '') {
+            this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
         } else {
-            this._StatusBarLabel.innerHTML = 'Connected to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname;
+            this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
         }
 
-        if (this._ConnectionType === 'rlogin') {
-            var TerminalType: string = this._RLoginTerminalType;
+        if (this._Options.ConnectionType === 'rlogin') {
+            var TerminalType: string = this._Options.RLoginTerminalType;
             if (TerminalType === '') {
-                TerminalType = this._Emulation + '/' + this._BitsPerSecond;
+                TerminalType = this._Options.Emulation + '/' + this._Options.BitsPerSecond;
             }
 
             if (typeof this._Connection === 'undefined') { return; }
             if (!this._Connection.connected) { return; }
-            this._Connection.writeString(String.fromCharCode(0) + this._RLoginClientUsername + String.fromCharCode(0) + this._RLoginServerUsername + String.fromCharCode(0) + TerminalType + String.fromCharCode(0));
+            this._Connection.writeString(String.fromCharCode(0) + this._Options.RLoginClientUsername + String.fromCharCode(0) + this._Options.RLoginServerUsername + String.fromCharCode(0) + TerminalType + String.fromCharCode(0));
             this._Connection.flush();
         }
 
@@ -765,20 +749,18 @@ class fTelnetClient {
                 if (MSecElapsed < 1) { MSecElapsed = 1; }
 
                 // Determine how many bytes we need to read to achieve the requested BitsPerSecond rate
-                var BytesToRead: number = Math.floor(this._BitsPerSecond / 8 / (1000 / MSecElapsed));
+                var BytesToRead: number = Math.floor(this._Options.BitsPerSecond / 8 / (1000 / MSecElapsed));
                 if (BytesToRead < 1) { BytesToRead = 1; }
 
                 // Read the number of bytes we want
                 var Data: string = this._Connection.readString(BytesToRead);
                 if (Data.length > 0) {
                     this.ondata.trigger(Data);
-                    // TODORIP
-                    // if (this._Emulation === 'RIP') {
-                    //     RIP.Parse(Data);
-                    // } else {
-                    //     this._Ansi.Write(Data);
-                    // }
-                    this._Ansi.Write(Data);
+                    if (this._Options.Emulation === 'RIP') {
+                        this._RIP.Parse(Data);
+                    } else {
+                        this._Ansi.Write(Data);
+                    }
                 }
 
                 // If we have data leftover, schedule a new timer
@@ -793,7 +775,7 @@ class fTelnetClient {
     }
 
     private OnConnectionLocalEcho(value: boolean): void {
-        this._LocalEcho = value;
+        this._Options.LocalEcho = value;
         this._Crt.LocalEcho = value;
     }
 
@@ -805,12 +787,12 @@ class fTelnetClient {
         this._ConnectButton.innerHTML = 'Retry Connection';
         this._ConnectButton.style.display = 'inline';
 
-        if (this._ProxyHostname === '') {
-            this._StatusBarLabel.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port;
+        if (this._Options.ProxyHostname === '') {
+            this._StatusBarLabel.innerHTML = 'Unable to connect to ' + this._Options.Hostname + ':' + this._Options.Port;
             this._StatusBar.style.backgroundColor = 'red';
             this._ClientContainer.style.opacity = '0.5';
         } else {
-            this._StatusBarLabel.innerHTML = 'Unable to connect to ' + this._Hostname + ':' + this._Port + ' via ' + this._ProxyHostname;
+            this._StatusBarLabel.innerHTML = 'Unable to connect to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
             this._StatusBar.style.backgroundColor = 'red';
             this._ClientContainer.style.opacity = '0.5';
         }
@@ -828,7 +810,7 @@ class fTelnetClient {
                         if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {
                             // Handle translating Enter key
                             if (KPE.keyString === '\r\n') {
-                                this._Connection.writeString(this._Enter);
+                                this._Connection.writeString(this._Options.Enter);
                             } else {
                                 this._Connection.writeString(KPE.keyString);
                             }
@@ -841,20 +823,22 @@ class fTelnetClient {
     }
 
     private OnCrtScreenSizeChanged(): void {
-        if (this._Emulation === 'RIP') {
-            // TODOX Anything to do here?
-            var NewWidth: number = 640;
+        var NewWidth: number;
+        var NewHeight: number;
+
+        if (this._Options.Emulation === 'RIP') {
+            NewWidth = 640;
         } else {
             if (this._UseModernScrollback) {
                 // Non-mobile means modern scrollback, which needs both width and height to be set
-                var NewWidth: number = this._Crt.ScreenCols * this._Crt.Font.Width + GetScrollbarWidth.Width;
-                var NewHeight: number = this._Crt.ScreenRows * this._Crt.Font.Height;
+                NewWidth = this._Crt.ScreenCols * this._Crt.Font.Width + GetScrollbarWidth.Width;
+                NewHeight = this._Crt.ScreenRows * this._Crt.Font.Height;
 
                 this._ClientContainer.style.width = NewWidth + 'px';
                 this._ClientContainer.style.height = NewHeight + 'px';
                 this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
             } else {
-                var NewWidth: number = this._Crt.ScreenCols * this._Crt.Font.Width;
+                NewWidth = this._Crt.ScreenCols * this._Crt.Font.Width;
             }
         }
 
@@ -941,91 +925,91 @@ class fTelnetClient {
     }
 
     public get Port(): number {
-        return this._Port;
+        return this._Options.Port;
     }
 
     public set Port(value: number) {
-        this._Port = value;
+        this._Options.Port = value;
     }
 
     public get ProxyHostname(): string {
-        return this._ProxyHostname;
+        return this._Options.ProxyHostname;
     }
 
     public set ProxyHostname(value: string) {
-        this._ProxyHostname = value;
+        this._Options.ProxyHostname = value;
     }
 
     public get ProxyPort(): number {
-        return this._ProxyPort;
+        return this._Options.ProxyPort;
     }
 
     public set ProxyPort(value: number) {
-        this._ProxyPort = value;
+        this._Options.ProxyPort = value;
     }
 
     public get ProxyPortSecure(): number {
-        return this._ProxyPortSecure;
+        return this._Options.ProxyPortSecure;
     }
 
     public set ProxyPortSecure(value: number) {
-        this._ProxyPortSecure = value;
+        this._Options.ProxyPortSecure = value;
     }
 
     public get RLoginClientUsername(): string {
-        return this._RLoginClientUsername;
+        return this._Options.RLoginClientUsername;
     }
 
     public set RLoginClientUsername(value: string) {
-        this._RLoginClientUsername = value;
+        this._Options.RLoginClientUsername = value;
     }
 
     public get RLoginServerUsername(): string {
-        return this._RLoginServerUsername;
+        return this._Options.RLoginServerUsername;
     }
 
     public set RLoginServerUsername(value: string) {
-        this._RLoginServerUsername = value;
+        this._Options.RLoginServerUsername = value;
     }
 
     public get RLoginTerminalType(): string {
-        return this._RLoginTerminalType;
+        return this._Options.RLoginTerminalType;
     }
 
     public set RLoginTerminalType(value: string) {
-        this._RLoginTerminalType = value;
+        this._Options.RLoginTerminalType = value;
     }
 
     public get ScreenColumns(): number {
-        return this._ScreenColumns;
+        return this._Options.ScreenColumns;
     }
 
     public set ScreenColumns(value: number) {
-        this._ScreenColumns = value;
+        this._Options.ScreenColumns = value;
     }
 
     public get ScreenRows(): number {
-        return this._ScreenRows;
+        return this._Options.ScreenRows;
     }
 
     public set ScreenRows(value: number) {
-        this._ScreenRows = value;
+        this._Options.ScreenRows = value;
     }
 
     public get SplashScreen(): string {
-        return this._SplashScreen;
+        return this._Options.SplashScreen;
     }
 
     public set SplashScreen(value: string) {
-        this._SplashScreen = value;
+        this._Options.SplashScreen = value;
     }
 
     public get StatusBarVisible(): boolean {
-        return this._StatusBarVisible;
+        return this._Options.StatusBarVisible;
     }
 
     public set StatusBarVisible(value: boolean) {
-        this._StatusBarVisible = value;
+        this._Options.StatusBarVisible = value;
 
         if (typeof this._StatusBar !== 'undefined') {
             this._StatusBar.style.display = (value ? 'block' : 'none');
@@ -1068,14 +1052,14 @@ class fTelnetClient {
     }
 
     public get VirtualKeyboardVisible(): boolean {
-        return this._VirtualKeyboardVisible;
+        return this._Options.VirtualKeyboardVisible;
     }
 
     public set VirtualKeyboardVisible(value: boolean) {
         // Hide the menu buttons (in case we clicked the Connect menu button)
         if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
-        this._VirtualKeyboardVisible = value;
+        this._Options.VirtualKeyboardVisible = value;
         this._VirtualKeyboard.Visible = value;
     }
 }

@@ -37,7 +37,7 @@ class BitmapFont {
         if (document.getElementById('fTelnetScript') !== null) {
             var xhr: XMLHttpRequest = new XMLHttpRequest();
             xhr.open('get', StringUtils.GetUrl('fonts/RIP-Bitmap_8x8.json'), true);
-            xhr.onload = (): void => { this.OnJsonLoad(xhr); }
+            xhr.onload = (): void => { this.OnJsonLoad(xhr); };
             xhr.send();
         }
     }
@@ -45,7 +45,7 @@ class BitmapFont {
     private static OnJsonLoad(xhr: XMLHttpRequest) {
         var status: number = xhr.status;
         if (status === 200) {
-            this.Pixels = JSON.parse(xhr.responseText)
+            this.Pixels = JSON.parse(xhr.responseText);
             this.Loaded = true;
         } else {
             alert('fTelnet Error: Unable to load RIP bitmap font');

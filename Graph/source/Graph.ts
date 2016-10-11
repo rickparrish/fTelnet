@@ -29,10 +29,10 @@
 // userlist keyboard
 // welcome size of text
 class Graph {
-    private static ASPECT_RATIO: number = 0.775; // 7750 over 10000
-    public static PIXELS_X: number = 640;
-    public static PIXELS_Y: number = 350;
-    public static PIXELS: number = Graph.PIXELS_X * Graph.PIXELS_Y;
+    private ASPECT_RATIO: number = 0.775; // 7750 over 10000
+    public PIXELS_X: number = 640;
+    public PIXELS_Y: number = 350;
+    public PIXELS: number = this.PIXELS_X * this.PIXELS_Y;
 
     // The full EGA palette
     private static EGA_PALETTE: number[] = [
@@ -47,35 +47,37 @@ class Graph {
     ];
 
     // The current palette, which can only contain 16 elements from the full EGA palette at one time
-    public static CURRENT_PALETTE: number[] = [
+    public CURRENT_PALETTE: number[] = [
         Graph.EGA_PALETTE[0], Graph.EGA_PALETTE[1], Graph.EGA_PALETTE[2], Graph.EGA_PALETTE[3],
         Graph.EGA_PALETTE[4], Graph.EGA_PALETTE[5], Graph.EGA_PALETTE[20], Graph.EGA_PALETTE[7],
         Graph.EGA_PALETTE[56], Graph.EGA_PALETTE[57], Graph.EGA_PALETTE[58], Graph.EGA_PALETTE[59],
         Graph.EGA_PALETTE[60], Graph.EGA_PALETTE[61], Graph.EGA_PALETTE[62], Graph.EGA_PALETTE[63]
     ];
 
-    private static _FillSettings: FillSettings = new FillSettings();
-    private static _LineSettings: LineSettings = new LineSettings();
-    private static _TextSettings: TextSettings = new TextSettings();
-    private static _ViewPortSettings: ViewPortSettings = new ViewPortSettings();
+    private _FillSettings: FillSettings = new FillSettings();
+    private _LineSettings: LineSettings = new LineSettings();
+    private _TextSettings: TextSettings = new TextSettings();
+    private _ViewPortSettings: ViewPortSettings = new ViewPortSettings();
 
-    private static _BackColour: number = 0;
-    private static _Canvas: HTMLCanvasElement;
-    private static _CanvasContext: CanvasRenderingContext2D;
-    private static _Colour: number = 0;
-    private static _Container: HTMLElement;
-    private static _CursorPosition: Point = new Point(0, 0);
-    private static _FillEllipse: Boolean = false;
-    private static _FillPolyMap: boolean[][] = [];
-    private static _IsLittleEndian = true;
-    private static _TextWindow: Rectangle;
-    private static _WriteMode: number = WriteMode.Normal;
+    private _BackColour: number = 0;
+    private _Canvas: HTMLCanvasElement;
+    private _CanvasContext: CanvasRenderingContext2D;
+    private _Colour: number = 0;
+    private _Container: HTMLElement;
+    private _Crt: Crt;
+    private _CursorPosition: Point = new Point(0, 0);
+    private _FillEllipse: Boolean = false;
+    private _FillPolyMap: boolean[][] = [];
+    private _IsLittleEndian = true;
+    private _TextWindow: Rectangle;
+    private _WriteMode: number = WriteMode.Normal;
 
-    public static PutPixel: IPutPixelFunction = Graph.PutPixelDefault;
+    public PutPixel: IPutPixelFunction = this.PutPixelDefault;
 
-    public static Init(container: HTMLElement): boolean {
+    constructor(crt: Crt, container: HTMLElement) {
+        this._Crt = crt;
         this._Container = container;
-        this._TextWindow = new Rectangle(0, 0, Crt.ScreenCols, Crt.ScreenRows);
+        this._TextWindow = new Rectangle(0, 0, this._Crt.ScreenCols, this._Crt.ScreenRows);
 
         // Determine whether Uint32 is little- or big-endian (FROM: http://jsfiddle.net/andrewjbaker/Fnx2w/)
         var EndianBuffer = new ArrayBuffer(4);
@@ -102,35 +104,33 @@ class Graph {
         // Adjust container to fixed width and height
         this._Container.style.width = this.PIXELS_X.toString(10) + 'px';
         this._Container.style.height = this.PIXELS_Y.toString(10) + 'px';
-        Crt.Canvas.style.position = 'absolute';
-        Crt.Transparent = true;
+        this._Crt.Canvas.style.position = 'absolute';
+        this._Crt.Transparent = true;
 
         // Check for Canvas support
         if (!this._Canvas.getContext) {
             console.log('fTelnet Error: Canvas not supported');
-            return false;
+            // TODOX return false;
         }
 
         // Add graph to container
         this._Container.appendChild(this._Canvas);
 
         // Create the context
-        this._CanvasContext = this._Canvas.getContext('2d');
+        var CanvasContext = this._Canvas.getContext('2d');
+        if (CanvasContext !== null) { this._CanvasContext = CanvasContext; } // TODOX Handle null
         this._CanvasContext.font = '12pt monospace';
         this._CanvasContext.textBaseline = 'top';
 
         this.GraphDefaults();
 
-        // TODO Should RIP.Init call Graph.Init?
-        RIP.Init();
-
-        return true;
+        // TODOX return true;
     }
 
     // Draws a circular arc.
     // The arc goes from StAngle (start angle) to EndAngle, with radius Radius,
     // using (x,y) as the center point.
-    public static Arc(AX: number, AY: number, AStartAngle: number, AEndAngle: number, ARadius: number): void {
+    public Arc(AX: number, AY: number, AStartAngle: number, AEndAngle: number, ARadius: number): void {
         this.Ellipse(AX, AY, AStartAngle, AEndAngle, ARadius, Math.floor(ARadius * this.ASPECT_RATIO));
     }
 
@@ -138,7 +138,7 @@ class Graph {
     // Bar draws a filled-in rectangle (used in bar charts, for example). Uses the
     // pattern and color defined by SetFillStyle or SetFillPattern. To draw an
     // outlined bar, call Bar3D with a depth of zero.
-    public static Bar(AX1: number, AY1: number, AX2: number, AY2: number): void {
+    public Bar(AX1: number, AY1: number, AX2: number, AY2: number): void {
         var x: number;
         var y: number;
 
@@ -151,7 +151,7 @@ class Graph {
             AY2 += this._ViewPortSettings.y1;
 
             // Ensure that x1 and y1 are in the visible viewport
-            if ((AX1 > this._ViewPortSettings.x2) || (AY1 > this._ViewPortSettings.y2)) return;
+            if ((AX1 > this._ViewPortSettings.x2) || (AY1 > this._ViewPortSettings.y2)) { return; }
         }
 
         // Make sure x2 and y2 don't exceed the visible viewport
@@ -173,11 +173,11 @@ class Graph {
             // Fill all the pixels with the specified colour
             // TODO Confirm that this doesn't cause anti-aliasing in any browsers (Firefox seems OK)
             this._CanvasContext.fillRect(AX1, AY1, AX2 - AX1 + 1, AY2 - AY1 + 1);
-            //for (y = AY1; y <= AY2; y++) {
-            //    for (x = AX1; x <= AX2; x++) {
-            //        this._CanvasContext.fillRect(x, y, 1, 1);
-            //    }
-            //}
+            // for (y = AY1; y <= AY2; y++) {
+            //     for (x = AX1; x <= AX2; x++) {
+            //         this._CanvasContext.fillRect(x, y, 1, 1);
+            //     }
+            // }
         } else {
             // Need to do a pattern lookup since the condition for a patternless fill wasn't met
             var XOffset: number = AX1 + (AY1 * this.PIXELS_X);
@@ -199,7 +199,7 @@ class Graph {
 
     // Draw a bezier curve (NB: cubic, not quadratic)
     // Adapted from http://www.paultondeur.com/2008/03/09/drawing-a-cubic-bezier-curve-using-actionscript-3/
-    public static Bezier(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, count: number): void {
+    public Bezier(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, count: number): void {
         var lastx: number = x1;
         var lasty: number = y1;
         var nextx: number;
@@ -223,36 +223,40 @@ class Graph {
         this.Line(lastx, lasty, x4, y4);
     }
 
-    public static get Canvas(): HTMLCanvasElement {
+    public get Canvas(): HTMLCanvasElement {
         return this._Canvas;
     }
 
     // Clears the text window with the current background colour and homes the cursor
-    public static ClearTextWindow(): void {
-        var x1: number = parseInt(Crt.Canvas.style.left.replace('px', ''), 10);
-        var x2: number = x1 + Crt.Canvas.width - 1;
-        var y1: number = parseInt(Crt.Canvas.style.top.replace('px', ''), 10);
-        var y2: number = y1 + Crt.Canvas.height - 1;
+    public ClearTextWindow(): void {
+        var Left: string | null = this._Crt.Canvas.style.left;
+        var Top: string | null = this._Crt.Canvas.style.top;
+        if ((Left !== null) && (Top !== null)) {
+            var x1: number = parseInt(Left.replace('px', ''), 10);
+            var x2: number = x1 + this._Crt.Canvas.width - 1;
+            var y1: number = parseInt(Top.replace('px', ''), 10);
+            var y2: number = y1 + this._Crt.Canvas.height - 1;
 
-        this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._BackColour].toString(16), '0', 6);
+            this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._BackColour].toString(16), '0', 6);
 
-        // Reset the pixels behind the text window
-        // TODO Need to confirm this won't anti-alias
-        this._CanvasContext.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
-        //for (var y: number = y1; y <= y2; y++) {
-        //    for (var x: number = x1; x <= x2; x++) {
-        //        this._CanvasContext.fillRect(x, y, 1, 1);
-        //    }
-        //}
+            // Reset the pixels behind the text window
+            // TODO Need to confirm this won't anti-alias
+            this._CanvasContext.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+            // for (var y: number = y1; y <= y2; y++) {
+            //     for (var x: number = x1; x <= x2; x++) {
+            //         this._CanvasContext.fillRect(x, y, 1, 1);
+            //     }
+            // }
 
-        // Clear the Crt screen
-        Crt.ClrScr();
+            // Clear the Crt screen
+            this._Crt.ClrScr();
+        }
     }
 
     // Clears the current view port (graphics mode only).
     // ClearViewPort sets the fill color to the background color and
     // moves the current pointer to (0, 0).
-    public static ClearViewPort(): void {
+    public ClearViewPort(): void {
         // Home the cursor
         this.MoveTo(0, 0);
 
@@ -271,14 +275,14 @@ class Graph {
     // center point.
     // Draws a circle in the current color set by SetColor. Each graphics driver
     // contains an aspect ratio used by Circle, Arc, and PieSlice.
-    public static Circle(AX: number, AY: number, ARadius: number): void {
+    public Circle(AX: number, AY: number, ARadius: number): void {
         this.Ellipse(AX, AY, 0, 360, ARadius, Math.floor(ARadius * this.ASPECT_RATIO));
     }
 
     // Draws the outline of a polygon using the current line style and color.
     // NumPoints specifies the number of coordinates in PolyPoints. A coordinate
     // consists of two words, an X and a Y value.
-    public static DrawPoly(APoints: Point[]): void {
+    public DrawPoly(APoints: Point[]): void {
         var APointslength: number = APoints.length;
         for (var i: number = 1; i < APointslength; i++) {
             this.Line(APoints[i - 1].x, APoints[i - 1].y, APoints[i].x, APoints[i].y);
@@ -288,9 +292,9 @@ class Graph {
     // Draws an elliptical arc.
     // Draws the arc from StAngle (start angle) to EndAngle, with radii XRadius and
     // YRadius, sing (X,Y) as the center point.
-    public static Ellipse(AX: number, AY: number, AStartAngle: number, AEndAngle: number, AXRadius: number, AYRadius: number): void {
+    public Ellipse(AX: number, AY: number, AStartAngle: number, AEndAngle: number, AXRadius: number, AYRadius: number): void {
         // Abort if start angle and end angle match (if a person wants a full circle, they should use 0-360)
-        if (AStartAngle === AEndAngle) return;
+        if (AStartAngle === AEndAngle) { return; }
 
         var ConvFac: number = Math.PI / 180.0;
         var j: number;
@@ -306,8 +310,8 @@ class Graph {
         var ym: number;
         var xnext: number;
         var ynext: number;
-        var BackupColor: number;
-        var TmpAngle: number;
+        // TODOX var BackupColor: number;
+        // TODOX var TmpAngle: number;
         var OldLineWidth: number;
 
         // check if valid angles
@@ -342,8 +346,8 @@ class Graph {
             }
         }
 
-        if (AXRadius === 0) AXRadius++;
-        if (AYRadius === 0) AYRadius++;
+        if (AXRadius === 0) { AXRadius++; }
+        if (AYRadius === 0) { AYRadius++; }
 
         // check for an ellipse with negligable x and y radius
         if ((AXRadius <= 1) && (AYRadius <= 1)) {
@@ -413,32 +417,36 @@ class Graph {
     }
 
     // Clears the text line with the current background colour
-    public static EraseEOL(): void {
+    public EraseEOL(): void {
         // TODO Not tested yet
-        var x1: number = parseInt(Crt.Canvas.style.left.replace('px', ''), 10) + ((Crt.WhereX() - 1) * Crt.Font.Width);
-        var x2: number = x1 + Crt.Canvas.width - 1;
-        var y1: number = parseInt(Crt.Canvas.style.top.replace('px', ''), 10) + ((Crt.WhereY() - 1) * Crt.Font.Height);
-        var y2: number = y1 + Crt.Font.Height;
+        var Left: string | null = this._Crt.Canvas.style.left;
+        var Top: string | null = this._Crt.Canvas.style.top;
+        if ((Left !== null) && (Top !== null)) {
+            var x1: number = parseInt(Left.replace('px', ''), 10) + ((this._Crt.WhereX() - 1) * this._Crt.Font.Width);
+            var x2: number = x1 + this._Crt.Canvas.width - 1;
+            var y1: number = parseInt(Top.replace('px', ''), 10) + ((this._Crt.WhereY() - 1) * this._Crt.Font.Height);
+            var y2: number = y1 + this._Crt.Font.Height;
 
-        this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._BackColour].toString(16), '0', 6);
+            this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(this.CURRENT_PALETTE[this._BackColour].toString(16), '0', 6);
 
-        // Reset the pixels behind the text window
-        // TODO Need to confirm this won't anti-alias
-        this._CanvasContext.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
-        //for (var y: number = y1; y <= y2; y++) {
-        //    for (var x: number = x1; x <= x2; x++) {
-        //        this._CanvasContext.fillRect(x, y, 1, 1);
-        //    }
-        //}
+            // Reset the pixels behind the text window
+            // TODO Need to confirm this won't anti-alias
+            this._CanvasContext.fillRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+            // for (var y: number = y1; y <= y2; y++) {
+            //     for (var x: number = x1; x <= x2; x++) {
+            //         this._CanvasContext.fillRect(x, y, 1, 1);
+            //     }
+            // }
 
-        // Clear the Crt line
-        Crt.ClrEol();
+            // Clear the Crt line
+            this._Crt.ClrEol();
+        }
     }
 
     // Draws a filled ellipse
     // (X,Y) is the center point; XRadius and YRadius are the horizontal and
     // vertical axes.
-    public static FillEllipse(AX: number, AY: number, AXRadius: number, AYRadius: number): void {
+    public FillEllipse(AX: number, AY: number, AXRadius: number, AYRadius: number): void {
         this._FillEllipse = true;
         this.Ellipse(AX, AY, 0, 360, AXRadius, AYRadius);
         this._FillEllipse = false;
@@ -452,7 +460,7 @@ class Graph {
     // polygon using the current fill style and color defined by SetFillStyle or
     // SetFillPattern. The outline of the polygon is drawn in the current line
     // style and color as set by SetLineStyle.
-    public static FillPoly(APoints: Point[]): void {
+    public FillPoly(APoints: Point[]): void {
         // Reset the pixel map (which records which pixels were set since the last time the map was reset)
         this._FillPolyMap = [];
         for (var y: number = 0; y <= this.PIXELS_Y; y++) {
@@ -473,10 +481,10 @@ class Graph {
 
         var APointslength: number = APoints.length;
         for (var i: number = 1; i < APointslength; i++) {
-            if (APoints[i].x < Bounds.left) Bounds.left = APoints[i].x;
-            if (APoints[i].y < Bounds.top) Bounds.top = APoints[i].y;
-            if (APoints[i].x > Bounds.right) Bounds.right = APoints[i].x;
-            if (APoints[i].y > Bounds.bottom) Bounds.bottom = APoints[i].y;
+            if (APoints[i].x < Bounds.left) { Bounds.left = APoints[i].x; }
+            if (APoints[i].y < Bounds.top) { Bounds.top = APoints[i].y; }
+            if (APoints[i].x > Bounds.right) { Bounds.right = APoints[i].x; }
+            if (APoints[i].y > Bounds.bottom) { Bounds.bottom = APoints[i].y; }
         }
 
         // Sanity checking for bounds
@@ -545,7 +553,7 @@ class Graph {
     // or SetFillPattern, is used to flood the area bounded by Border color. If the
     // seed point is within an enclosed area, then the inside will be filled. If
     // the seed is outside the enclosed area, then the exterior will be filled.
-    public static FloodFill(AX: number, AY: number, ABorder: number): void {
+    public FloodFill(AX: number, AY: number, ABorder: number): void {
         // Adjust for modified viewport, if necessary
         if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
             // Convert to global coordinates
@@ -553,7 +561,7 @@ class Graph {
             AY += this._ViewPortSettings.y1;
 
             // Ensure that x and y are in the visible viewport
-            if ((AX < this._ViewPortSettings.x1) || (AX > this._ViewPortSettings.x2) || (AY < this._ViewPortSettings.y1) || (AY > this._ViewPortSettings.y2)) return;
+            if ((AX < this._ViewPortSettings.x1) || (AX > this._ViewPortSettings.x2) || (AY < this._ViewPortSettings.y1) || (AY > this._ViewPortSettings.y2)) { return; }
         }
 
         // Precalculate the "on" and "off" colours
@@ -588,7 +596,7 @@ class Graph {
         var Pixels = new Uint32Array(PixelData.data.buffer);
 
         // Check if target point is already border colour
-        if (Pixels[AX + (AY * this.PIXELS_X)] === BorderColour) return;
+        if (Pixels[AX + (AY * this.PIXELS_X)] === BorderColour) { return; }
 
         var Visited: boolean[] = [];
 
@@ -646,7 +654,7 @@ class Graph {
     // Returns the current drawing color.
     // Drawing colors range from 0 to 15, depending on the current graphics driver
     // and current graphics mode.
-    public static GetColour(): number {
+    public GetColour(): number {
         return this._Colour;
     }
 
@@ -658,7 +666,7 @@ class Graph {
     // procedure.
     // 	If Pattern is equal to UserFill, use GetFillPattern to get the user-defined
     // fill pattern that is selected.
-    public static GetFillSettings(): FillSettings {
+    public GetFillSettings(): FillSettings {
         return this._FillSettings;
     }
 
@@ -669,7 +677,7 @@ class Graph {
     // and height of the region. The third word is reserved.
     // The remaining part of BitMap is used to save the bit image itself. Use the
     // ImageSize function to determine the size requirements of BitMap.
-    public static GetImage(x1: number, y1: number, x2: number, y2: number): ImageData {
+    public GetImage(x1: number, y1: number, x2: number, y2: number): ImageData {
         // TODO Validate coordinates are top left and bottom right?
         // TODO This needs testing
         return this._CanvasContext.getImageData(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
@@ -685,7 +693,7 @@ class Graph {
     //   line style and line pattern
     //   fill style, fill color, and fill pattern
     //   active font, text style, text justification, and user Char size
-    public static GraphDefaults(): void {
+    public GraphDefaults(): void {
         this.SetLineStyle(LineStyle.Solid, 0xFFFF, LineThickness.Normal);
         this.SetFillStyle(FillStyle.Solid, 15);
 
@@ -704,7 +712,7 @@ class Graph {
     }
 
     // Invert the pixels in the given region
-    public static Invert(AX1: number, AY1: number, AX2: number, AY2: number): void {
+    public Invert(AX1: number, AY1: number, AX2: number, AY2: number): void {
         // Adjust for modified viewport, if necessary
         if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
             // Convert to global coordinates
@@ -714,7 +722,7 @@ class Graph {
             AY2 += this._ViewPortSettings.y1;
 
             // Ensure that x1 and y1 are in the visible viewport
-            if ((AX1 > this._ViewPortSettings.x2) || (AY1 > this._ViewPortSettings.y2)) return;
+            if ((AX1 > this._ViewPortSettings.x2) || (AY1 > this._ViewPortSettings.y2)) { return; }
 
             // Make sure x2 and y2 don't exceed the visible viewport
             AX2 = Math.min(AX2, this._ViewPortSettings.x2);
@@ -740,15 +748,15 @@ class Graph {
         // Draw the ImageData at the given (x,y) coordinates.
         this._CanvasContext.putImageData(PixelData, 0, 0);
 
-        //for (var y: number = AY1; y <= AY2; y++) {
-        //    for (var x: number = AX1; x <= AX2; x++) {
-        //        // TODO Likely need to do this with getImageData and putImageData?
-        //        this._Pixels[XOffset] = this._Pixels[XOffset++] ^ 0x00FFFFFF; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(XOffset, this._Pixels[XOffset++] ^ 0x00FFFFFF);
-        //    }
-        //}
+        // for (var y: number = AY1; y <= AY2; y++) {
+        //     for (var x: number = AX1; x <= AX2; x++) {
+        //         // TODO Likely need to do this with getImageData and putImageData?
+        //         this._Pixels[XOffset] = this._Pixels[XOffset++] ^ 0x00FFFFFF; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(XOffset, this._Pixels[XOffset++] ^ 0x00FFFFFF);
+        //     }
+        // }
     }
 
-    private static HLine(x: number, x2: number, y: number): void {
+    private HLine(x: number, x2: number, y: number): void {
         var xtmp: number;
         /*{ must we swap the values? }*/
         if (x >= x2) {
@@ -774,7 +782,7 @@ class Graph {
         }
     }
 
-    private static VLine(x: number, y: number, y2: number): void {
+    private VLine(x: number, y: number, y2: number): void {
         var ytmp: number;
         /*{ must we swap the values? }*/
         if (y >= y2) {
@@ -804,7 +812,7 @@ class Graph {
     // Draws a line in the style and thickness defined by SetLineStyle and uses the
     // color set by SetColor. Use SetWriteMode to determine whether the line is
     // copied or XOR'd to the screen.
-    public static Line(x1: number, y1: number, x2: number, y2: number): void {
+    public Line(x1: number, y1: number, x2: number, y2: number): void {
         var x: number;
         var y: number;
         var deltax: number;
@@ -915,7 +923,7 @@ class Graph {
                 if (this._LineSettings.Thickness === LineThickness.Normal) {
                     /*{ Draw the pixels }*/
                     for (i = 1; i <= numpixels; i++) {
-                        this.PutPixel(x, y, this._Colour);//DirectPutPixel(x, y);
+                        this.PutPixel(x, y, this._Colour); // DirectPutPixel(x, y);
                         if (d < 0) {
                             d = d + dinc1;
                             x = x + xinc1;
@@ -933,13 +941,13 @@ class Graph {
                         /*{ all depending on the slope, we can determine         }
                         { in what direction the extra width pixels will be put }*/
                         if (flag) {
-                            this.PutPixel(x - 1, y, this._Colour);//DirectPutPixelClip(x-1,y);
-                            this.PutPixel(x, y, this._Colour);//DirectPutPixelClip(x,y);
-                            this.PutPixel(x + 1, y, this._Colour);//DirectPutPixelClip(x+1,y);
+                            this.PutPixel(x - 1, y, this._Colour); // DirectPutPixelClip(x-1,y);
+                            this.PutPixel(x, y, this._Colour); // DirectPutPixelClip(x,y);
+                            this.PutPixel(x + 1, y, this._Colour); // DirectPutPixelClip(x+1,y);
                         } else {
-                            this.PutPixel(x, y - 1, this._Colour);//DirectPutPixelClip(x, y-1);
-                            this.PutPixel(x, y, this._Colour);//DirectPutPixelClip(x, y);
-                            this.PutPixel(x, y + 1, this._Colour);//DirectPutPixelClip(x, y+1);
+                            this.PutPixel(x, y - 1, this._Colour); // DirectPutPixelClip(x, y-1);
+                            this.PutPixel(x, y, this._Colour); // DirectPutPixelClip(x, y);
+                            this.PutPixel(x, y + 1, this._Colour); // DirectPutPixelClip(x, y+1);
                         }
 
                         if (d < 0) {
@@ -982,7 +990,7 @@ class Graph {
                     for (pixelcount = x1; pixelcount <= x2; pixelcount++) {
                         /*{ optimization: PixelCount mod 16 }*/
                         if ((this._LineSettings.Pattern & (1 << (pixelcount & 15))) !== 0) {
-                            this.PutPixel(pixelcount, y2, this._Colour);//DirectPutPixel(PixelCount,y2);
+                            this.PutPixel(pixelcount, y2, this._Colour); // DirectPutPixel(PixelCount,y2);
                         }
                     }
                 } else {
@@ -993,7 +1001,7 @@ class Graph {
                                 for while as well (JM)}*/
                             if ((this._LineSettings.Pattern & (1 << (pixelcount & 15))) !== 0) {
                                 // TODO Need to clip
-                                this.PutPixel(pixelcount, y2 + i, this._Colour);//DirectPutPixelClip(PixelCount,y2+i);
+                                this.PutPixel(pixelcount, y2 + i, this._Colour); // DirectPutPixelClip(PixelCount,y2+i);
                             }
                         }
                     }
@@ -1010,7 +1018,7 @@ class Graph {
                         /*{ compare if we should plot a pixel here , compare }
                         { with predefined line patterns...                 }*/
                         if ((this._LineSettings.Pattern & (1 << (pixelcount & 15))) !== 0) {
-                            this.PutPixel(x1, pixelcount, this._Colour);//DirectPutPixel(x1,PixelCount);
+                            this.PutPixel(x1, pixelcount, this._Colour); // DirectPutPixel(x1,PixelCount);
                         }
                     }
                 } else {
@@ -1020,7 +1028,7 @@ class Graph {
                             { with predefined line patterns...                 }*/
                             if ((this._LineSettings.Pattern & (1 << (pixelcount & 15))) !== 0) {
                                 // TODO Need to clip	
-                                this.PutPixel(x1 + i, pixelcount, this._Colour);//DirectPutPixelClip(x1+i,PixelCount);
+                                this.PutPixel(x1 + i, pixelcount, this._Colour); // DirectPutPixelClip(x1+i,PixelCount);
                             }
                         }
                     }
@@ -1079,17 +1087,17 @@ class Graph {
                             /*{ compare if we should plot a pixel here , compare }
                             { with predefined line patterns...                 }*/
                             if ((this._LineSettings.Pattern & (1 << (i & 15))) !== 0) {
-                                this.PutPixel(x - 1, y, this._Colour);//DirectPutPixelClip(x-1,y);
-                                this.PutPixel(x, y, this._Colour);//DirectPutPixelClip(x,y);
-                                this.PutPixel(x + 1, y, this._Colour);//DirectPutPixelClip(x+1,y);
+                                this.PutPixel(x - 1, y, this._Colour); // DirectPutPixelClip(x-1,y);
+                                this.PutPixel(x, y, this._Colour); // DirectPutPixelClip(x,y);
+                                this.PutPixel(x + 1, y, this._Colour); // DirectPutPixelClip(x+1,y);
                             }
                         } else {
                             /*{ compare if we should plot a pixel here , compare }
                             { with predefined line patterns...                 }*/
                             if ((this._LineSettings.Pattern & (1 << (i & 15))) !== 0) {
-                                this.PutPixel(x, y - 1, this._Colour);//DirectPutPixelClip(x,y-1);
-                                this.PutPixel(x, y, this._Colour);//DirectPutPixelClip(x,y);
-                                this.PutPixel(x, y + 1, this._Colour);//DirectPutPixelClip(x,y+1);
+                                this.PutPixel(x, y - 1, this._Colour); // DirectPutPixelClip(x,y-1);
+                                this.PutPixel(x, y, this._Colour); // DirectPutPixelClip(x,y);
+                                this.PutPixel(x, y + 1, this._Colour); // DirectPutPixelClip(x,y+1);
                             }
                         }
 
@@ -1109,7 +1117,7 @@ class Graph {
                     /*{ NormWidth }*/
                     for (i = 0; i <= tmpnumpixels; i++) {
                         if ((this._LineSettings.Pattern & (1 << (i & 15))) !== 0) {
-                            this.PutPixel(x, y, this._Colour);//DirectPutPixel(x,y);
+                            this.PutPixel(x, y, this._Colour); // DirectPutPixel(x,y);
                         }
                         if (d < 0) {
                             d = d + dinc1;
@@ -1129,7 +1137,7 @@ class Graph {
         }
     }
 
-    public static yLine(x0: number, y0: number, x1: number, y1: number): void {
+    public yLine(x0: number, y0: number, x1: number, y1: number): void {
         if (this._WriteMode === WriteMode.XOR) {
             // TODO trace("Line() doesn't support XOR write mode");
         }
@@ -1257,7 +1265,7 @@ class Graph {
                 End = Math.max(y0, y1);
                 if (this._LineSettings.Thickness === LineThickness.Normal) {
                     for (y = Start; y <= End; y++) {
-                        if ((this._LineSettings.Pattern & (1 << (i++ & 15))) !== 0) this.PutPixel(x0, y, this._Colour);
+                        if ((this._LineSettings.Pattern & (1 << (i++ & 15))) !== 0) { this.PutPixel(x0, y, this._Colour); }
                     }
                 } else {
                     x0minus = x0 - 1;
@@ -1281,7 +1289,7 @@ class Graph {
                 End = Math.max(x0, x1);
                 if (this._LineSettings.Thickness === LineThickness.Normal) {
                     for (x = Start; x <= End; x++) {
-                        if ((this._LineSettings.Pattern & (1 << (i++ & 15))) !== 0) this.PutPixel(x, y0, this._Colour);
+                        if ((this._LineSettings.Pattern & (1 << (i++ & 15))) !== 0) { this.PutPixel(x, y0, this._Colour); }
                     }
                 } else {
                     y0minus = y0 - 1;
@@ -1368,7 +1376,7 @@ class Graph {
         }
     }
 
-    public static xLine(AX1: number, AY1: number, AX2: number, AY2: number): void {
+    public xLine(AX1: number, AY1: number, AX2: number, AY2: number): void {
         if (this._LineSettings.Style !== LineStyle.Solid) {
             // TODO trace("Line() only supports solid line types");
             this._LineSettings.Style = LineStyle.Solid;
@@ -1544,7 +1552,7 @@ class Graph {
     // If a viewport is active, the CP will be viewport-relative (the X and Y
     // values will be added to the viewport's X1 and Y1 values). The CP is never
     // clipped at the current viewport's boundaries.
-    public static MoveTo(AX: number, AY: number): void {
+    public MoveTo(AX: number, AY: number): void {
         this._CursorPosition.x = AX;
         this._CursorPosition.y = AY;
     }
@@ -1552,20 +1560,20 @@ class Graph {
     // Sends a string to the output device at the current pointer.
     // Displays TextString at the CP using the current justification settings.
     // TextString is truncated at the viewport border if it is too long.
-    //	- If one of the stroked fonts is active, TextString is truncated at the
+    //  - If one of the stroked fonts is active, TextString is truncated at the
     //    screen boundary if it is too long.
-    //	- If the default (bit-mapped) font is active and the string is too long to
+    //  - If the default (bit-mapped) font is active and the string is too long to
     //    fit on the screen, no text is displayed.
     // OutText uses the font set by SetTextStyle. To maintain code compatibility
     // when using several fonts, use the TextWidth and TextHeight calls to
     // determine the dimensions of the string.
     // OutText uses the output options set by SetTextJustify (justify, center,
     // rotate 90 degrees, and so on).
-    public static OutText(AText: string): void {
+    public OutText(AText: string): void {
         this.OutTextXY(this._CursorPosition.x, this._CursorPosition.y, AText);
         if ((this._TextSettings.Direction === TextOrientation.Horizontal) && (this._TextSettings.HorizontalAlign === TextJustification.Left)) {
             this._CursorPosition.x += this.TextWidth(AText);
-            if (this._CursorPosition.x > 639) this._CursorPosition.x = 639;
+            if (this._CursorPosition.x > 639) { this._CursorPosition.x = 639; }
         }
     }
 
@@ -1582,7 +1590,7 @@ class Graph {
     // determine the dimensions of the string.
     // OutTextXY uses the output options set by SetTextJustify (justify, center,
     // rotate 90 degrees, and so on).
-    public static OutTextXY(AX: number, AY: number, AText: string): void {
+    public OutTextXY(AX: number, AY: number, AText: string): void {
         var ATextlength: number = AText.length;
 
         // Store values for putting back later
@@ -1695,13 +1703,13 @@ class Graph {
     // Draws and fills a pie slice
     // (X,Y) is the center point. The pie slice starts at StAngle, ends at
     // EndAngle.
-    public static PieSlice(AX: number, AY: number, AStartAngle: number, AEndAngle: number, ARadius: number): void {
+    public PieSlice(AX: number, AY: number, AStartAngle: number, AEndAngle: number, ARadius: number): void {
         this.Sector(AX, AY, AStartAngle, AEndAngle, ARadius, Math.floor(ARadius * this.ASPECT_RATIO));
     }
 
     // Check if the given point is inside the given polygon
     // Adapted from http://www.alienryderflex.com/polygon/
-    public static xPointInPoly(AX: number, AY: number, APoints: Point[]): Boolean {
+    public xPointInPoly(AX: number, AY: number, APoints: Point[]): Boolean {
         var i: number;
         var j: number = APoints.length - 1;
         var oddNodes: Boolean = false;
@@ -1721,15 +1729,16 @@ class Graph {
 
     // Check if the given point is inside the given polygon
     // Adapted from http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-    public static PointInPoly(AX: number, AY: number, APoints: Point[]): Boolean {
+    public PointInPoly(AX: number, AY: number, APoints: Point[]): Boolean {
         var i: number = 0;
         var j: number = 0;
         var c: Boolean = false;
 
         var APointslength: number = APoints.length;
         for (i = 0, j = APointslength - 1; i < APointslength; j = i++) {
-            if (((APoints[i].y > AY) !== (APoints[j].y > AY)) && (AX < (APoints[j].x - APoints[i].x) * (AY - APoints[i].y) / (APoints[j].y - APoints[i].y) + APoints[i].x))
+            if (((APoints[i].y > AY) !== (APoints[j].y > AY)) && (AX < (APoints[j].x - APoints[i].x) * (AY - APoints[i].y) / (APoints[j].y - APoints[i].y) + APoints[i].x)) {
                 c = !c;
+            }
         }
         return c;
     }
@@ -1750,9 +1759,9 @@ class Graph {
     // image stored in BitMap at (X, Y) using the assembly language MOV for each
     // byte in the image. Thus, the image appears in inverse video of the original
     // BitMap.
-    public static PutImage(AX: number, AY: number, ABitMap: ImageData, ABitBlt: number): void {
+    public PutImage(AX: number, AY: number, ABitMap: ImageData, ABitBlt: number): void {
         // Check for out out bound coordinates
-        if ((AX < 0) || (AY < 0) || (AX >= this.PIXELS_X) || (AY >= this.PIXELS_Y)) return;
+        if ((AX < 0) || (AY < 0) || (AX >= this.PIXELS_X) || (AY >= this.PIXELS_Y)) { return; }
 
         if (ABitBlt !== WriteMode.Copy) {
             // TODO trace("PutImage() only supports COPY mode");
@@ -1766,31 +1775,31 @@ class Graph {
             var AY2: number = AY1 + ABitMap.height - 1;
 
             // Ensure valid right and bottom
-            if (AX2 >= this.PIXELS_X) AX2 = (this.PIXELS_X - 1);
-            if (AY2 >= this.PIXELS_Y) AY2 = (this.PIXELS_Y - 1);
+            if (AX2 >= this.PIXELS_X) { AX2 = (this.PIXELS_X - 1); }
+            if (AY2 >= this.PIXELS_Y) { AY2 = (this.PIXELS_Y - 1); }
 
             // TODO Test new logic
             this._CanvasContext.putImageData(ABitMap, AX, AY);
 
-            //var V: number[] = ABitMap.getVector(new Rectangle(0, 0, ABitMap.width, ABitMap.height));
+            // var V: number[] = ABitMap.getVector(new Rectangle(0, 0, ABitMap.width, ABitMap.height));
 
-            //var InOffset: number = 0;
-            //var OutOffset: number = AX1 + (AY1 * this.PIXELS_X);
-            //var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1);
-            //for (var y: number = AY1; y <= AY2; y++) {
-            //    for (var x: number = AX1; x <= AX2; x++) {
-            //        this._Pixels[OutOffset++] = V[InOffset++]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(OutOffset++, V[InOffset++]);
-            //    }
-            //    OutOffset += RowSkip;
-            //}
+            // var InOffset: number = 0;
+            // var OutOffset: number = AX1 + (AY1 * this.PIXELS_X);
+            // var RowSkip: number = ((this.PIXELS_X - 1) - AX2) + (AX1);
+            // for (var y: number = AY1; y <= AY2; y++) {
+            //     for (var x: number = AX1; x <= AX2; x++) {
+            //         this._Pixels[OutOffset++] = V[InOffset++]; // OPTIMIZATION: AVOID FUNCTION CALL RawPutPixel RawPutPixel(OutOffset++, V[InOffset++]);
+            //     }
+            //     OutOffset += RowSkip;
+            // }
         }
     }
 
     // Plots a pixel at X,Y
     // Plots a point in the color defined by Pixel at (X, Y).
-    public static PutPixelDefault(AX: number, AY: number, APaletteIndex: number): void {
+    public PutPixelDefault(AX: number, AY: number, APaletteIndex: number): void {
         // Check for out out bound coordinates
-        if ((AX < 0) || (AY < 0) || (AX >= this.PIXELS_X) || (AY >= this.PIXELS_Y)) return;
+        if ((AX < 0) || (AY < 0) || (AX >= this.PIXELS_X) || (AY >= this.PIXELS_Y)) { return; }
 
         if ((this._ViewPortSettings.Clip) && (!this._ViewPortSettings.FullScreen)) {
             // Convert to global coordinates
@@ -1798,8 +1807,8 @@ class Graph {
             AY += this._ViewPortSettings.y1;
 
             // Ensure x and y are in the visible viewport
-            if (AX > this._ViewPortSettings.x2) return;
-            if (AY > this._ViewPortSettings.y2) return;
+            if (AX > this._ViewPortSettings.x2) { return; }
+            if (AY > this._ViewPortSettings.y2) { return; }
         }
 
         // Draw pixel
@@ -1813,9 +1822,9 @@ class Graph {
 
     // Plots a pixel at X,Y
     // Plots a point in the color defined by Pixel at (X, Y).
-    public static PutPixelPoly(AX: number, AY: number, APaletteIndex: number): void {
+    public PutPixelPoly(AX: number, AY: number, APaletteIndex: number): void {
         // Check for out out bound coordinates (PutPixelDefault does this, but it's also important for the this._FillPolyMap line below)
-        if ((AX < 0) || (AY < 0) || (AX >= this.PIXELS_X) || (AY >= this.PIXELS_Y)) return;
+        if ((AX < 0) || (AY < 0) || (AX >= this.PIXELS_X) || (AY >= this.PIXELS_Y)) { return; }
 
         // Use the default function to draw the pixel
         this.PutPixelDefault(AX, AY, APaletteIndex);
@@ -1827,10 +1836,10 @@ class Graph {
     // Directly puts the specified colour into the pixel vector
     // Does not adjust for viewport, or test if point is valid, so calling function should do this
     // NB: Takes an actual colour, not a palette index, as a parameter
-    // OPTIMIZATION: AVOID FUNCTION CALL public static RawPutPixel(APos: number, AColour: number): void
-    //{
-    //	this._Pixels[APos] = AColour;
-    //}
+    // OPTIMIZATION: AVOID FUNCTION CALL public RawPutPixel(APos: number, AColour: number): void
+    // {
+    // 	this._Pixels[APos] = AColour;
+    // }
 
     // Draws a rectangle, using the current line style and color.
     // (X1, Y1) define the upper left corner of the rectangle, and (X2, Y2) define
@@ -1839,7 +1848,7 @@ class Graph {
     // Draws the rectangle in the current line style and color, as set by
     // SetLineStyle and SetColor. Use SetWriteMode to determine whether the
     // rectangle is copied or XOR'd to the screen.
-    public static Rectangle(x1: number, y1: number, x2: number, y2: number): void {
+    public Rectangle(x1: number, y1: number, x2: number, y2: number): void {
         this.Line(x1, y1, x2, y1);
         this.Line(x2, y1, x2, y2);
         this.Line(x2, y2, x1, y2);
@@ -1855,7 +1864,7 @@ class Graph {
     // ellipse. The angles for Arc, Ellipse, FillEllipse, PieSlice, and Sector are
     // counter-clock-wise with 0 degrees at 3 o'clock, 90 degrees at 12 o'clock,
     // and so on.
-    public static Sector(AX: number, AY: number, AStartAngle: number, AEndAngle: number, AXRadius: number, AYRadius: number): void {
+    public Sector(AX: number, AY: number, AStartAngle: number, AEndAngle: number, AXRadius: number, AYRadius: number): void {
         this.Ellipse(AX, AY, AStartAngle, AEndAngle, AXRadius, AYRadius);
         // TODO Looks like we need the GetArcCoords() after all!
         // TODO Line(ArcCall.XStart, ArcCall.YStart, x,y);
@@ -1863,7 +1872,7 @@ class Graph {
     }
 
     // Changes all palette colors as specified.
-    public static SetAllPalette(APalette: number[], AUpdateScreen: Boolean = true): void {
+    public SetAllPalette(APalette: number[], AUpdateScreen: Boolean = true): void {
         var APalettelength: number = APalette.length;
         for (var i: number = 0; i < APalettelength; i++) {
             this.SetPalette(i, APalette[i], AUpdateScreen);
@@ -1875,7 +1884,7 @@ class Graph {
     // Background colors can range from 0 to 15, depending on the current graphics
     // driver and current graphics mode.
     // GetMaxColor returns the highest valid color for the current driver and mode.
-    public static SetBkColour(AColour: number): void {
+    public SetBkColour(AColour: number): void {
         this._BackColour = AColour;
     }
 
@@ -1884,7 +1893,7 @@ class Graph {
     // Drawing colors can range from 0 to 15, depending on the current graphics
     // driver and current graphics mode.
     // GetMaxColor returns the highest valid color for the current driver and mode.
-    public static SetColour(AColour: number): void {
+    public SetColour(AColour: number): void {
         if ((AColour < 0) || (AColour > 15)) {
             // TODO trace("Not a valid colour: " + AColour);
             return;
@@ -1893,11 +1902,11 @@ class Graph {
     }
 
     // Selects a user-defined fill pattern.
-    public static SetFillPattern(APattern: number[], AColour: number): void {
+    public SetFillPattern(APattern: number[], AColour: number): void {
         var ANDArray: number[] = [128, 64, 32, 16, 8, 4, 2, 1];
 
         // Fill pattern vector's first 8 lines
-        var XOffset: number = 0;
+        // TODOX var XOffset: number = 0;
         for (var y: number = 0; y < 8; y++) {
             for (var x: number = 0; x < 8; x++) {
                 this._FillSettings.Pattern[y][x] = ((APattern[y] & ANDArray[x]) === 0) ? false : true;
@@ -1905,10 +1914,10 @@ class Graph {
         }
 
         //// Fill the rest of the pattern vector with the repeating pattern
-        //XOffset = 0;
-        //for (var i: number = 640 * 8; i < this.PIXELS; i++) {
-        //    this._FillSettings.Pattern[i] = this._FillSettings.Pattern[XOffset++];
-        //}
+        // XOffset = 0;
+        // for (var i: number = 640 * 8; i < this.PIXELS; i++) {
+        //     this._FillSettings.Pattern[i] = this._FillSettings.Pattern[XOffset++];
+        // }
 
         if ((AColour < 0) || (AColour > 15)) {
             // TODO trace("Invalid fill colour: " + AColour);
@@ -1918,7 +1927,7 @@ class Graph {
         this._FillSettings.Style = FillStyle.User;
     }
 
-    public static SetFillSettings(AFillSettings: FillSettings): void {
+    public SetFillSettings(AFillSettings: FillSettings): void {
         this._FillSettings = AFillSettings;
     }
 
@@ -1930,7 +1939,7 @@ class Graph {
     // the current fill settings will be unchanged. If Pattern equals UserFill, the
     // user-defined pattern (set by a call to SetFillPattern) becomes the active
     // pattern.
-    public static SetFillStyle(AStyle: number, AColour: number): void {
+    public SetFillStyle(AStyle: number, AColour: number): void {
         switch (AStyle) {
             // TODO Test each of the fill patterns to ensure they match
             case 0: this.SetFillPattern([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], AColour); break;
@@ -1966,7 +1975,7 @@ class Graph {
     // When LineStyle equals UserBitLn, the line is output using the 16-bit pattern
     // defined by the Pattern parameter. For example, if Pattern = $AAAA, then the
     // 16-bit pattern looks like this:
-    public static SetLineStyle(AStyle: number, APattern: number, AThickness: number): void {
+    public SetLineStyle(AStyle: number, APattern: number, AThickness: number): void {
         this._LineSettings.Style = AStyle;
         switch (AStyle) {
             case 0: this._LineSettings.Pattern = 0xFFFF; break;
@@ -1989,8 +1998,8 @@ class Graph {
     // randomly. Each time a palette color is changed, all onscreen occurrences of
     // that color will be changed to the new color value. See Color constants for a
     // list of defined color constants.
-    public static SetPalette(ACurrentPaletteIndex: number, AEGAPaletteIndex: number, AUpdateScreen: Boolean = true): void {
-        if (this.CURRENT_PALETTE[ACurrentPaletteIndex] !== this.EGA_PALETTE[AEGAPaletteIndex]) {
+    public SetPalette(ACurrentPaletteIndex: number, AEGAPaletteIndex: number, AUpdateScreen: Boolean = true): void {
+        if (this.CURRENT_PALETTE[ACurrentPaletteIndex] !== Graph.EGA_PALETTE[AEGAPaletteIndex]) {
             // Update the screen if requested
             if (AUpdateScreen) {
                 // TODO Flip and add alpha based on endian
@@ -2002,7 +2011,7 @@ class Graph {
                 OldColour = 0xFF000000 + (B << 16) + (G << 8) + (R << 0);
 
                 // TODO Endian issues
-                var NewColour: number = this.EGA_PALETTE[AEGAPaletteIndex];
+                var NewColour: number = Graph.EGA_PALETTE[AEGAPaletteIndex];
                 var R = (NewColour & 0xFF0000) >> 16;
                 var G = (NewColour & 0x00FF00) >> 8;
                 var B = (NewColour & 0x0000FF) >> 0;
@@ -2021,7 +2030,7 @@ class Graph {
                 this._CanvasContext.putImageData(PixelData, 0, 0);
             }
 
-            this.CURRENT_PALETTE[ACurrentPaletteIndex] = this.EGA_PALETTE[AEGAPaletteIndex];
+            this.CURRENT_PALETTE[ACurrentPaletteIndex] = Graph.EGA_PALETTE[AEGAPaletteIndex];
         }
     }
 
@@ -2034,14 +2043,14 @@ class Graph {
     // justification settings can be restored by SetTextJustify(LeftText, TopText).
     // If invalid input is passed to SetTextJustify, GraphResult returns a value of
     // grError, and the current text justification settings will be unchanged.
-    public static SetTextJustify(AHorizontal: number, AVertical: number): void {
+    public SetTextJustify(AHorizontal: number, AVertical: number): void {
         this._TextSettings.HorizontalAlign = AHorizontal;
         this._TextSettings.VerticalAlign = AVertical;
     }
 
     // Sets style for text output in graphics mode.
     // Sets the current text font, style, and character magnification factor
-    public static SetTextStyle(AFont: number, ADirection: number, ASize: number): void {
+    public SetTextStyle(AFont: number, ADirection: number, ASize: number): void {
         this._TextSettings.Font = AFont;
         this._TextSettings.Direction = ADirection;
         this._TextSettings.Size = ASize;
@@ -2049,53 +2058,56 @@ class Graph {
     }
 
     // Sets the current output viewport or window for crt output
-    public static SetTextWindow(AX1: number, AY1: number, AX2: number, AY2: number, AWrap: number, ASize: number): void {
+    public SetTextWindow(AX1: number, AY1: number, AX2: number, AY2: number, AWrap: number, ASize: number): void {
+        // TODOX Prevent declared but never used errors
+        AWrap = AWrap;
+
         if ((AX1 === 0) && (AY1 === 0) && (AX2 === 0) && (AY2 === 0)) {
             // Disable crt window
-            Crt.Canvas.style.opacity = '0';
+            this._Crt.Canvas.style.opacity = '0';
         } else if ((AX2 === 0) || (AY2 === 0)) {
             // Sanity check, do nothing if either of those values are 0
-            Crt.Canvas.style.opacity = '0';
+            this._Crt.Canvas.style.opacity = '0';
         } else if ((AX1 > AX2) || (AY1 > AY2)) {
             // More sanity checking, do nothing in this case
         } else {
             if ((AX1 === this._TextWindow.left) && (AY1 === this._TextWindow.top) && (AX2 === this._TextWindow.right) && (AY2 === this._TextWindow.bottom) && (ASize === this._TextSettings.Size)) {
                 // Provided same settings, so only update the wrap
-                // TODO Crt.AutoWrap = (AWrap !== 0);
+                // TODO this._Crt.AutoWrap = (AWrap !== 0);
             } else {
                 // Provided some new settings, so update everything
-                // TODO Crt.AutoWrap = (AWrap !== 0);
-                Crt.SetScreenSize(AX2 - AX1 + 1, AY2 - AY1 + 1);
+                // TODO this._Crt.AutoWrap = (AWrap !== 0);
+                this._Crt.SetScreenSize(AX2 - AX1 + 1, AY2 - AY1 + 1);
                 switch (ASize) {
                     case 0:
-                        Crt.Canvas.style.left = (AX1 * 8) + 'px';
-                        Crt.Canvas.style.top = (AY1 * 8) + 'px';
-                        Crt.SetFont("RIP_8x8");
+                        this._Crt.Canvas.style.left = (AX1 * 8) + 'px';
+                        this._Crt.Canvas.style.top = (AY1 * 8) + 'px';
+                        this._Crt.SetFont("RIP-8x8");
                         break;
                     case 1:
-                        Crt.Canvas.style.left = (AX1 * 7) + 'px';
-                        Crt.Canvas.style.top = (AY1 * 8) + 'px';
-                        Crt.SetFont("RIP_7x8");
+                        this._Crt.Canvas.style.left = (AX1 * 7) + 'px';
+                        this._Crt.Canvas.style.top = (AY1 * 8) + 'px';
+                        this._Crt.SetFont("RIP-7x8");
                         break;
                     case 2:
-                        Crt.Canvas.style.left = (AX1 * 8) + 'px';
-                        Crt.Canvas.style.top = (AY1 * 14) + 'px';
-                        Crt.SetFont("RIP_8x14");
+                        this._Crt.Canvas.style.left = (AX1 * 8) + 'px';
+                        this._Crt.Canvas.style.top = (AY1 * 14) + 'px';
+                        this._Crt.SetFont("RIP-8x14");
                         break;
                     case 3:
-                        Crt.Canvas.style.left = (AX1 * 7) + 'px';
-                        Crt.Canvas.style.top = (AY1 * 14) + 'px';
-                        Crt.SetFont("RIP_7x14");
+                        this._Crt.Canvas.style.left = (AX1 * 7) + 'px';
+                        this._Crt.Canvas.style.top = (AY1 * 14) + 'px';
+                        this._Crt.SetFont("RIP-7x14");
                         break;
                     case 4:
-                        Crt.Canvas.style.left = (AX1 * 16) + 'px';
-                        Crt.Canvas.style.top = (AY1 * 14) + 'px';
-                        Crt.SetFont("RIP_16x14");
+                        this._Crt.Canvas.style.left = (AX1 * 16) + 'px';
+                        this._Crt.Canvas.style.top = (AY1 * 14) + 'px';
+                        this._Crt.SetFont("RIP-16x14");
                         break;
                 }
-                Crt.TextAttr = 15;
-                Crt.ClrScr();
-                Crt.Canvas.style.opacity = '1';
+                this._Crt.TextAttr = 15;
+                this._Crt.ClrScr();
+                this._Crt.Canvas.style.opacity = '1';
             }
         }
     }
@@ -2116,11 +2128,11 @@ class Graph {
     // made, all drawings will be clipped to the current viewport. Note that the
     // current pointer is never clipped. The following will not draw the complete
     // line requested because the line will be clipped to the current viewport:
-    public static SetViewPort(AX1: number, AY1: number, AX2: number, AY2: number, AClip: boolean): void {
-        if ((AX1 < 0) || (AX1 > AX2)) return;
-        if ((AY1 < 0) || (AY1 > AY2)) return;
-        if (AX2 > (this.PIXELS_X - 1)) return;
-        if (AY2 > (this.PIXELS_Y - 1)) return;
+    public SetViewPort(AX1: number, AY1: number, AX2: number, AY2: number, AClip: boolean): void {
+        if ((AX1 < 0) || (AX1 > AX2)) { return; }
+        if ((AY1 < 0) || (AY1 > AY2)) { return; }
+        if (AX2 > (this.PIXELS_X - 1)) { return; }
+        if (AY2 > (this.PIXELS_Y - 1)) { return; }
 
         this._ViewPortSettings.x1 = AX1;
         this._ViewPortSettings.y1 = AY1;
@@ -2144,7 +2156,7 @@ class Graph {
     // the screen to its original appearance.
     // SetWriteMode affects calls to the following routines only: DrawPoly, Line,
     // LineRel, LineTo, and Rectangle.
-    public static SetWriteMode(AMode: number): void {
+    public SetWriteMode(AMode: number): void {
         if (AMode !== WriteMode.Normal) {
             // TODO trace("SetWriteMode() only supports normal write mode");
             AMode = WriteMode.Normal;
@@ -2152,10 +2164,10 @@ class Graph {
         this._WriteMode = AMode;
 
         // TODO FPC Says this is how it works:
-        //Case writemode of
-        //xorput, andput: CurrentWriteMode := XorPut;
-        //notput, orput, copyput: CurrentWriteMode := CopyPut;
-        //End;
+        // Case writemode of
+        // xorput, andput: CurrentWriteMode := XorPut;
+        // notput, orput, copyput: CurrentWriteMode := CopyPut;
+        // End;
 
     }
 
@@ -2169,7 +2181,10 @@ class Graph {
     // It is important to use TextHeight to compute the height of strings, instead
     // of doing the computation manually. In that way, no source code modifications
     // have to be made when different fonts are selected.
-    public static TextHeight(AText: string): number {
+    public TextHeight(AText: string): number {
+        // TODOX Prevent declared but never used errors
+        AText = AText;
+
         if (this._TextSettings.Font === 0) {
             return this._TextSettings.Size * 8;
         } else {
@@ -2177,7 +2192,7 @@ class Graph {
         }
     }
 
-    public static TextWidth(AText: string): number {
+    public TextWidth(AText: string): number {
         var ATextlength: number = AText.length;
 
         if (this._TextSettings.Font === 0) {
