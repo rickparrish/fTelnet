@@ -32,15 +32,12 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="source\atob-btoa.ts" />
-    <TypeScriptCompile Include="source\Benchmark.ts" />
     <TypeScriptCompile Include="source\ByteArray.ts" />
     <TypeScriptCompile Include="source\Clipboard.ts" />
     <TypeScriptCompile Include="source\DetectMobileBrowser.ts" />
     <TypeScriptCompile Include="source\GetScrollbarWidth.ts" />
     <TypeScriptCompile Include="source\Offset.ts" />
     <TypeScriptCompile Include="source\Point.ts" />
-    <TypeScriptCompile Include="source\Rectangle.ts" />
     <TypeScriptCompile Include="source\StringUtils.ts" />
     <TypeScriptCompile Include="source\TypedEvent.ts" />
   </ItemGroup>

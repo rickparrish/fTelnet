@@ -405,31 +405,6 @@ class fTelnetClient {
         // TODOX return true;
     }
 
-    public get BareLFtoCRLF(): boolean {
-        return this._Options.BareLFtoCRLF;
-    }
-
-    public set BareLFtoCRLF(value: boolean) {
-        this._Options.BareLFtoCRLF = value;
-        this._Crt.BareLFtoCRLF = value;
-    }
-
-    public get BitsPerSecond(): number {
-        return this._Options.BitsPerSecond;
-    }
-
-    public set BitsPerSecond(value: number) {
-        this._Options.BitsPerSecond = value;
-    }
-
-    public get Blink(): boolean {
-        return this._Options.Blink;
-    }
-
-    public set Blink(value: boolean) {
-        this._Options.Blink = value;
-    }
-
     public ClipboardCopy(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
         if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
@@ -455,14 +430,6 @@ class fTelnetClient {
                 this._Crt.PushKeyPress(B, 0, false, false, false);
             }
         }
-    }
-
-    public get ConnectionType(): string {
-        return this._Options.ConnectionType;
-    }
-
-    public set ConnectionType(value: string) {
-        this._Options.ConnectionType = value;
     }
 
     public Connect(): void {
@@ -566,18 +533,6 @@ class fTelnetClient {
         this._YModemReceive.Download();
     }
 
-    public get Emulation(): string {
-        return this._Options.Emulation;
-    }
-
-    public get Enter(): string {
-        return this._Options.Enter;
-    }
-
-    public set Enter(value: string) {
-        this._Options.Enter = value;
-    }
-
     public EnterScrollback(): void {
         // Hide the menu buttons (in case we clicked the Connect menu button)
         if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
@@ -597,22 +552,6 @@ class fTelnetClient {
                 this._ScrollbackBar.style.display = 'none';
             }
         }
-    }
-
-    public get Font(): string {
-        return this._Options.Font;
-    }
-
-    public set Font(value: string) {
-        this._Options.Font = value;
-    }
-
-    public get ForceWss(): boolean {
-        return this._Options.ForceWss;
-    }
-
-    public set ForceWss(value: boolean) {
-        this._Options.ForceWss = value;
     }
 
     public FullScreenToggle(): void {
@@ -639,27 +578,6 @@ class fTelnetClient {
             } else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
             }
-        }
-    }
-
-    public get Hostname(): string {
-        return this._Options.Hostname;
-    }
-
-    public set Hostname(value: string) {
-        this._Options.Hostname = value;
-    }
-
-    public get LocalEcho(): boolean {
-        return this._Options.LocalEcho;
-    }
-
-    public set LocalEcho(value: boolean) {
-        this._Options.LocalEcho = value;
-
-        this._Crt.LocalEcho = value;
-        if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {
-            this._Connection.LocalEcho = value;
         }
     }
 
@@ -924,98 +842,6 @@ class fTelnetClient {
         }
     }
 
-    public get Port(): number {
-        return this._Options.Port;
-    }
-
-    public set Port(value: number) {
-        this._Options.Port = value;
-    }
-
-    public get ProxyHostname(): string {
-        return this._Options.ProxyHostname;
-    }
-
-    public set ProxyHostname(value: string) {
-        this._Options.ProxyHostname = value;
-    }
-
-    public get ProxyPort(): number {
-        return this._Options.ProxyPort;
-    }
-
-    public set ProxyPort(value: number) {
-        this._Options.ProxyPort = value;
-    }
-
-    public get ProxyPortSecure(): number {
-        return this._Options.ProxyPortSecure;
-    }
-
-    public set ProxyPortSecure(value: number) {
-        this._Options.ProxyPortSecure = value;
-    }
-
-    public get RLoginClientUsername(): string {
-        return this._Options.RLoginClientUsername;
-    }
-
-    public set RLoginClientUsername(value: string) {
-        this._Options.RLoginClientUsername = value;
-    }
-
-    public get RLoginServerUsername(): string {
-        return this._Options.RLoginServerUsername;
-    }
-
-    public set RLoginServerUsername(value: string) {
-        this._Options.RLoginServerUsername = value;
-    }
-
-    public get RLoginTerminalType(): string {
-        return this._Options.RLoginTerminalType;
-    }
-
-    public set RLoginTerminalType(value: string) {
-        this._Options.RLoginTerminalType = value;
-    }
-
-    public get ScreenColumns(): number {
-        return this._Options.ScreenColumns;
-    }
-
-    public set ScreenColumns(value: number) {
-        this._Options.ScreenColumns = value;
-    }
-
-    public get ScreenRows(): number {
-        return this._Options.ScreenRows;
-    }
-
-    public set ScreenRows(value: number) {
-        this._Options.ScreenRows = value;
-    }
-
-    public get SplashScreen(): string {
-        return this._Options.SplashScreen;
-    }
-
-    public set SplashScreen(value: string) {
-        this._Options.SplashScreen = value;
-    }
-
-    public get StatusBarVisible(): boolean {
-        return this._Options.StatusBarVisible;
-    }
-
-    public set StatusBarVisible(value: boolean) {
-        this._Options.StatusBarVisible = value;
-
-        if (typeof this._StatusBar !== 'undefined') {
-            this._StatusBar.style.display = (value ? 'block' : 'none');
-        }
-    }
-
     public StuffInputBuffer(text: string): void {
         for (var i: number = 0; i < text.length; i++) {
             this._Crt.PushKeyPress(text.charCodeAt(i), 0, false, false, false);
@@ -1051,6 +877,7 @@ class fTelnetClient {
         reader.readAsArrayBuffer(file);
     }
 
+    // TODOX Ideally this would be in a ToggleVirtualKeyboard
     public get VirtualKeyboardVisible(): boolean {
         return this._Options.VirtualKeyboardVisible;
     }

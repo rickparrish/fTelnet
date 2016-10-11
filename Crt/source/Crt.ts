@@ -80,7 +80,6 @@ class Crt {
     private _Canvas: HTMLCanvasElement;
     private _CanvasContext: CanvasRenderingContext2D;
     private _CharInfo: CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
-    private _ClipboardText: string = '';
     private _Container: HTMLElement;
     private _Cursor: Cursor;
     private _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
@@ -209,6 +208,14 @@ class Crt {
         this._Atari = value;
     }
 
+    public get BareLFtoCRLF(): boolean {
+        return this._BareLFtoCRLF;
+    }
+
+    public set BareLFtoCRLF(value: boolean) {
+        this._BareLFtoCRLF = value;
+    }
+
     public Beep(): void {
         /*TODO
         var Duration = 44100 * 0.3; // 0.3 = 300ms
@@ -225,14 +232,6 @@ class Crt {
         this._Blink = value;
     }
 
-    public get BareLFtoCRLF(): boolean {
-        return this._BareLFtoCRLF;
-    }
-
-    public set BareLFtoCRLF(value: boolean) {
-        this._BareLFtoCRLF = value;
-    }
-
     public get C64(): boolean {
         return this._C64;
     }
@@ -243,10 +242,6 @@ class Crt {
 
     public get Canvas(): HTMLCanvasElement {
         return this._Canvas;
-    }
-
-    public get ClipboardText(): string {
-        return this._ClipboardText;
     }
 
     public ClrBol(): void {
@@ -351,10 +346,6 @@ class Crt {
     public Conceal(): void {
         // Set the foreground to the background
         this.TextColor((this.TextAttr & 0xF0) >> 4);
-    }
-
-    public get Cursor(): Cursor {
-        return this._Cursor;
     }
 
     public DelChar(count?: number): void {
@@ -534,7 +525,7 @@ class Crt {
         this.TextAttr |= 0x08;
     }
 
-    // TODO Have to do this here because the static constructor doesn't seem to like the X and Y variables
+    // TODOX Have to do this here because the static constructor doesn't seem to like the X and Y variables
     private InitBuffers(initScrollback: boolean): void {
         this._Buffer = [];
         for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
@@ -577,7 +568,6 @@ class Crt {
         /// </remarks>
         if (typeof count === 'undefined') { count = 1; }
         this.ScrollDownCustom(this.WindMinX + 1, this.WhereYA(), this.WindMaxX + 1, this.WindMaxY + 1, count, this._CharInfo);
-
     }
 
     public KeyPressed(): boolean {
@@ -1043,7 +1033,6 @@ class Crt {
                 }
 
                 // Copy to the clipboard
-                this._ClipboardText = Text;
                 Clipboard.SetData(Text);
             }
         }
@@ -1130,14 +1119,6 @@ class Crt {
                 this.Write(KPE.keyString);
             }
             return KPE;
-        }
-    }
-
-    public ReDraw(): void {
-        for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
-            for (var X: number = 1; X <= this._ScreenSize.x; X++) {
-                this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
-            }
         }
     }
 

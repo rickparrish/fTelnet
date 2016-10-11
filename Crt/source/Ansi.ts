@@ -777,45 +777,45 @@ class Ansi {
         }
     }
 
-    public ClrBol(): string {
-        return '\x1B[1K';
-    }
+    ////public ClrBol(): string {
+    ////    return '\x1B[1K';
+    ////}
 
-    public ClrBos(): string {
-        return '\x1B[1J';
-    }
+    ////public ClrBos(): string {
+    ////    return '\x1B[1J';
+    ////}
 
-    public ClrEol(): string {
-        return '\x1B[K';
-    }
+    ////public ClrEol(): string {
+    ////    return '\x1B[K';
+    ////}
 
-    public ClrEos(): string {
-        return '\x1B[J';
-    }
+    ////public ClrEos(): string {
+    ////    return '\x1B[J';
+    ////}
 
-    public ClrLine(): string {
-        return '\x1B[2K';
-    }
+    ////public ClrLine(): string {
+    ////    return '\x1B[2K';
+    ////}
 
-    public ClrScr(): string {
-        return '\x1B[2J';
-    }
+    ////public ClrScr(): string {
+    ////    return '\x1B[2J';
+    ////}
 
-    public CursorDown(count: number): string {
-        if (count === 1) {
-            return '\x1B[B';
-        } else {
-            return '\x1B[' + count.toString() + 'B';
-        }
-    }
+    ////public CursorDown(count: number): string {
+    ////    if (count === 1) {
+    ////        return '\x1B[B';
+    ////    } else {
+    ////        return '\x1B[' + count.toString() + 'B';
+    ////    }
+    ////}
 
-    public CursorLeft(count: number): string {
-        if (count === 1) {
-            return '\x1B[D';
-        } else {
-            return '\x1B[' + count.toString() + 'D';
-        }
-    }
+    ////public CursorLeft(count: number): string {
+    ////    if (count === 1) {
+    ////        return '\x1B[D';
+    ////    } else {
+    ////        return '\x1B[' + count.toString() + 'D';
+    ////    }
+    ////}
 
     public CursorPosition(x?: number, y?: number): string {
         if (typeof x === 'undefined') { x = this._Crt.WhereXA(); }
@@ -824,29 +824,29 @@ class Ansi {
         return '\x1B[' + y + ';' + x + 'R';
     }
 
-    public CursorRestore(): string {
-        return '\x1B[u';
-    }
+    ////public CursorRestore(): string {
+    ////    return '\x1B[u';
+    ////}
 
-    public CursorRight(count: number): string {
-        if (count === 1) {
-            return '\x1B[C';
-        } else {
-            return '\x1B[' + count.toString() + 'C';
-        }
-    }
+    ////public CursorRight(count: number): string {
+    ////    if (count === 1) {
+    ////        return '\x1B[C';
+    ////    } else {
+    ////        return '\x1B[' + count.toString() + 'C';
+    ////    }
+    ////}
 
-    public CursorSave(): string {
-        return '\x1B[s';
-    }
+    ////public CursorSave(): string {
+    ////    return '\x1B[s';
+    ////}
 
-    public CursorUp(count: number): string {
-        if (count === 1) {
-            return '\x1B[A';
-        } else {
-            return '\x1B[' + count.toString() + 'A';
-        }
-    }
+    ////public CursorUp(count: number): string {
+    ////    if (count === 1) {
+    ////        return '\x1B[A';
+    ////    } else {
+    ////        return '\x1B[' + count.toString() + 'A';
+    ////    }
+    ////}
 
     private GetNextParam(defaultValue: number): number {
         var Result = this._AnsiParams.shift();
@@ -857,58 +857,58 @@ class Ansi {
         }
     }
 
-    public GotoX(x: number): string {
-        if (x === 1) {
-            return this.CursorLeft(255);
-        } else {
-            return this.CursorLeft(255) + this.CursorRight(x - 1);
-        }
-    }
+    ////public GotoX(x: number): string {
+    ////    if (x === 1) {
+    ////        return this.CursorLeft(255);
+    ////    } else {
+    ////        return this.CursorLeft(255) + this.CursorRight(x - 1);
+    ////    }
+    ////}
 
-    public GotoXY(x: number, y: number): string {
-        return '\x1B[' + y.toString() + ';' + x.toString() + 'H';
-    }
+    ////public GotoXY(x: number, y: number): string {
+    ////    return '\x1B[' + y.toString() + ';' + x.toString() + 'H';
+    ////}
 
-    public GotoY(y: number): string {
-        if (y === 1) {
-            return this.CursorUp(255);
-        } else {
-            return this.CursorUp(255) + this.CursorDown(y - 1);
-        }
-    }
+    ////public GotoY(y: number): string {
+    ////    if (y === 1) {
+    ////        return this.CursorUp(255);
+    ////    } else {
+    ////        return this.CursorUp(255) + this.CursorDown(y - 1);
+    ////    }
+    ////}
 
-    public TextAttr(attr: number): string {
-        return this.TextColor(attr % 16) + this.TextBackground(Math.floor(attr / 16));
-    }
+    ////public TextAttr(attr: number): string {
+    ////    return this.TextColor(attr % 16) + this.TextBackground(Math.floor(attr / 16));
+    ////}
 
-    public TextBackground(colour: number): string {
-        while (colour >= 8) { colour -= 8; }
-        return '\x1B[' + (40 + this.ANSI_COLORS[colour]).toString() + 'm';
-    }
+    ////public TextBackground(colour: number): string {
+    ////    while (colour >= 8) { colour -= 8; }
+    ////    return '\x1B[' + (40 + this.ANSI_COLORS[colour]).toString() + 'm';
+    ////}
 
-    public TextColor(colour: number): string {
-        switch (colour % 16) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-                return '\x1B[0;' + (30 + this.ANSI_COLORS[colour % 16]).toString() + 'm' + this.TextBackground(this._Crt.TextAttr / 16);
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15: return '\x1B[1;' + (30 + this.ANSI_COLORS[(colour % 16) - 8]).toString() + 'm';
-        }
+    ////public TextColor(colour: number): string {
+    ////    switch (colour % 16) {
+    ////        case 0:
+    ////        case 1:
+    ////        case 2:
+    ////        case 3:
+    ////        case 4:
+    ////        case 5:
+    ////        case 6:
+    ////        case 7:
+    ////            return '\x1B[0;' + (30 + this.ANSI_COLORS[colour % 16]).toString() + 'm' + this.TextBackground(this._Crt.TextAttr / 16);
+    ////        case 8:
+    ////        case 9:
+    ////        case 10:
+    ////        case 11:
+    ////        case 12:
+    ////        case 13:
+    ////        case 14:
+    ////        case 15: return '\x1B[1;' + (30 + this.ANSI_COLORS[(colour % 16) - 8]).toString() + 'm';
+    ////    }
 
-        return '';
-    }
+    ////    return '';
+    ////}
 
     public Write(text: string): void {
         // Check for Atari/C64 mode, which doesn't use ANSI

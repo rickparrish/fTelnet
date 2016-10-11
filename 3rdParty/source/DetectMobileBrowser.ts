@@ -1,4 +1,4 @@
-﻿// From: http://detectmobilebrowsers.com/
+﻿// From: http://detectmobilebrowsers.com/ (From 1 August 2014, with the tablet addition from About page)
 class DetectMobileBrowser {
     private static _IsMobile: boolean;
 
