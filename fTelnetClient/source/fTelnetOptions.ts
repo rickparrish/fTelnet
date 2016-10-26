@@ -20,7 +20,6 @@
 class fTelnetOptions {
     public BareLFtoCRLF: boolean = false;
     public BitsPerSecond: number = 57600;
-    public Blink: boolean = true;
     public ConnectionType: string = 'telnet';
     public Emulation: string = 'ansi-bbs';
     public Enter: string = '\r';
@@ -38,6 +37,5 @@ class fTelnetOptions {
     public ScreenColumns: number = 80;
     public ScreenRows: number = 25;
     public SplashScreen: string = '';
-    public StatusBarVisible: boolean = true;
     public VirtualKeyboardVisible: boolean = DetectMobileBrowser.IsMobile;
 }

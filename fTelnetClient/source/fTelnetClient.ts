@@ -1,4 +1,3 @@
-// TODOX Remove getters and setters for options that don't need to change
 /*
   fTelnet: An HTML5 WebSocket client
   Copyright (C) Rick Parrish, R&M Software
@@ -50,7 +49,6 @@ class fTelnetClient {
     // Settings the user can configure (Defaults are in fTelnetOptions class)
     private _Options: fTelnetOptions;
 
-    // TODOX This should be a constructor, and accept an fTelnetOptions parameter
     constructor(containerId: string, options: fTelnetOptions) {
         // TODOX Canvas test (display error in div if missing support)
         // TODOX WebSocket test (display error in Crt if missing support)
@@ -144,7 +142,6 @@ class fTelnetClient {
         this._Crt.onkeypressed.on((): void => { this.OnCrtKeyPressed(); });
         this._Crt.onscreensizechange.on((): void => { this.OnCrtScreenSizeChanged(); });
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
-        this._Crt.Blink = this._Options.Blink;
         this._Crt.LocalEcho = this._Options.LocalEcho;
         this._Crt.SetFont(this._Options.Font);
         this._Crt.SetScreenSize(this._Options.ScreenColumns, this._Options.ScreenRows);
@@ -237,7 +234,6 @@ class fTelnetClient {
         // Create the status bar
         this._StatusBar = document.createElement('div');
         this._StatusBar.className = 'fTelnetStatusBar';
-        this._StatusBar.style.display = (this._Options.StatusBarVisible ? 'block' : 'none');
         this._fTelnetContainer.appendChild(this._StatusBar);
 
         // Create the statusbar menu button

@@ -50,7 +50,7 @@ class StrokeFont {
             this.Loaded = true;
         } else {
             alert('fTelnet Error: Unable to load RIP stroke fonts');
-            // TODO Retry with remote embed.ftelnet.ca url
+            // TODO Retry with remote embed-v2.ftelnet.ca url
         }
     }
 }

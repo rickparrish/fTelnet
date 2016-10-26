@@ -49,7 +49,7 @@ class BitmapFont {
             this.Loaded = true;
         } else {
             alert('fTelnet Error: Unable to load RIP bitmap font');
-            // TODO Retry with remote embed.ftelnet.ca url
+            // TODO Retry with remote embed-v2.ftelnet.ca url
         }
     }
 }

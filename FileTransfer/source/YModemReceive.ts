@@ -32,7 +32,6 @@ class YModemReceive {
     private CAPG: number = 'G'.charCodeAt(0);
 
     // Private variables
-    private _Blink: boolean = false;
     private _Connection: WebSocketConnection;
     private _Crt: Crt;
     private _ExpectingHeader: boolean = true;
@@ -98,7 +97,6 @@ class YModemReceive {
     private Dispatch(): void {
         // Remove the panel
         this.pnlMain.Hide();
-        this._Crt.Blink = this._Blink;
         this._Crt.ShowCursor();
 
         this.ontransfercomplete.trigger();
@@ -109,8 +107,6 @@ class YModemReceive {
         this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
 
         // Create the transfer dialog
-        this._Blink = this._Crt.Blink;
-        this._Crt.Blink = false;
         this._Crt.HideCursor();
         this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 14, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Receive Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
         this.lblFileCount = new CrtLabel(this._Crt, this.pnlMain, 2, 2, 56, 'Receiving file 1', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);

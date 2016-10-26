@@ -33,7 +33,6 @@ class YModemSend {
 
     // Private variables
     private _Block: number = 0;
-    private _Blink: boolean = false;
     private _Connection: WebSocketConnection;
     private _Crt: Crt;
     private _EOTCount: number = 0;
@@ -102,7 +101,6 @@ class YModemSend {
     private Dispatch(): void {
         // Remove the panel
         this.pnlMain.Hide();
-        this._Crt.Blink = this._Blink;
         this._Crt.ShowCursor();
 
         this.ontransfercomplete.trigger();
@@ -424,8 +422,6 @@ class YModemSend {
             }
 
             // Create the transfer dialog
-            this._Blink = this._Crt.Blink;
-            this._Crt.Blink = false;
             this._Crt.HideCursor();
             this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 16, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Send Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
             this.lblFileCount = new CrtLabel(this._Crt, this.pnlMain, 2, 2, 56, 'Sending file 1 of ' + this._FileCount.toString(), ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);

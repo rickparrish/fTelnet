@@ -73,7 +73,6 @@ class Crt {
     private _Atari: boolean = false;
     private _ATASCIIEscaped: boolean = false;
     private _BareLFtoCRLF: boolean = false;
-    private _Blink: boolean = true;
     private _BlinkHidden: boolean = false;
     private _Buffer: CharInfo[][];
     private _C64: boolean = false;
@@ -222,14 +221,6 @@ class Crt {
         var Frequency = 440; // 440hz
 
         */
-    }
-
-    public get Blink(): boolean {
-        return this._Blink;
-    }
-
-    public set Blink(value: boolean) {
-        this._Blink = value;
     }
 
     public get C64(): boolean {
@@ -621,15 +612,13 @@ class Crt {
 
     private OnBlinkHide(): void {
         // Only hide the text if blink is enabled
-        if (this._Blink) {
-            this._BlinkHidden = true;
+        this._BlinkHidden = true;
 
-            for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
-                for (var X: number = 1; X <= this._ScreenSize.x; X++) {
-                    if (this._Buffer[Y][X].Blink) {
-                        if (this._Buffer[Y][X].Ch !== ' ') {
-                            this.FastWrite(' ', X, Y, this._Buffer[Y][X], false);
-                        }
+        for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
+            for (var X: number = 1; X <= this._ScreenSize.x; X++) {
+                if (this._Buffer[Y][X].Blink) {
+                    if (this._Buffer[Y][X].Ch !== ' ') {
+                        this.FastWrite(' ', X, Y, this._Buffer[Y][X], false);
                     }
                 }
             }
@@ -638,7 +627,7 @@ class Crt {
 
     private OnBlinkShow(): void {
         // Show the text if blink is enabled, or we need a reset (which happens when blink is diabled while in the hidden state)
-        if (this._Blink || this._BlinkHidden) {
+        if (this._BlinkHidden) {
             this._BlinkHidden = false;
 
             for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
