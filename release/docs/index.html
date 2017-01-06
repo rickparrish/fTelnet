@@ -289,6 +289,16 @@
                         <p><strong>false: </strong> The virtual keyboard is hidden</p>
                     </td>
                 </tr>
+                <tr>
+                    <td>WebSocketUrlPath</td>
+                    <td>string</td>
+                    <td><em>blank</em></td>
+                    <td>
+                        If you are using a proxy, this setting does nothing.  If you are not using a proxy, this is the path to append to the WebSocket Url.<br />
+                        For example if your hostname is bbs.ftelnet.ca and port is 80, fTelnet will connect to ws://bbs.ftelnet.ca:80.<br />
+                        If what you really need is ws://bbs.ftelnet.ca:80/plus/some/path, then you want to set WebSocketUrlPath to '/plus/some/path'.<br />
+                        If you're confused by this setting, don't worry, 99.9% of people won't need it and can leave it blank.</td>
+                </tr>
             </table>
 
             <p>Additionally, there is that fTelnet.css that you can customize to control the appearance of the buttons / statusbar / etc.</p>

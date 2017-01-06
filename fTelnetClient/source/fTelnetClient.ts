@@ -469,13 +469,13 @@ class fTelnetClient {
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Options.Hostname + ':' + this._Options.Port;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
-            this._Connection.connect(this._Options.Hostname, this._Options.Port, this._Options.ForceWss);
+            this._Connection.connect(this._Options.Hostname, this._Options.Port, this._Options.WebSocketUrlPath, this._Options.ForceWss);
         } else {
             this._ConnectButton.style.display = 'none';
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
             this._StatusBar.style.backgroundColor = 'blue';
             this._ClientContainer.style.opacity = '1.0';
-            this._Connection.connect(this._Options.Hostname, this._Options.Port, this._Options.ForceWss, this._Options.ProxyHostname, this._Options.ProxyPort, this._Options.ProxyPortSecure);
+            this._Connection.connect(this._Options.Hostname, this._Options.Port, '', this._Options.ForceWss, this._Options.ProxyHostname, this._Options.ProxyPort, this._Options.ProxyPortSecure);
         }
     }
 

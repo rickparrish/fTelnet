@@ -38,4 +38,5 @@ class fTelnetOptions {
     public ScreenRows: number = 25;
     public SplashScreen: string = '';
     public VirtualKeyboardVisible: boolean = DetectMobileBrowser.IsMobile;
+    public WebSocketUrlPath: string = '';
 }

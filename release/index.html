@@ -15,10 +15,12 @@
     <div id="fTelnetContainer"></div>
     <script src="ftelnet.norip.noxfer.min.js" id="fTelnetScript"></script>
     <script>
-        var Client = new fTelnetClient('fTelnetContainer');
-        Client.Hostname = "bbs.ftelnet.ca";
-        Client.Port = 23;
-        Client.ProxyHostname = "proxy-us-ga.ftelnet.ca";
+        var Options = new fTelnetOptions();
+        Options.Hostname = "bbs.ftelnet.ca";
+        Options.Port = 23;
+        Options.ProxyHostname = "proxy-us-ga.ftelnet.ca";
+        
+        var Client = new fTelnetClient('fTelnetContainer', Options);
     </script>
 </body>
 </html>

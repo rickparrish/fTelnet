@@ -23,10 +23,6 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="index.html" />
-    <Content Include="release\docs\index.html" />
-    <Content Include="release\ftelnet.css" />
-    <Content Include="release\index.html" />
-    <Content Include="release\index.debug.html" />
     <Content Include="packages.config" />
     <Content Include="source\font\RIP\RIP-16x14.png" />
     <Content Include="source\font\RIP\RIP-7x14.png" />
@@ -60,7 +56,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="release\fonts\" />
     <Folder Include="source\font\PNG\" />
   </ItemGroup>
   <ItemGroup>

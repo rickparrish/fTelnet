@@ -1,4 +1,5 @@
 // TODO List:
+// Mo's MUD has a display issue that isn't present in SyncTerm
 // Split fTelnet.ts up into smaller chunks (ie maybe separate class for menu buttons that raise events on click)
 // Maybe underline detected hyperlinks?
 // Add version number displayed to user somewhere (menu popup?)
