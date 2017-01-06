@@ -31,6 +31,7 @@
     <TypeScriptCompile Include="source\CRC.ts" />
     <TypeScriptCompile Include="source\FileRecord.ts" />
     <TypeScriptCompile Include="source\FileSaver.d.ts" />
+    <TypeScriptCompile Include="source\Socket.d.ts" />
     <TypeScriptCompile Include="source\YModemReceive.ts" />
     <TypeScriptCompile Include="source\YModemSend.ts" />
     <TypeScriptCompile Include="source\YModemSendState.ts" />

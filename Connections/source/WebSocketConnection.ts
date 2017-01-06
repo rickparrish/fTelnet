@@ -1,3 +1,4 @@
+// TODOX Maybe simplify to use something like socketOverWebsocket so there's no window.cordova checks in here and Socket -> WebSocket stuff in the socketOverWebSocket file
 /*
   fTelnet: An HTML5 WebSocket client
   Copyright (C) Rick Parrish, R&M Software
@@ -19,23 +20,28 @@
 */
 
 // Detect if a WebSocket workaround is required
-if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30')) {
-    // Do nothing, we have native websocket support
-} else if ('MozWebSocket' in window) {
-    // For Firefox 6.0
-    window['WebSocket'] = window['MozWebSocket'];
-} else {
-    // For IE9 and Android < 4.4
-    // From: https://github.com/gimite/web-socket-js
-    window['WEB_SOCKET_FORCE_FLASH'] = true;
-    window['WEB_SOCKET_SWF_LOCATION'] = StringUtils.GetUrl('WebSocketMain.swf');
-    document.write('<script src="' + StringUtils.GetUrl('swfobject.js') + '"><\/script>');
-    document.write('<script src="' + StringUtils.GetUrl('web_socket.js') + '"><\/script>');
+if (!window.cordova) {
+    if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30')) {
+        // Do nothing, we have native websocket support
+    } else if ('MozWebSocket' in window) {
+        // For Firefox 6.0
+        window['WebSocket'] = window['MozWebSocket'];
+    } else {
+        // For IE9 and Android < 4.4
+        // From: https://github.com/gimite/web-socket-js
+        window['WEB_SOCKET_FORCE_FLASH'] = true;
+        window['WEB_SOCKET_SWF_LOCATION'] = StringUtils.GetUrl('WebSocketMain.swf');
+        document.write('<script src="' + StringUtils.GetUrl('swfobject.js') + '"><\/script>');
+        document.write('<script src="' + StringUtils.GetUrl('web_socket.js') + '"><\/script>');
+    }
 }
 
 var WebSocketProtocol: string = (document.location.protocol === 'https:' ? 'wss' : 'ws');
 var WebSocketSupportsTypedArrays: boolean = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
-var WebSocketSupportsBinaryType: boolean = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));
+var WebSocketSupportsBinaryType: boolean = false;
+if (!window.cordova) {
+    WebSocketSupportsBinaryType = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));
+}
 
 class WebSocketConnection {
     // Events
@@ -56,6 +62,7 @@ class WebSocketConnection {
     public _Protocol: string = 'plain';
     public _Proxied: boolean = false;
     public _WebSocket: WebSocket;
+    public _CordovaSocket: Socket;
 
     constructor() {
         this._InputBuffer = new ByteArray();
@@ -67,8 +74,14 @@ class WebSocketConnection {
     }
 
     public close(): void {
-        if (this._WebSocket) {
-            this._WebSocket.close();
+        if (window.cordova) {
+            if (this._CordovaSocket) {
+                this._CordovaSocket.close();
+            }
+        } else {
+            if (this._WebSocket) {
+                this._WebSocket.close();
+            }
         }
     }
 
@@ -79,42 +92,64 @@ class WebSocketConnection {
 
         this._WasConnected = false;
 
-        var Protocols: string[];
-        if (('WebSocket' in window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) { // From: http://stackoverflow.com/a/17850524/342378
-            // This is likely a hixie client, which doesn't support negotiation fo multiple protocols, so we only ask for plain
-            Protocols = ['plain'];
-        } else {
-            if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
-                Protocols = ['binary', 'base64', 'plain'];
-            } else {
-                Protocols = ['base64', 'plain'];
-            }
-        }
-
-        var WsOrWss = forceWss ? 'wss' : WebSocketProtocol;
-        if (proxyHostname === '') {
+        if (window.cordova) {
             this._Proxied = false;
-            this._WebSocket = new WebSocket(WsOrWss + '://' + hostname + ':' + port + urlPath, Protocols);
+            this._CordovaSocket = new Socket();
+            this._CordovaSocket.open(
+                hostname,
+                port,
+                (): void => { this.OnSocketOpen(); },
+                (message: string): void => { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); this.OnSocketError(e); }
+            );
+
+            // Set event handlers
+            this._CordovaSocket.onClose = (): void => { this.OnSocketClose(); };
+            this._CordovaSocket.onData = (data: Uint8Array): void => { this.OnCordovaSocketData(data); };
+            this._CordovaSocket.onError = (message: string): void => { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); this.OnSocketError(e); };
         } else {
-            this._Proxied = true;
-            this._WebSocket = new WebSocket(WsOrWss + '://' + proxyHostname + ':' + (WsOrWss === 'wss' ? proxyPortSecure : proxyPort) + '/' + hostname + '/' + port, Protocols);
-        }
+            var Protocols: string[];
+            if (('WebSocket' in window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) { // From: http://stackoverflow.com/a/17850524/342378
+                // This is likely a hixie client, which doesn't support negotiation fo multiple protocols, so we only ask for plain
+                Protocols = ['plain'];
+            } else {
+                if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+                    Protocols = ['binary', 'base64', 'plain'];
+                } else {
+                    Protocols = ['base64', 'plain'];
+                }
+            }
 
-        // Enable binary mode, if supported
-        if (Protocols.indexOf('binary') >= 0) {
-            this._WebSocket.binaryType = 'arraybuffer';
-        }
+            var WsOrWss = forceWss ? 'wss' : WebSocketProtocol;
+            if (proxyHostname === '') {
+                this._Proxied = false;
+                this._WebSocket = new WebSocket(WsOrWss + '://' + hostname + ':' + port + urlPath, Protocols);
+            } else {
+                this._Proxied = true;
+                this._WebSocket = new WebSocket(WsOrWss + '://' + proxyHostname + ':' + (WsOrWss === 'wss' ? proxyPortSecure : proxyPort) + '/' + hostname + '/' + port, Protocols);
+            }
 
-        // Set event handlers
-        this._WebSocket.onclose = (): void => { this.OnSocketClose(); };
-        this._WebSocket.onerror = (e: ErrorEvent): void => { this.OnSocketError(e); };
-        this._WebSocket.onmessage = (e: any): void => { this.OnSocketMessage(e); };
-        this._WebSocket.onopen = (): void => { this.OnSocketOpen(); };
+            // Enable binary mode, if supported
+            if (Protocols.indexOf('binary') >= 0) {
+                this._WebSocket.binaryType = 'arraybuffer';
+            }
+
+            // Set event handlers
+            this._WebSocket.onclose = (): void => { this.OnSocketClose(); };
+            this._WebSocket.onerror = (e: ErrorEvent): void => { this.OnSocketError(e); };
+            this._WebSocket.onmessage = (e: any): void => { this.OnWebSocketMessage(e); };
+            this._WebSocket.onopen = (): void => { this.OnSocketOpen(); };
+        }
     }
 
     public get connected(): boolean {
-        if (this._WebSocket) {
-            return (this._WebSocket.readyState === this._WebSocket.OPEN) || (this._WebSocket.readyState === WebSocket.OPEN);
+        if (window.cordova) {
+            if (this._CordovaSocket) {
+                return (this._CordovaSocket.state === Socket.State.OPENED);
+            }
+        } else {
+            if (this._WebSocket) {
+                return (this._WebSocket.readyState === this._WebSocket.OPEN) || (this._WebSocket.readyState === WebSocket.OPEN);
+            }
         }
 
         return false;
@@ -145,6 +180,32 @@ class WebSocketConnection {
         }
     }
 
+    private OnCordovaSocketData(data: Uint8Array): void {
+        // Free up some memory if we're at the end of the buffer
+        if (this._InputBuffer.bytesAvailable === 0) { this._InputBuffer.clear(); }
+
+        // Save the old position and set the new position to the end of the buffer
+        var OldPosition: number = this._InputBuffer.position;
+        this._InputBuffer.position = this._InputBuffer.length;
+
+        var Data: ByteArray = new ByteArray();
+
+        // Write the incoming message to the input buffer
+        var i: number;
+        for (i = 0; i < data.length; i++) {
+            Data.writeByte(data[i]);
+        }
+        Data.position = 0;
+
+        this.NegotiateInbound(Data);
+
+        // Restore the old buffer position
+        this._InputBuffer.position = OldPosition;
+
+        // Raise ondata event
+        this.ondata.trigger();
+    }
+
     private OnSocketClose(): void {
         if (this._WasConnected) {
             this.onclose.trigger();
@@ -159,17 +220,19 @@ class WebSocketConnection {
     }
 
     public OnSocketOpen(): void {
-        if (this._WebSocket.protocol) {
-            this._Protocol = this._WebSocket.protocol;
-        } else {
-            this._Protocol = 'plain';
+        if (!window.cordova) {
+            if (this._WebSocket.protocol) {
+                this._Protocol = this._WebSocket.protocol;
+            } else {
+                this._Protocol = 'plain';
+            }
         }
 
         this._WasConnected = true;
         this.onconnect.trigger();
     }
 
-    private OnSocketMessage(e: any): void {
+    private OnWebSocketMessage(e: any): void {
         // Free up some memory if we're at the end of the buffer
         if (this._InputBuffer.bytesAvailable === 0) { this._InputBuffer.clear(); }
 
@@ -221,22 +284,26 @@ class WebSocketConnection {
     }
 
     public Send(data: number[]): void {
-        var i: number = 0;
-        var ToSendString: string = '';
-
-        if (this._Protocol === 'binary') {
-            this._WebSocket.send(new Uint8Array(data).buffer);
-        } else if (this._Protocol === 'base64') {
-            // TODO Ensure btoa still works with websockify
-            for (i = 0; i < data.length; i++) {
-                ToSendString += String.fromCharCode(data[i]);
-            }
-            this._WebSocket.send(btoa(ToSendString));
+        if (window.cordova) {
+            this._CordovaSocket.write(new Uint8Array(data));
         } else {
-            for (i = 0; i < data.length; i++) {
-                ToSendString += String.fromCharCode(data[i]);
+            var i: number = 0;
+            var ToSendString: string = '';
+
+            if (this._Protocol === 'binary') {
+                this._WebSocket.send(new Uint8Array(data).buffer);
+            } else if (this._Protocol === 'base64') {
+                // TODO Ensure btoa still works with websockify
+                for (i = 0; i < data.length; i++) {
+                    ToSendString += String.fromCharCode(data[i]);
+                }
+                this._WebSocket.send(btoa(ToSendString));
+            } else {
+                for (i = 0; i < data.length; i++) {
+                    ToSendString += String.fromCharCode(data[i]);
+                }
+                this._WebSocket.send(ToSendString);
             }
-            this._WebSocket.send(ToSendString);
         }
     }
 

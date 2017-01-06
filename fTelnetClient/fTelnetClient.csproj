@@ -23,6 +23,7 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="index.html" />
+    <TypeScriptCompile Include="source\definitions\Socket.d.ts" />
     <TypeScriptCompile Include="source\definitions\Window.d.ts" />
     <Content Include="packages.config" />
     <Content Include="web.config" />

@@ -28,6 +28,8 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="source\Socket.d.ts" />
+    <TypeScriptCompile Include="source\Window.d.ts" />
     <TypeScriptCompile Include="source\_references.ts" />
     <TypeScriptCompile Include="source\RLoginCommand.ts" />
     <TypeScriptCompile Include="source\RLoginConnection.ts" />

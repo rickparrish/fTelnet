@@ -26,6 +26,7 @@ class VirtualKeyboard {
     private _CtrlPressed: boolean = false;
     private _Div: HTMLDivElement;
     private _ShiftPressed: boolean = false;
+    private _SupportsTouchEvents: boolean = false;
     private _Visible: boolean = true;
 
     private _ClassKeys: any = {
@@ -63,12 +64,12 @@ class VirtualKeyboard {
                 if (KeyCode !== null) {
                     if (this._Keys[KeyCode][2] > 0) { // [2] is the CharCodeShifted, which only a non-special key has
                         // Regular character
-                        Keys[i].addEventListener('click', (e: Event) => { this.OnCharCode(e); }, false);
+                        Keys[i].addEventListener('click', (e: Event) => { if (!this._SupportsTouchEvents) { this.OnCharCode(e); } }, false);
                         Keys[i].addEventListener('touchend', (e: Event) => { this.OnCharCode(e); }, false);
                         Keys[i].addEventListener('touchstart', () => { this.OnTouchStart(); }, false);
                     } else {
                         // Special character
-                        Keys[i].addEventListener('click', (e: Event) => { this.OnKeyCode(e); }, false);
+                        Keys[i].addEventListener('click', (e: Event) => { if (!this._SupportsTouchEvents) { this.OnKeyCode(e); } }, false);
                         Keys[i].addEventListener('touchend', (e: Event) => { this.OnKeyCode(e); }, false);
                         Keys[i].addEventListener('touchstart', () => { this.OnTouchStart(); }, false);
                     }
@@ -220,7 +221,6 @@ class VirtualKeyboard {
         }
     }
 
-    // Can't use this. since it isn't referring to RIP (no fat arrow used to call this event)
     private OnCharCode(e: Event): void {
         var KeyCodeString: string | null = (<HTMLDivElement>e.target).getAttribute('data-keycode');
         if (KeyCodeString !== null) {
@@ -266,7 +266,6 @@ class VirtualKeyboard {
         }
     }
 
-    // Can't use this. since it isn't referring to RIP (no fat arrow used to call this event)
     private OnKeyCode(e: Event): void {
         var KeyCodeString: string | null = (<HTMLDivElement>e.target).getAttribute('data-keycode');
         if (KeyCodeString !== null) {
@@ -306,8 +305,16 @@ class VirtualKeyboard {
         }
     }
 
-    // Can't use this. since it isn't referring to RIP (no fat arrow used to call this event)
     private OnTouchStart(): void {
+        if (this._SupportsTouchEvents) {
+            // We've already detected touch events, so no need to re-do all this unsubscribing that doesn't really work anyway
+            return;
+        }
+
+        // Indicate we support touch events, which will suppress the click event handler (which will prevent duplicate key handlings)
+        this._SupportsTouchEvents = true;
+
+        // TODOX Can this be made to work?
         // We have touch events, unsubscribe to the click events
         var Keys: NodeList = document.getElementsByClassName('fTelnetKeyboardKey');
         for (var i: number = 0; i < Keys.length; i++) {
