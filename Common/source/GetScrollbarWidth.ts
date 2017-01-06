@@ -23,7 +23,9 @@ class GetScrollbarWidth {
             var widthWithScroll = inner.offsetWidth;
 
             // remove divs
-            outer.parentNode.removeChild(outer);
+            if (outer.parentNode !== null) {
+                outer.parentNode.removeChild(outer);
+            }
 
             this._Width = widthNoScroll - widthWithScroll;
         }

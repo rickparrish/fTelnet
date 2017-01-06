@@ -1,4 +1,9 @@
-﻿.fTelnetContainer {
+﻿#fTelnetCrtCanvas {
+    display: block;
+    margin: auto;
+}
+
+.fTelnetContainer {
     box-sizing: content-box;
     margin: auto;
 }
