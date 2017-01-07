@@ -1,4 +1,3 @@
-// TODOX Maybe simplify to use something like socketOverWebsocket so there's no window.cordova checks in here and Socket -> WebSocket stuff in the socketOverWebSocket file
 /*
   fTelnet: An HTML5 WebSocket client
   Copyright (C) Rick Parrish, R&M Software
@@ -62,7 +61,8 @@ class WebSocketConnection {
     public _Protocol: string = 'plain';
     public _Proxied: boolean = false;
     public _WebSocket: WebSocket;
-    public _CordovaSocket: Socket;
+    public _CordovaSocket: string;
+    public _CordovaSocketConnected: boolean = false;
 
     constructor() {
         this._InputBuffer = new ByteArray();
@@ -76,7 +76,11 @@ class WebSocketConnection {
     public close(): void {
         if (window.cordova) {
             if (this._CordovaSocket) {
-                this._CordovaSocket.close();
+                window.tlantic.plugins.socket.disconnect(
+                    (): void => { /*TODOX disconnect worked*/ },
+                    (): void => { console.log('TODOX disconnect failed'); },
+                    this._CordovaSocket
+                );
             }
         } else {
             if (this._WebSocket) {
@@ -94,18 +98,20 @@ class WebSocketConnection {
 
         if (window.cordova) {
             this._Proxied = false;
-            this._CordovaSocket = new Socket();
-            this._CordovaSocket.open(
+            window.tlantic.plugins.socket.connect(
+                (connectionId: string): void => { this._CordovaSocket = connectionId; this._CordovaSocketConnected = true; this.OnSocketOpen(); },
+                // TODOX (): void => { var e = new ErrorEvent(); e.initErrorEvent('ErrorEvent', true, false, 'Failed to connect', '', -1); this.OnSocketError(e); },
+                (): void => { console.log("TODOX connect failed"); },
                 hostname,
-                port,
-                (): void => { this.OnSocketOpen(); },
-                (message: string): void => { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); this.OnSocketError(e); }
+                port
             );
 
             // Set event handlers
-            this._CordovaSocket.onClose = (): void => { this.OnSocketClose(); };
-            this._CordovaSocket.onData = (data: Uint8Array): void => { this.OnCordovaSocketData(data); };
-            this._CordovaSocket.onError = (message: string): void => { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); this.OnSocketError(e); };
+            document.addEventListener(window.tlantic.plugins.socket.receiveHookName, (ev: any) => {
+                if (this._CordovaSocket === ev.metadata.connection.id) {
+                    this.OnCordovaSocketData(ev.metadata.data);
+                }
+            });
         } else {
             var Protocols: string[];
             if (('WebSocket' in window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) { // From: http://stackoverflow.com/a/17850524/342378
@@ -144,7 +150,13 @@ class WebSocketConnection {
     public get connected(): boolean {
         if (window.cordova) {
             if (this._CordovaSocket) {
-                return (this._CordovaSocket.state === Socket.State.OPENED);
+                window.tlantic.plugins.socket.isConnected(
+                    this._CordovaSocket,
+                    (connected: Number): void => { this._CordovaSocketConnected = (connected == 1); },
+                    (): void => { /* TODOX isConnected failed*/ }
+                );
+
+                return this._CordovaSocketConnected;
             }
         } else {
             if (this._WebSocket) {
@@ -284,12 +296,17 @@ class WebSocketConnection {
     }
 
     public Send(data: number[]): void {
-        if (window.cordova) {
-            this._CordovaSocket.write(new Uint8Array(data));
-        } else {
-            var i: number = 0;
-            var ToSendString: string = '';
+        var i: number = 0;
+        var ToSendString: string = '';
 
+        if (window.cordova) {
+            window.tlantic.plugins.socket.send(
+                (): void => { /* TODOX send worked */ },
+                (): void => { console.log('TODOX send failed'); },
+                this._CordovaSocket,
+                data
+            );
+        } else {
             if (this._Protocol === 'binary') {
                 this._WebSocket.send(new Uint8Array(data).buffer);
             } else if (this._Protocol === 'base64') {
