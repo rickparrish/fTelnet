@@ -1,3 +1,4 @@
+// TODOX Maybe simplify to use something like socketOverWebsocket so there's no window.cordova checks in here and Socket -> WebSocket stuff in the socketOverWebSocket file
 /*
   fTelnet: An HTML5 WebSocket client
   Copyright (C) Rick Parrish, R&M Software
@@ -18,8 +19,11 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// The cordova socket library does not support universal windows apps (not yet anyway!) so detect and disable for those
+var UseCordovaSocket = (!!window.cordova && !navigator.userAgent.match(/iemobile/i) && !navigator.userAgent.match(/MSAppHost/i));
+
 // Detect if a WebSocket workaround is required
-if (!window.cordova) {
+if (!UseCordovaSocket) {
     if (('WebSocket' in window) && !navigator.userAgent.match('AppleWebKit/534.30')) {
         // Do nothing, we have native websocket support
     } else if ('MozWebSocket' in window) {
@@ -38,7 +42,7 @@ if (!window.cordova) {
 var WebSocketProtocol: string = (document.location.protocol === 'https:' ? 'wss' : 'ws');
 var WebSocketSupportsTypedArrays: boolean = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
 var WebSocketSupportsBinaryType: boolean = false;
-if (!window.cordova) {
+if (!UseCordovaSocket) {
     WebSocketSupportsBinaryType = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));
 }
 
@@ -61,8 +65,7 @@ class WebSocketConnection {
     public _Protocol: string = 'plain';
     public _Proxied: boolean = false;
     public _WebSocket: WebSocket;
-    public _CordovaSocket: string;
-    public _CordovaSocketConnected: boolean = false;
+    public _CordovaSocket: Socket;
 
     constructor() {
         this._InputBuffer = new ByteArray();
@@ -74,13 +77,9 @@ class WebSocketConnection {
     }
 
     public close(): void {
-        if (window.cordova) {
+        if (UseCordovaSocket) {
             if (this._CordovaSocket) {
-                window.tlantic.plugins.socket.disconnect(
-                    (): void => { /*TODOX disconnect worked*/ },
-                    (): void => { console.log('TODOX disconnect failed'); },
-                    this._CordovaSocket
-                );
+                this._CordovaSocket.close();
             }
         } else {
             if (this._WebSocket) {
@@ -94,24 +93,29 @@ class WebSocketConnection {
         if (typeof proxyPort === 'undefined') { proxyPort = 80; }
         if (typeof proxyPortSecure === 'undefined') { proxyPortSecure = 443; }
 
+        // TODOX Cordova socket does not support windows universal yet, so force proxy on iemobile
+        if (window.cordova && !UseCordovaSocket) {
+            proxyHostname = 'proxy-us-ga.ftelnet.ca';
+            proxyPort = 80;
+            proxyPortSecure = 443;
+        }
+
         this._WasConnected = false;
 
-        if (window.cordova) {
+        if (UseCordovaSocket) {
             this._Proxied = false;
-            window.tlantic.plugins.socket.connect(
-                (connectionId: string): void => { this._CordovaSocket = connectionId; this._CordovaSocketConnected = true; this.OnSocketOpen(); },
-                // TODOX (): void => { var e = new ErrorEvent(); e.initErrorEvent('ErrorEvent', true, false, 'Failed to connect', '', -1); this.OnSocketError(e); },
-                (): void => { console.log("TODOX connect failed"); },
+            this._CordovaSocket = new Socket();
+            this._CordovaSocket.open(
                 hostname,
-                port
+                port,
+                (): void => { this.OnSocketOpen(); },
+                (message: string): void => { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); this.OnSocketError(e); }
             );
 
             // Set event handlers
-            document.addEventListener(window.tlantic.plugins.socket.receiveHookName, (ev: any) => {
-                if (this._CordovaSocket === ev.metadata.connection.id) {
-                    this.OnCordovaSocketData(ev.metadata.data);
-                }
-            });
+            this._CordovaSocket.onClose = (): void => { this.OnSocketClose(); };
+            this._CordovaSocket.onData = (data: Uint8Array): void => { this.OnCordovaSocketData(data); };
+            this._CordovaSocket.onError = (message: string): void => { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); this.OnSocketError(e); };
         } else {
             var Protocols: string[];
             if (('WebSocket' in window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) { // From: http://stackoverflow.com/a/17850524/342378
@@ -148,15 +152,9 @@ class WebSocketConnection {
     }
 
     public get connected(): boolean {
-        if (window.cordova) {
+        if (UseCordovaSocket) {
             if (this._CordovaSocket) {
-                window.tlantic.plugins.socket.isConnected(
-                    this._CordovaSocket,
-                    (connected: Number): void => { this._CordovaSocketConnected = (connected == 1); },
-                    (): void => { /* TODOX isConnected failed*/ }
-                );
-
-                return this._CordovaSocketConnected;
+                return (this._CordovaSocket.state === Socket.State.OPENED);
             }
         } else {
             if (this._WebSocket) {
@@ -232,7 +230,7 @@ class WebSocketConnection {
     }
 
     public OnSocketOpen(): void {
-        if (!window.cordova) {
+        if (!UseCordovaSocket) {
             if (this._WebSocket.protocol) {
                 this._Protocol = this._WebSocket.protocol;
             } else {
@@ -296,17 +294,12 @@ class WebSocketConnection {
     }
 
     public Send(data: number[]): void {
-        var i: number = 0;
-        var ToSendString: string = '';
-
-        if (window.cordova) {
-            window.tlantic.plugins.socket.send(
-                (): void => { /* TODOX send worked */ },
-                (): void => { console.log('TODOX send failed'); },
-                this._CordovaSocket,
-                data
-            );
+        if (UseCordovaSocket) {
+            this._CordovaSocket.write(new Uint8Array(data));
         } else {
+            var i: number = 0;
+            var ToSendString: string = '';
+
             if (this._Protocol === 'binary') {
                 this._WebSocket.send(new Uint8Array(data).buffer);
             } else if (this._Protocol === 'base64') {
