@@ -484,6 +484,10 @@ class fTelnetClient {
         return this._Connection.connected;
     }
 
+    public get Crt(): Crt {
+        return this._Crt;
+    }
+
     public Disconnect(prompt: boolean): boolean {
         // Hide the menu buttons (in case we clicked the Connect menu button)
         if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }

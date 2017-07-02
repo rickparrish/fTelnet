@@ -96,8 +96,12 @@ class CrtFont {
 
         // Check if we have used this character before
         if (!this._CharMap[CharMapKey]) {
-            // Nope, so get character (in black and white)
-            this._CharMap[CharMapKey] = this._CanvasContext.getImageData(charCode * this._Size.x, 0, this._Size.x, this._Size.y);
+            // Nope, so get character (in black and white) TODOX Maybe have png as light gray on black, and then skip colouring for that?  This assumes light gray on black is most common
+            var NewChar = this._CanvasContext.getImageData(charCode * this._Size.x, 0, this._Size.x, this._Size.y);
+
+            // TODOX What about having a larger PNG that already has all the colours, so it's just a matter of copy/pasting the keys?
+            // TODOX What about pre-colouring from a white on black to a colour so it's slower to load but then faster to actually use?
+            // TODOX Maybe only pre-colour the black background, with the assumption that it's most common
 
             // Now colour the character
             var Back: number;
@@ -118,20 +122,21 @@ class CrtFont {
             }
 
             // Get the individual RGB colours
-            var BackR: number = Back >> 16; // parseInt(Back[1].toString() + Back[2].toString(), 16);
-            var BackG: number = (Back >> 8) & 0xFF; // parseInt(Back[3].toString() + Back[4].toString(), 16);
-            var BackB: number = Back & 0xFF; // parseInt(Back[5].toString() + Back[6].toString(), 16);
-            var ForeR: number = Fore >> 16; // parseInt(Fore[1].toString() + Fore[2].toString(), 16);
-            var ForeG: number = (Fore >> 8) & 0xFF; // parseInt(Fore[3].toString() + Fore[4].toString(), 16);
-            var ForeB: number = Fore & 0xFF; // parseInt(Fore[5].toString() + Fore[6].toString(), 16);
+            var BackR: number = Back >> 16;
+            var BackG: number = (Back >> 8) & 0xFF;
+            var BackB: number = Back & 0xFF;
+            var ForeR: number = Fore >> 16;
+            var ForeG: number = (Fore >> 8) & 0xFF;
+            var ForeB: number = Fore & 0xFF;
 
             // Colour the pixels 1 at a time
             var R: number = 0;
             var G: number = 0;
             var B: number = 0;
-            for (var i: number = 0; i < this._CharMap[CharMapKey].data.length; i += 4) {
+            var NewCharDataLength = NewChar.data.length;
+            for (var i: number = 0; i < NewCharDataLength; i += 4) {
                 // Determine if it's back or fore colour to use for this pixel
-                if (this._CharMap[CharMapKey].data[i] & 0x80) {
+                if (NewChar.data[i] & 0x80) {
                     R = ForeR;
                     G = ForeG;
                     B = ForeB;
@@ -141,11 +146,13 @@ class CrtFont {
                     B = BackB;
                 }
 
-                this._CharMap[CharMapKey].data[i] = R;
-                this._CharMap[CharMapKey].data[i + 1] = G;
-                this._CharMap[CharMapKey].data[i + 2] = B;
-                this._CharMap[CharMapKey].data[i + 3] = Alpha;
+                NewChar.data[i] = R;
+                NewChar.data[i + 1] = G;
+                NewChar.data[i + 2] = B;
+                NewChar.data[i + 3] = Alpha;
             }
+
+            this._CharMap[CharMapKey] = NewChar;
         }
 
         // Return the character if we have it
