@@ -460,11 +460,12 @@ class Crt {
                 }
 
                 if (updateBuffer) {
-                    this._Buffer[y][x + i].Ch = Chars[i];
-                    this._Buffer[y][x + i].Attr = charInfo.Attr;
-                    this._Buffer[y][x + i].Blink = charInfo.Blink;
-                    this._Buffer[y][x + i].Underline = charInfo.Underline;
-                    this._Buffer[y][x + i].Reverse = charInfo.Reverse;
+                    var CharToUpdate: CharInfo = this._Buffer[y][x + i];
+                    CharToUpdate.Ch = Chars[i];
+                    CharToUpdate.Attr = charInfo.Attr;
+                    CharToUpdate.Blink = charInfo.Blink;
+                    CharToUpdate.Underline = charInfo.Underline;
+                    CharToUpdate.Reverse = charInfo.Reverse;
                 }
 
                 if (x + i >= this._ScreenSize.x) { break; }
