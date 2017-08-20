@@ -101,6 +101,11 @@ class Crt {
     private _WindMin: number = 0;
     private _WindMax: number = (80 - 1) | ((25 - 1) << 8);
 
+    ///* Benchmark Variables */
+    //private _BenchGetChar: Benchmark = new Benchmark();
+    //private _BenchPutImage: Benchmark = new Benchmark();
+    //private _BenchUpdateBuffer: Benchmark = new Benchmark();
+
     constructor(container: HTMLElement, useModernScrollback: boolean) {
         this._Container = container;
         this._UseModernScrollback = useModernScrollback;
@@ -448,7 +453,14 @@ class Crt {
             }
 
             for (var i: number = 0; i < TextLength; i++) {
+                //this._BenchGetChar.Start();
+                var BGetChar: Benchmark = Benchmarks.Start('GetChar');
                 var Char: ImageData | undefined = this._Font.GetChar(CharCodes[i], charInfo);
+                //this._BenchGetChar.Stop();
+                BGetChar.Stop();
+
+                //this._BenchPutImage.Start();
+                var BPutImage: Benchmark = Benchmarks.Start('PutImage');
                 if (typeof Char !== 'undefined') {
                     if (this._UseModernScrollback) {
                         this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height);
@@ -458,7 +470,11 @@ class Crt {
                         }
                     }
                 }
+                //this._BenchPutImage.Stop();
+                BPutImage.Stop();
 
+                //this._BenchUpdateBuffer.Start();
+                var BUpdateBuffer: Benchmark = Benchmarks.Start('UpdateBuffer');
                 if (updateBuffer) {
                     var CharToUpdate: CharInfo = this._Buffer[y][x + i];
                     CharToUpdate.Ch = Chars[i];
@@ -467,6 +483,8 @@ class Crt {
                     CharToUpdate.Underline = charInfo.Underline;
                     CharToUpdate.Reverse = charInfo.Reverse;
                 }
+                //this._BenchUpdateBuffer.Stop();
+                BUpdateBuffer.Stop();
 
                 if (x + i >= this._ScreenSize.x) { break; }
             }
@@ -1078,6 +1096,15 @@ class Crt {
         }
     }
 
+    public OutputBenchmarks(): void {
+        Benchmarks.Alert();
+        //var text = "";
+        //text += "Bench GetChar: " + this._BenchGetChar.CumulativeElapsed + "\n";
+        //text += "Bench PutImage: " + this._BenchPutImage.CumulativeElapsed + "\n";
+        //text += "Bench UpdateBuffer: " + this._BenchUpdateBuffer.CumulativeElapsed + "\n";
+        //alert(text);
+    }
+
     public PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
         this.OnKeyDown(<KeyboardEvent>{
             altKey: alt,
@@ -1112,6 +1139,13 @@ class Crt {
         }
     }
 
+    public ResetBenchmarks(): void {
+        Benchmarks.Reset();
+        //this._BenchGetChar.Reset();
+        //this._BenchPutImage.Reset();
+        //this._BenchUpdateBuffer.Reset();
+    }
+    
     public RestoreScreen(buffer: CharInfo[][], left: number, top: number, right: number, bottom: number): void {
         var Height: number = bottom - top + 1;
         var Width: number = right - left + 1;
@@ -1264,6 +1298,7 @@ class Crt {
         if (count > MaxLines) { count = MaxLines; }
 
         if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
+            var BScrollUp: Benchmark = Benchmarks.Start('ScrollUp');
             if (this._UseModernScrollback) {
                 if ((left === 1) && (top === 1) && (right === this._ScreenSize.x) && (bottom === this._ScreenSize.y)) {
                     // Scroll the lines into the scrollback region
@@ -1302,6 +1337,7 @@ class Crt {
                     this._CanvasContext.putImageData(Buf, Left, Top);
                 }
             }
+            BScrollUp.Stop();
 
             // Blank
             // TODO This fails for maskreet in Chrome -- looks like it sometimes decides to ignore the call to fillRect()
@@ -1319,13 +1355,16 @@ class Crt {
             // }
 
             // TODO If this works the other custom scroller needs to be updated too
+            var BClearBottom: Benchmark = Benchmarks.Start('ClearBottom');
             for (var y: number = 0; y < count; y++) {
                 for (var x: number = left; x <= right; x++) {
                     this.FastWrite(' ', x, bottom - count + 1 + y, charInfo, false);
                 }
             }
+            BClearBottom.Stop();
         }
 
+        var BScrollUpdateBuffer: Benchmark = Benchmarks.Start('ScrollUpdateBuffer');
         if (updateBuffer) {
             // Now to adjust the buffer
             var NewRow: CharInfo[];
@@ -1371,6 +1410,7 @@ class Crt {
                 }
             }
         }
+        BScrollUpdateBuffer.Stop();
     }
 
     public ScrollUpScreen(count: number): void {

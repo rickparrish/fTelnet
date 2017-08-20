@@ -125,7 +125,7 @@ class fTelnetClient {
         this._fTelnetContainer.appendChild(this._ClientContainer);
 
         // Setup the client container for modern scrollback on desktop devices
-        this._UseModernScrollback = (DetectMobileBrowser.SupportsModernScrollback && (this._Options.Emulation !== 'RIP'));
+        this._UseModernScrollback = (this._Options.AllowModernScrollback && DetectMobileBrowser.SupportsModernScrollback && (this._Options.Emulation !== 'RIP'));
         if (this._UseModernScrollback) {
             this._ClientContainer.style.overflowX = 'hidden';
             this._ClientContainer.style.overflowY = 'scroll';

@@ -28,6 +28,8 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="source\Benchmarks.ts" />
+    <TypeScriptCompile Include="source\Benchmark.ts" />
     <TypeScriptCompile Include="source\ByteArray.ts" />
     <TypeScriptCompile Include="source\Clipboard.ts" />
     <TypeScriptCompile Include="source\DetectMobileBrowser.ts" />

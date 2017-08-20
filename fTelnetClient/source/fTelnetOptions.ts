@@ -18,6 +18,7 @@
   along with fTelnet.  If not, see <http://www.gnu.org/licenses/>.
 */
 class fTelnetOptions {
+    public AllowModernScrollback: boolean = true;
     public BareLFtoCRLF: boolean = false;
     public BitsPerSecond: number = 57600;
     public ConnectionType: string = 'telnet';

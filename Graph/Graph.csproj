@@ -31,7 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="tslint.json" />
-    <TypeScriptCompile Include="source\Benchmark.ts" />
     <TypeScriptCompile Include="source\Rectangle.ts" />
     <TypeScriptCompile Include="source\_references.d.ts" />
     <TypeScriptCompile Include="source\BitmapFont.ts" />
