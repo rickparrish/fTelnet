@@ -78,7 +78,7 @@ class Crt {
     private _C64: boolean = false;
     private _Canvas: HTMLCanvasElement;
     private _CanvasContext: CanvasRenderingContext2D;
-    private _CharInfo: CharInfo = new CharInfo(' ', Crt.LIGHTGRAY);
+    private _CharInfo: CharInfo = new CharInfo(null);
     private _Container: HTMLElement;
     private _Cursor: Cursor;
     private _FlushBeforeWritePETSCII: number[] = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
@@ -388,7 +388,7 @@ class Crt {
             for (Y = 0; Y < this._Scrollback.length; Y++) {
                 NewRow = [];
                 for (X = 0; X < this._Scrollback[Y].length; X++) {
-                    NewRow.push(new CharInfo(this._Scrollback[Y][X].Ch, this._Scrollback[Y][X].Attr, this._Scrollback[Y][X].Blink, this._Scrollback[Y][X].Underline, this._Scrollback[Y][X].Reverse));
+                    NewRow.push(new CharInfo(this._Scrollback[Y][X]));
                 }
                 this._ScrollbackTemp.push(NewRow);
             }
@@ -398,7 +398,7 @@ class Crt {
             for (Y = 1; Y <= this._ScreenSize.y; Y++) {
                 NewRow = [];
                 for (X = 1; X <= this._ScreenSize.x; X++) {
-                    NewRow.push(new CharInfo(this._Buffer[Y][X].Ch, this._Buffer[Y][X].Attr, this._Buffer[Y][X].Blink, this._Buffer[Y][X].Underline, this._Buffer[Y][X].Reverse));
+                    NewRow.push(new CharInfo(this._Buffer[Y][X]));
                 }
                 this._ScrollbackTemp.push(NewRow);
             }
@@ -477,11 +477,8 @@ class Crt {
                 var BUpdateBuffer: Benchmark = Benchmarks.Start('UpdateBuffer');
                 if (updateBuffer) {
                     var CharToUpdate: CharInfo = this._Buffer[y][x + i];
+                    CharToUpdate.Set(charInfo);
                     CharToUpdate.Ch = Chars[i];
-                    CharToUpdate.Attr = charInfo.Attr;
-                    CharToUpdate.Blink = charInfo.Blink;
-                    CharToUpdate.Underline = charInfo.Underline;
-                    CharToUpdate.Reverse = charInfo.Reverse;
                 }
                 //this._BenchUpdateBuffer.Stop();
                 BUpdateBuffer.Stop();
@@ -541,7 +538,7 @@ class Crt {
         for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
             this._Buffer[Y] = [];
             for (var X: number = 1; X <= this._ScreenSize.x; X++) {
-                this._Buffer[Y][X] = new CharInfo(' ', Crt.LIGHTGRAY, false, false, false);
+                this._Buffer[Y][X] = new CharInfo(null);
             }
         }
 
@@ -619,10 +616,11 @@ class Crt {
         /// attribute. NormVideo restores TextAttr to the value it had when the program
         /// was started.
         /// </remarks>
+        this.TextBackground(Crt.BLACK);
         if (this._C64) {
-            this._CharInfo.Attr = Crt.PETSCII_WHITE;
+            this.TextAttr = Crt.PETSCII_WHITE;
         } else {
-            this._CharInfo.Attr = Crt.LIGHTGRAY;
+            this.TextAttr = Crt.LIGHTGRAY;
         }
         this._CharInfo.Blink = false;
         this._CharInfo.Underline = false;
@@ -679,6 +677,21 @@ class Crt {
             this._TempCanvas.height = this._Canvas.height;
         } else {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
+
+            // TODOX This is test code to auto-scale (which would be good for phones, that need to scale down)
+            //// Try to go full width
+            // var MaxHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+            // var NewWidth = this._Container.clientWidth;
+            // var Ratio = NewWidth / this._Canvas.width;
+            // var NewHeight = this._Canvas.height * Ratio;
+            // if (NewHeight > MaxHeight) {
+            //     // Result is too tall, so go full height instead
+            //     NewHeight = MaxHeight;
+            //     Ratio = NewHeight / this._Canvas.height;
+            //     NewWidth = this._Canvas.width * Ratio;
+            // }
+            // this._Canvas.style.width = NewWidth + 'px';
+            // this._Canvas.style.height = NewHeight + 'px';
         }
 
         // Restore the screen contents
@@ -708,7 +721,7 @@ class Crt {
             if (ke.keyCode === Keyboard.DOWN) {
                 if (this._ScrollbackPosition < this._ScrollbackTemp.length) {
                     this._ScrollbackPosition += 1;
-                    this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 7, false, false, false), false);
+                    this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(null), false);
 
                     YDest = this._ScreenSize.y;
                     YSource = this._ScrollbackPosition - 1;
@@ -728,7 +741,7 @@ class Crt {
             } else if (ke.keyCode === Keyboard.UP) {
                 if (this._ScrollbackPosition > this._ScreenSize.y) {
                     this._ScrollbackPosition -= 1;
-                    this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(' ', 7, false, false), false);
+                    this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(null), false);
 
                     YDest = 1;
                     YSource = this._ScrollbackPosition - this._ScreenSize.y;
@@ -1093,6 +1106,7 @@ class Crt {
         // See if we can switch to a different font size
         if (this._AllowDynamicFontResize) {
             this.SetFont(this._Font.Name);
+            // TODOX Added as part of auto-scale logic, not sure if needed this.OnFontChanged();
         }
     }
 
@@ -1172,7 +1186,7 @@ class Crt {
         for (var Y: number = 0; Y < Height; Y++) {
             Result[Y] = [];
             for (var X: number = 0; X < Width; X++) {
-                Result[Y][X] = new CharInfo(this._Buffer[Y + top][X + left].Ch, this._Buffer[Y + top][X + left].Attr, this._Buffer[Y + top][X + left].Blink, this._Buffer[Y + top][X + left].Underline, this._Buffer[Y + top][X + left].Reverse);
+                Result[Y][X] = new CharInfo(this._Buffer[Y + top][X + left]);
             }
         }
 
@@ -1240,22 +1254,14 @@ class Crt {
             // First, shuffle the contents that are still visible
             for (Y = bottom; Y > count; Y--) {
                 for (X = left; X <= right; X++) {
-                    this._Buffer[Y][X].Ch = this._Buffer[Y - count][X].Ch;
-                    this._Buffer[Y][X].Attr = this._Buffer[Y - count][X].Attr;
-                    this._Buffer[Y][X].Blink = this._Buffer[Y - count][X].Blink;
-                    this._Buffer[Y][X].Underline = this._Buffer[Y - count][X].Underline;
-                    this._Buffer[Y][X].Reverse = this._Buffer[Y - count][X].Reverse;
+                    this._Buffer[Y][X].Set(this._Buffer[Y - count][X]);
                 }
             }
 
             // Then, blank the contents that are not
             for (Y = top; Y <= count; Y++) {
                 for (X = left; X <= right; X++) {
-                    this._Buffer[Y][X].Ch = charInfo.Ch;
-                    this._Buffer[Y][X].Attr = charInfo.Attr;
-                    this._Buffer[Y][X].Blink = charInfo.Blink;
-                    this._Buffer[Y][X].Underline = charInfo.Underline;
-                    this._Buffer[Y][X].Reverse = charInfo.Reverse;
+                    this._Buffer[Y][X].Set(charInfo);
                 }
             }
         }
@@ -1376,7 +1382,7 @@ class Crt {
                 for (Y = 0; Y < count; Y++) {
                     NewRow = [];
                     for (X = left; X <= right; X++) {
-                        NewRow.push(new CharInfo(this._Buffer[Y + top][X].Ch, this._Buffer[Y + top][X].Attr, this._Buffer[Y + top][X].Blink, this._Buffer[Y + top][X].Underline, this._Buffer[Y + top][X].Reverse));
+                        NewRow.push(new CharInfo(this._Buffer[Y + top][X]));
                     }
                     this._Scrollback.push(NewRow);
                 }
@@ -1391,22 +1397,14 @@ class Crt {
             // Then, shuffle the contents that are still visible
             for (Y = top; Y <= (bottom - count); Y++) {
                 for (X = left; X <= right; X++) {
-                    this._Buffer[Y][X].Ch = this._Buffer[Y + count][X].Ch;
-                    this._Buffer[Y][X].Attr = this._Buffer[Y + count][X].Attr;
-                    this._Buffer[Y][X].Blink = this._Buffer[Y + count][X].Blink;
-                    this._Buffer[Y][X].Underline = this._Buffer[Y + count][X].Underline;
-                    this._Buffer[Y][X].Reverse = this._Buffer[Y + count][X].Reverse;
+                    this._Buffer[Y][X].Set(this._Buffer[Y + count][X]);
                 }
             }
 
             // Then, blank the contents that are not
             for (Y = bottom; Y > (bottom - count); Y--) {
                 for (X = left; X <= right; X++) {
-                    this._Buffer[Y][X].Ch = charInfo.Ch;
-                    this._Buffer[Y][X].Attr = charInfo.Attr;
-                    this._Buffer[Y][X].Blink = charInfo.Blink;
-                    this._Buffer[Y][X].Underline = charInfo.Underline;
-                    this._Buffer[Y][X].Reverse = charInfo.Reverse;
+                    this._Buffer[Y][X].Set(charInfo);
                 }
             }
         }
@@ -1476,7 +1474,7 @@ class Crt {
             for (Y = 1; Y <= this._ScreenSize.y; Y++) {
                 OldBuffer[Y] = [];
                 for (X = 1; X <= this._ScreenSize.x; X++) {
-                    OldBuffer[Y][X] = new CharInfo(this._Buffer[Y][X].Ch, this._Buffer[Y][X].Attr, this._Buffer[Y][X].Blink, this._Buffer[Y][X].Underline, this._Buffer[Y][X].Reverse);
+                    OldBuffer[Y][X] = new CharInfo(this._Buffer[Y][X]);
                 }
             }
         }
@@ -1536,6 +1534,8 @@ class Crt {
     }
 
     public set TextAttr(value: number) {
+        this._CharInfo.Back24 = CrtFont.ANSI_COLOURS[(value & 0xF0) >> 4];
+        this._CharInfo.Fore24 = CrtFont.ANSI_COLOURS[value & 0x0F];
         this._CharInfo.Attr = value;
     }
 
@@ -1554,6 +1554,10 @@ class Crt {
         /// </remarks>
         /// <param name='AColor'>The colour to set the background to</param>
         this.TextAttr = (this.TextAttr & 0x0F) | ((colour & 0x0F) << 4);
+    }
+
+    public TextBackground24(red: number, green: number, blue: number): void {
+        this._CharInfo.Back24 = ((red & 0xFF) << 16) + ((green & 0xFF) << 8) + (blue & 0xFF);
     }
 
     public TextColor(colour: number): void {
@@ -1577,6 +1581,10 @@ class Crt {
         /// </remarks>
         /// <param name='AColor'>The colour to set the foreground to</param>
         this.TextAttr = (this.TextAttr & 0xF0) | (colour & 0x0F);
+    }
+
+    public TextColor24(red: number, green: number, blue: number): void {
+        this._CharInfo.Fore24 = ((red & 0xFF) << 16) + ((green & 0xFF) << 8) + (blue & 0xFF);
     }
 
     public set Transparent(value: Boolean) {

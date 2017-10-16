@@ -97,15 +97,15 @@ class CrtPanel extends CrtControl {
         }
 
         // Draw top row
-        this._Crt.FastWrite(TopLeft + StringUtils.NewString(TopBottom, this.Width - 2) + TopRight, this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+        this._Crt.FastWrite(TopLeft + StringUtils.NewString(TopBottom, this.Width - 2) + TopRight, this.ScreenLeft, this.ScreenTop, CharInfo.GetNew(' ', this.ForeColour + (this.BackColour << 4)));
 
         // Draw middle rows
         for (var Line: number = this.ScreenTop + 1; Line < this.ScreenTop + this.Height - 1; Line++) {
-            this._Crt.FastWrite(LeftRight + StringUtils.NewString(' ', this.Width - 2) + LeftRight, this.ScreenLeft, Line, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+            this._Crt.FastWrite(LeftRight + StringUtils.NewString(' ', this.Width - 2) + LeftRight, this.ScreenLeft, Line, CharInfo.GetNew(' ', this.ForeColour + (this.BackColour << 4)));
         }
 
         // Draw bottom row
-        this._Crt.FastWrite(BottomLeft + StringUtils.NewString(TopBottom, this.Width - 2) + BottomRight, this.ScreenLeft, this.ScreenTop + this.Height - 1, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+        this._Crt.FastWrite(BottomLeft + StringUtils.NewString(TopBottom, this.Width - 2) + BottomRight, this.ScreenLeft, this.ScreenTop + this.Height - 1, CharInfo.GetNew(' ', this.ForeColour + (this.BackColour << 4)));
 
         // Draw window title
         if (StringUtils.Trim(this._Text).length > 0) {
@@ -150,7 +150,7 @@ class CrtPanel extends CrtControl {
             }
 
             // Draw title
-            this._Crt.FastWrite(WindowTitle, TitleX, TitleY, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+            this._Crt.FastWrite(WindowTitle, TitleX, TitleY, CharInfo.GetNew(' ', this.ForeColour + (this.BackColour << 4)));
         }
     }
 

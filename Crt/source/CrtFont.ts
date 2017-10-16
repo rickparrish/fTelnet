@@ -87,12 +87,14 @@ class CrtFont {
             Alpha = 0;
             charCode = 32;
             charInfo.Attr = 0;
+            charInfo.Back24 = 0;
+            charInfo.Fore24 = 0;
             charInfo.Reverse = false;
         } else if ((charCode < 0) || (charCode > 255) || (charInfo.Attr < 0) || (charInfo.Attr > 255)) {
             return undefined;
         }
 
-        var CharMapKey: string = charCode + '-' + charInfo.Attr + '-' + charInfo.Reverse;
+        var CharMapKey: string = charCode + '-' + charInfo.Fore24 + '-' + charInfo.Back24 + '-' + charInfo.Reverse;
 
         // Check if we have used this character before
         if (!this._CharMap[CharMapKey]) {
@@ -110,8 +112,8 @@ class CrtFont {
                 Back = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0xF0) >> 4];
                 Fore = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0x0F)];
             } else {
-                Back = CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4];
-                Fore = CrtFont.ANSI_COLOURS[(charInfo.Attr & 0x0F)];
+                Back = charInfo.Back24;
+                Fore = charInfo.Fore24;
             }
 
             // Reverse if necessary

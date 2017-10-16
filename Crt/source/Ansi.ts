@@ -725,6 +725,31 @@ class Ansi {
                 y = Math.max(1, this.GetNextParam(1));
                 this._Crt.ScrollDownWindow(y);
                 break;
+            case 't': /* CSI p1 p2 p3 p4 t
+                            NON-STANDARD: http://picoe.ca/2014/03/07/24-bit-ansi/
+                            24-bit colour
+                            p1 = 0 for background, 1 for foreground
+                            p2 = red
+                            p3 = green
+                            p4 = blue */
+                if (this._AnsiParams.length == 4) {
+                    switch (this.GetNextParam(1)) {
+                        case 0:
+                            this._Crt.TextBackground24(this.GetNextParam(0), this.GetNextParam(0), this.GetNextParam(0));
+                            break;
+
+                        case 1:
+                            this._Crt.TextColor24(this.GetNextParam(0), this.GetNextParam(0), this.GetNextParam(0));
+                            break;
+
+                        default:
+                            console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                            break;
+                    }
+                } else {
+                    console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                }
+                break;
             case 'U': /* CSI U
 	                        NON-STANDARD (Disabled in current code)
 	                        Clear screen with default attribute.

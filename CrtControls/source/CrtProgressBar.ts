@@ -104,18 +104,18 @@ constructor(crt: Crt, parent: CrtControl, left: number, top: number, width: numb
         if (this._Style === ProgressBarStyle.Marquee) {
             if (force) {
                 // Erase the old bar
-                this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), this.Width), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
+                this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), this.Width), this.ScreenLeft, this.ScreenTop, CharInfo.GetNew(' ', this._BlankForeColour + (this.BackColour << 4)));
             }
 
             // Draw the new bar
             if (this._Value > 0) {
                 if (this._Value > this.Width) {
-                    this._Crt.FastWrite(String.fromCharCode(176), this.ScreenLeft + this.Width - (15 - Math.floor(this._Value - this.Width)), this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(String.fromCharCode(176), this.ScreenLeft + this.Width - (15 - Math.floor(this._Value - this.Width)), this.ScreenTop, CharInfo.GetNew(' ', this._BlankForeColour + (this.BackColour << 4)));
                 } else if (this._Value >= 15) {
-                    this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(this._Value, 15)), this.ScreenLeft + this._Value - 15, this.ScreenTop, new CharInfo(' ', this._BarForeColour + (this.BackColour << 4)));
-                    this._Crt.FastWrite(String.fromCharCode(176), this.ScreenLeft + this._Value - 15, this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(this._Value, 15)), this.ScreenLeft + this._Value - 15, this.ScreenTop, CharInfo.GetNew(' ', this._BarForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(String.fromCharCode(176), this.ScreenLeft + this._Value - 15, this.ScreenTop, CharInfo.GetNew(' ', this._BlankForeColour + (this.BackColour << 4)));
                 } else {
-                    this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(this._Value, 15)), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this._BarForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(this._Value, 15)), this.ScreenLeft, this.ScreenTop, CharInfo.GetNew(' ', this._BarForeColour + (this.BackColour << 4)));
                 }
             }
         } else {
@@ -133,11 +133,11 @@ constructor(crt: Crt, parent: CrtControl, left: number, top: number, width: numb
                 // Check if the bar shrank (if so, we need to delete the old bar)
                 if (NewBarWidth < this._LastBarWidth) {
                     // Erase the old bar
-                    this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), this.Width), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), this.Width), this.ScreenLeft, this.ScreenTop, CharInfo.GetNew(' ', this._BlankForeColour + (this.BackColour << 4)));
                 }
 
                 // Draw the new bar
-                this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(this._Style), NewBarWidth), this.ScreenLeft, this.ScreenTop, new CharInfo(' ', this._BarForeColour + (this.BackColour << 4)));
+                this._Crt.FastWrite(StringUtils.NewString(String.fromCharCode(this._Style), NewBarWidth), this.ScreenLeft, this.ScreenTop, CharInfo.GetNew(' ', this._BarForeColour + (this.BackColour << 4)));
 
                 this._LastBarWidth = NewBarWidth;
                 PaintPercentText = true;
@@ -152,18 +152,18 @@ constructor(crt: Crt, parent: CrtControl, left: number, top: number, width: numb
                     var ProgressStart: number = Math.round((this.Width - NewPercentText.length) / 2);
                     if (ProgressStart >= NewBarWidth) {
                         // Bar hasn't reached the percent text, so draw in the bar's empty color
-                        this._Crt.FastWrite(NewPercentText, this.ScreenLeft + ProgressStart, this.ScreenTop, new CharInfo(' ', this._BlankForeColour + (this.BackColour << 4)));
+                        this._Crt.FastWrite(NewPercentText, this.ScreenLeft + ProgressStart, this.ScreenTop, CharInfo.GetNew(' ', this._BlankForeColour + (this.BackColour << 4)));
                     } else if (ProgressStart + NewPercentText.length <= NewBarWidth) {
                         // Bar has passed the percent text, so draw in the bar's foreground colour 
                         // (or still use background for Blocks)
-                        this._Crt.FastWrite(NewPercentText, this.ScreenLeft + ProgressStart, this.ScreenTop, new CharInfo(' ', this.BackColour + (this._BarForeColour << 4)));
+                        this._Crt.FastWrite(NewPercentText, this.ScreenLeft + ProgressStart, this.ScreenTop, CharInfo.GetNew(' ', this.BackColour + (this._BarForeColour << 4)));
                     } else {
                         // Bar is in the middle of the percent text, so draw the colour as necessary for each letter in the text
                         for (var i: number = 0; i < NewPercentText.length; i++) {
                             var LetterPosition: number = ProgressStart + i;
                             var FG: number = (LetterPosition >= NewBarWidth) ? this._BlankForeColour : this.BackColour;
                             var BG: number = (LetterPosition >= NewBarWidth) ? this.BackColour : this._BarForeColour;
-                            this._Crt.FastWrite(NewPercentText.charAt(i), this.ScreenLeft + LetterPosition, this.ScreenTop, new CharInfo(' ', FG + (BG << 4)));
+                            this._Crt.FastWrite(NewPercentText.charAt(i), this.ScreenLeft + LetterPosition, this.ScreenTop, CharInfo.GetNew(' ', FG + (BG << 4)));
                         }
                     }
                 }

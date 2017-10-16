@@ -50,7 +50,7 @@ class CrtLabel extends CrtControl {
                 case ContentAlignment.Center:
                     if (Lines[i].length >= this.Width) {
                         // Text is greater than available space so chop it off with PadRight()
-                        this._Crt.FastWrite(Lines[i].substring(0, this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                        this._Crt.FastWrite(Lines[i].substring(0, this.Width), this.ScreenLeft, this.ScreenTop + i, CharInfo.GetNew(' ', this.ForeColour + (this.BackColour << 4)));
                     } else {
                         // Text needs to be centered
                         var i: number = 0;
@@ -62,14 +62,14 @@ class CrtLabel extends CrtControl {
                         for (i = 0; i < this.Width - Lines[i].length - LeftSpaces.length; i++) {
                             RightSpaces += ' ';
                         }
-                        this._Crt.FastWrite(LeftSpaces + Lines[i] + RightSpaces, this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                        this._Crt.FastWrite(LeftSpaces + Lines[i] + RightSpaces, this.ScreenLeft, this.ScreenTop + i, CharInfo.GetNew(' ', this.ForeColour + (this.BackColour << 4)));
                     }
                     break;
                 case ContentAlignment.Left:
-                    this._Crt.FastWrite(StringUtils.PadRight(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(StringUtils.PadRight(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, CharInfo.GetNew(' ', this.ForeColour + (this.BackColour << 4)));
                     break;
                 case ContentAlignment.Right:
-                    this._Crt.FastWrite(StringUtils.PadLeft(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, new CharInfo(' ', this.ForeColour + (this.BackColour << 4)));
+                    this._Crt.FastWrite(StringUtils.PadLeft(Lines[i], ' ', this.Width), this.ScreenLeft, this.ScreenTop + i, CharInfo.GetNew(' ', this.ForeColour + (this.BackColour << 4)));
                     break;
             }
         }
