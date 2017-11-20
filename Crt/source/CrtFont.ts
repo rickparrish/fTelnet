@@ -80,7 +80,7 @@ class CrtFont {
 
     public GetChar(charCode: number, charInfo: CharInfo): ImageData | undefined {
         if (this._Loading > 0) { return undefined; }
-
+        
         // Validate values
         var Alpha = 255;
         if (charCode === CrtFont.TRANSPARENT_CHARCODE) {

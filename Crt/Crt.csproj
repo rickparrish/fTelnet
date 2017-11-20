@@ -33,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="source\Window.d.ts" />
     <TypeScriptCompile Include="source\_references.d.ts" />
     <TypeScriptCompile Include="source\Ansi.ts" />
     <TypeScriptCompile Include="source\AnsiParserState.ts" />
@@ -42,7 +43,7 @@
     <TypeScriptCompile Include="source\CrtFont.ts" />
     <TypeScriptCompile Include="source\CrtFonts.ts" />
     <TypeScriptCompile Include="source\Cursor.ts" />
-    <TypeScriptCompile Include="source\Keyboard.ts" />
+    <TypeScriptCompile Include="source\KeyboardKeys.ts" />
     <TypeScriptCompile Include="source\KeyPressEvent.ts" />
   </ItemGroup>
   <ItemGroup>

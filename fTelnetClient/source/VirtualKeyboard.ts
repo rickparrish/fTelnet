@@ -202,9 +202,13 @@ class VirtualKeyboard {
             Html += '</div>';
         }
 
+        var ChildDiv: HTMLDivElement = document.createElement('div');
+        ChildDiv.className = 'fTelnetKeyboard';
+        ChildDiv.innerHTML = Html;
+
         this._Div = document.createElement('div');
-        this._Div.id = 'fTelnetKeyboard';
-        this._Div.innerHTML = Html;
+        this._Div.className = 'fTelnetKeyboardWrapper';
+        this._Div.appendChild(ChildDiv);
         this._Div.style.display = (this._Visible ? 'block' : 'none');
 
         return this._Div;
@@ -256,6 +260,11 @@ class VirtualKeyboard {
                 this._Crt.PushKeyPress(CharCode, 0, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
             }
 
+            // Vibrate on keypress
+            if (!!navigator.vibrate) {
+                navigator.vibrate(100);
+            }
+
             // Reset flags and redraw, if necessary
             if (NeedReDraw) {
                 this._AltPressed = false;
@@ -273,19 +282,19 @@ class VirtualKeyboard {
 
             var NeedReset: boolean = false;
             switch (KeyCode) {
-                case Keyboard.ALTERNATE:
+                case KeyboardKeys.ALTERNATE:
                     this._AltPressed = !this._AltPressed;
                     this.ReDrawSpecialKeys();
                     break;
-                case Keyboard.CAPS_LOCK:
+                case KeyboardKeys.CAPS_LOCK:
                     this._CapsLockEnabled = !this._CapsLockEnabled;
                     this.ReDrawSpecialKeys();
                     break;
-                case Keyboard.CONTROL:
+                case KeyboardKeys.CONTROL:
                     this._CtrlPressed = !this._CtrlPressed;
                     this.ReDrawSpecialKeys();
                     break;
-                case Keyboard.SHIFTLEFT:
+                case KeyboardKeys.SHIFTLEFT:
                     this._ShiftPressed = !this._ShiftPressed;
                     this.ReDrawSpecialKeys();
                     break;
@@ -295,6 +304,11 @@ class VirtualKeyboard {
             }
 
             this._Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+
+            // Vibrate on keypress
+            if (!!navigator.vibrate) {
+                navigator.vibrate(100);
+            }
 
             if (NeedReset) {
                 this._AltPressed = false;

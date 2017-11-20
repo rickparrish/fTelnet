@@ -21,137 +21,141 @@
 
 @KeyboardHeight: @FunctionHeight + (@KeyHeight * 5) + (@KeyMargin * 5);
 
-#fTelnetKeyboard {
-    background-color: black;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    height: @KeyboardHeight;
-    width: @KeyboardWidth;
-    margin: auto;
+.fTelnetKeyboardWrapper {
+    width: 100%;
 
-    * {
+    .fTelnetKeyboard {
+        background-color: black;
         box-sizing: border-box;
         -moz-box-sizing: border-box;
         -webkit-box-sizing: border-box;
-    }
+        height: @KeyboardHeight;
+        width: @KeyboardWidth;
+        margin: auto;
 
-    ::selection {
-        background-color: none;
-        color: inherit;
-    }
-
-    ::-moz-selection {
-        background-color: none;
-        color: inherit;
-    }
-
-    .fTelnetKeyboardRow {
-        > :first-child {
-            margin-left: 0 !important;
+        * {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
         }
 
-        .fTelnetKeyboardKey {
-            background-color: #444;
-            border-radius: 2px;
-            cursor: pointer;
-            color: #eee;
-            font: normal @KeyFontSize sans-serif;
-            float: left;
-            height: @KeyHeight;
-            line-height: @KeyLineHeight;
-            margin: @KeyMargin 0 0 @KeyMargin;
-            padding: @KeyPaddingTop 0 0 @KeyPaddingLeft;
-            transition: background-color 0.2s ease;
-            width: @KeyWidth;
-            text-align: left;
+        ::selection {
+            background-color: none;
+            color: inherit;
         }
 
-        .fTelnetKeyboardKey:hover {
-            background-color: #eee;
-            color: #333;
-            font-weight: bold;
-            z-index: 1000;
+        ::-moz-selection {
+            background-color: none;
+            color: inherit;
         }
 
-        .fTelnetKeyboardKeyArrowDown {
-            background-image: url("img/down-key.png");
-            background-position: @ImagePositionLeft @ImagePositionTop;
-            background-repeat: no-repeat;
+        .fTelnetKeyboardRow {
+            > :first-child {
+                margin-left: 0 !important;
+            }
+
+            .fTelnetKeyboardKey {
+                background-color: #444;
+                border-radius: 2px;
+                cursor: pointer;
+                color: #eee;
+                font: normal @KeyFontSize sans-serif;
+                float: left;
+                height: @KeyHeight;
+                line-height: @KeyLineHeight;
+                margin: @KeyMargin 0 0 @KeyMargin;
+                padding: @KeyPaddingTop 0 0 @KeyPaddingLeft;
+                transition: background-color 0.2s ease;
+                width: @KeyWidth;
+                text-align: left;
+            }
+
+            .fTelnetKeyboardKey:hover {
+                background-color: #eee;
+                color: #333;
+                font-weight: bold;
+                z-index: 1000;
+            }
+
+            .fTelnetKeyboardKeyArrowDown {
+                background-image: url("img/down-key.png");
+                background-position: @ImagePositionLeft @ImagePositionTop;
+                background-repeat: no-repeat;
+            }
+
+            .fTelnetKeyboardKeyArrowLeft {
+                background-image: url("img/left-key.png");
+                background-position: @ImagePositionLeft @ImagePositionTop;
+                background-repeat: no-repeat;
+            }
+
+            .fTelnetKeyboardKeyArrowRight {
+                background-image: url("img/right-key.png");
+                background-position: @ImagePositionLeft @ImagePositionTop;
+                background-repeat: no-repeat;
+            }
+
+            .fTelnetKeyboardKeyArrowUp {
+                background-image: url("img/up-key.png");
+                background-position: @ImagePositionLeft @ImagePositionTop;
+                background-repeat: no-repeat;
+            }
+
+            .fTelnetKeyboardKeyBackslash {
+                width: @BackslashWidth;
+            }
+
+            .fTelnetKeyboardKeyBackspace {
+                background-image: url("img/backspace-key.png");
+                background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+                background-repeat: no-repeat;
+                width: @BackspaceWidth;
+            }
+
+            .fTelnetKeyboardKeyCapsLock {
+                width: @CapsLockWidth;
+            }
+
+            .fTelnetKeyboardKeyEnter {
+                background-image: url("img/enter-key.png");
+                background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+                background-repeat: no-repeat;
+                width: @EnterWidth;
+            }
+
+            .fTelnetKeyboardKeyShiftLeft {
+                background-image: url("img/shift-key.png");
+                background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+                background-repeat: no-repeat;
+                width: @LeftShiftWidth;
+            }
+
+            .fTelnetKeyboardKeySpacebar {
+                width: @SpaceBarWidth;
+            }
+
+            .fTelnetKeyboardKeyTab {
+                background-image: url("img/tab-key.png");
+                background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+                background-repeat: no-repeat;
+                width: @TabWidth;
+            }
         }
 
-        .fTelnetKeyboardKeyArrowLeft {
-            background-image: url("img/left-key.png");
-            background-position: @ImagePositionLeft @ImagePositionTop;
-            background-repeat: no-repeat;
-        }
+        .fTelnetKeyboardRowFunction {
+            .fTelnetKeyboardKey {
+                height: @FunctionHeight;
+                margin-top: 0;
+                width: @FunctionWidth;
+            }
 
-        .fTelnetKeyboardKeyArrowRight {
-            background-image: url("img/right-key.png");
-            background-position: @ImagePositionLeft @ImagePositionTop;
-            background-repeat: no-repeat;
-        }
+            .fTelnetKeyboardKeyEscape {
+                width: @EscWidth;
+            }
 
-        .fTelnetKeyboardKeyArrowUp {
-            background-image: url("img/up-key.png");
-            background-position: @ImagePositionLeft @ImagePositionTop;
-            background-repeat: no-repeat;
-        }
-
-        .fTelnetKeyboardKeyBackslash {
-            width: @BackslashWidth;
-        }
-
-        .fTelnetKeyboardKeyBackspace {
-            background-image: url("img/backspace-key.png");
-            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
-            background-repeat: no-repeat;
-            width: @BackspaceWidth;
-        }
-
-        .fTelnetKeyboardKeyCapsLock {
-            width: @CapsLockWidth;
-        }
-
-        .fTelnetKeyboardKeyEnter {
-            background-image: url("img/enter-key.png");
-            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
-            background-repeat: no-repeat;
-            width: @EnterWidth;
-        }
-
-        .fTelnetKeyboardKeyShiftLeft {
-            background-image: url("img/shift-key.png");
-            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
-            background-repeat: no-repeat;
-            width: @LeftShiftWidth;
-        }
-
-        .fTelnetKeyboardKeySpacebar {
-            width: @SpaceBarWidth;
-        }
-
-        .fTelnetKeyboardKeyTab {
-            background-image: url("img/tab-key.png");
-            background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
-            background-repeat: no-repeat;
-            width: @TabWidth;
-        }
-    }
-
-    .fTelnetKeyboardRowFunction {
-        .fTelnetKeyboardKey {
-            height: @FunctionHeight;
-            margin-top: 0;
-            width: @FunctionWidth;
-        }
-
-        .fTelnetKeyboardKeyEscape {
-            width: @EscWidth;
-        }
-
-        .fTelnetKeyboardKeyHomeEndInsertDelete {
-            width: @HomeEndInsertDeleteWidth;
+            .fTelnetKeyboardKeyHomeEndInsertDelete {
+                width: @HomeEndInsertDeleteWidth;
+            }
         }
     }
 }

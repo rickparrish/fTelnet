@@ -115,7 +115,7 @@ class Crt {
 
         // Create the canvas
         this._Canvas = document.createElement('canvas');
-        this._Canvas.id = 'fTelnetCrtCanvas';
+        this._Canvas.className = 'fTelnetCrtCanvas';
         this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
         this._Canvas.style.zIndex = '50'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
@@ -123,6 +123,10 @@ class Crt {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
         } else {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
+            if (!!window.cordova) {
+                // Fullscreen for mobile apps
+                this._Canvas.style.width = '100%';
+            }
         }
 
         // Handle events for copy/paste
@@ -151,7 +155,7 @@ class Crt {
         this.InitBuffers(true);
 
         // Create the cursor
-        this._Cursor = new Cursor(this._Container, CrtFont.ANSI_COLOURS[Crt.LIGHTGRAY], this._Font.Size);
+        this._Cursor = new Cursor(CrtFont.ANSI_COLOURS[Crt.LIGHTGRAY], this._Font.Size);
         this._Cursor.onhide.on((): void => { this.OnBlinkHide(); });
         this._Cursor.onshow.on((): void => { this.OnBlinkShow(); });
 
@@ -170,25 +174,25 @@ class Crt {
         this._CanvasContext.font = '12pt monospace';
         this._CanvasContext.textBaseline = 'top';
 
-        // Create the buffer canvas and context for scrolling
         if (this._UseModernScrollback) {
-            this._TempCanvas = document.createElement('canvas');
-            this._TempCanvas.width = this._Canvas.width;
-            this._TempCanvas.height = this._Canvas.height;
-            var TempCanvasContext = this._TempCanvas.getContext('2d');
-            if (TempCanvasContext === null) {
-                console.log('fTelnet Error: _TempCanvas.getContext error');
-                // TODOX return false;
-            } else {
-                this._TempCanvasContext = TempCanvasContext;
-            }
-            this._TempCanvasContext.font = '12pt monospace';
-            this._TempCanvasContext.textBaseline = 'top';
-
             // Black out the scrollback
             this._CanvasContext.fillStyle = 'black';
             this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
         }
+
+        // Create the buffer canvas and context for scrolling
+        this._TempCanvas = document.createElement('canvas');
+        this._TempCanvas.width = this._Canvas.width;
+        this._TempCanvas.height = this._Canvas.height;
+        var TempCanvasContext = this._TempCanvas.getContext('2d');
+        if (TempCanvasContext === null) {
+            console.log('fTelnet Error: _TempCanvas.getContext error');
+            // TODOX return false;
+        } else {
+            this._TempCanvasContext = TempCanvasContext;
+        }
+        this._TempCanvasContext.font = '12pt monospace';
+        this._TempCanvasContext.textBaseline = 'top';
 
         // Clear the screen
         this.ClrScr();
@@ -640,6 +644,12 @@ class Crt {
                 }
             }
         }
+
+        // Show the cursor
+        // NB: We show the cursor on blink hide so that if the cursor is over a blink space we don't draw the character when it should be hidden
+        this._CanvasContext.fillStyle = this._Cursor.Colour;
+        this._CanvasContext.fillRect((this.WhereXA() - 1) * this._Font.Size.x, (this.WhereYA() * this._Font.Size.y) - (this._Font.Size.y * 0.20), this._Font.Size.x, this._Font.Size.y * 0.20);
+        this._Cursor.LastPosition = new Point(this.WhereXA(), this.WhereYA());
     }
 
     private OnBlinkShow(): void {
@@ -658,10 +668,14 @@ class Crt {
             }
         }
 
-        // Reposition the cursor
-        var NewOffset = Offset.getOffset(this._Canvas);
-        if (this._UseModernScrollback) { NewOffset.y += this._ScrollbackSize * this._Font.Height; }
-        this._Cursor.WindowOffset = NewOffset;
+        // Hide the cursor
+        // NB: We show the cursor on blink hide so that if the cursor is over a blink space we don't draw the character when it should be hidden
+        // TODOX This is broken because the current position may not be where the cursor was last drawn
+        //       For example if you hit enter or backspace while the cursor is shown, then the cursor will not be erased properly
+        var X = this._Cursor.LastPosition.x;
+        var Y = this._Cursor.LastPosition.y;
+        var Cell = this._Buffer[Y][X];
+        this.FastWrite(Cell.Ch, X, Y, Cell, false);
     }
 
     private OnFontChanged(): void {
@@ -673,11 +687,8 @@ class Crt {
         if (this._UseModernScrollback) {
             this._Canvas.height = this._Font.Height * (this._ScreenSize.y + this._ScrollbackSize);
             this._CanvasContext.fillRect(0, 0, this._Canvas.width, this._Canvas.height);
-            this._TempCanvas.width = this._Canvas.width;
-            this._TempCanvas.height = this._Canvas.height;
         } else {
             this._Canvas.height = this._Font.Height * this._ScreenSize.y;
-
             // TODOX This is test code to auto-scale (which would be good for phones, that need to scale down)
             //// Try to go full width
             // var MaxHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -693,6 +704,8 @@ class Crt {
             // this._Canvas.style.width = NewWidth + 'px';
             // this._Canvas.style.height = NewHeight + 'px';
         }
+        this._TempCanvas.width = this._Canvas.width;
+        this._TempCanvas.height = this._Canvas.height;
 
         // Restore the screen contents
         if (typeof this._Buffer !== 'undefined') {
@@ -718,7 +731,7 @@ class Crt {
             var YSource: number;
 
             // TODO Handle HOME and END?
-            if (ke.keyCode === Keyboard.DOWN) {
+            if (ke.keyCode === KeyboardKeys.DOWN) {
                 if (this._ScrollbackPosition < this._ScrollbackTemp.length) {
                     this._ScrollbackPosition += 1;
                     this.ScrollUpCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(null), false);
@@ -730,15 +743,15 @@ class Crt {
                         this.FastWrite(this._ScrollbackTemp[YSource][X].Ch, X + 1, YDest, this._ScrollbackTemp[YSource][X], false);
                     }
                 }
-            } else if (ke.keyCode === Keyboard.PAGE_DOWN) {
+            } else if (ke.keyCode === KeyboardKeys.PAGE_DOWN) {
                 for (i = 0; i < this._ScreenSize.y; i++) {
-                    this.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false);
+                    this.PushKeyDown(KeyboardKeys.DOWN, KeyboardKeys.DOWN, false, false, false);
                 }
-            } else if (ke.keyCode === Keyboard.PAGE_UP) {
+            } else if (ke.keyCode === KeyboardKeys.PAGE_UP) {
                 for (i = 0; i < this._ScreenSize.y; i++) {
-                    this.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false);
+                    this.PushKeyDown(KeyboardKeys.UP, KeyboardKeys.UP, false, false, false);
                 }
-            } else if (ke.keyCode === Keyboard.UP) {
+            } else if (ke.keyCode === KeyboardKeys.UP) {
                 if (this._ScrollbackPosition > this._ScreenSize.y) {
                     this._ScrollbackPosition -= 1;
                     this.ScrollDownCustom(1, 1, this._ScreenSize.x, this._ScreenSize.y, 1, new CharInfo(null), false);
@@ -779,38 +792,38 @@ class Crt {
             } else {
                 switch (ke.keyCode) {
                     // Handle special keys
-                    case Keyboard.BACKSPACE: keyString = '\x7E'; break;
-                    case Keyboard.DELETE: keyString = '\x7E'; break;
-                    case Keyboard.DOWN: keyString = '\x1D'; break;
-                    case Keyboard.ENTER: keyString = '\x9B'; break;
-                    case Keyboard.LEFT: keyString = '\x1E'; break;
-                    case Keyboard.RIGHT: keyString = '\x1F'; break;
-                    case Keyboard.SPACE: keyString = ' '; break;
-                    case Keyboard.TAB: keyString = '\x7F'; break;
-                    case Keyboard.UP: keyString = '\x1C'; break;
+                    case KeyboardKeys.BACKSPACE: keyString = '\x7E'; break;
+                    case KeyboardKeys.DELETE: keyString = '\x7E'; break;
+                    case KeyboardKeys.DOWN: keyString = '\x1D'; break;
+                    case KeyboardKeys.ENTER: keyString = '\x9B'; break;
+                    case KeyboardKeys.LEFT: keyString = '\x1E'; break;
+                    case KeyboardKeys.RIGHT: keyString = '\x1F'; break;
+                    case KeyboardKeys.SPACE: keyString = ' '; break;
+                    case KeyboardKeys.TAB: keyString = '\x7F'; break;
+                    case KeyboardKeys.UP: keyString = '\x1C'; break;
                 }
             }
         } else if (this._C64) {
             switch (ke.keyCode) {
                 // Handle special keys
-                case Keyboard.BACKSPACE: keyString = '\x14'; break;
-                case Keyboard.DELETE: keyString = '\x14'; break;
-                case Keyboard.DOWN: keyString = '\x11'; break;
-                case Keyboard.ENTER: keyString = '\r'; break;
-                case Keyboard.F1: keyString = '\x85'; break;
-                case Keyboard.F2: keyString = '\x89'; break;
-                case Keyboard.F3: keyString = '\x86'; break;
-                case Keyboard.F4: keyString = '\x8A'; break;
-                case Keyboard.F5: keyString = '\x87'; break;
-                case Keyboard.F6: keyString = '\x8B'; break;
-                case Keyboard.F7: keyString = '\x88'; break;
-                case Keyboard.F8: keyString = '\x8C'; break;
-                case Keyboard.HOME: keyString = '\x13'; break;
-                case Keyboard.INSERT: keyString = '\x94'; break;
-                case Keyboard.LEFT: keyString = '\x9D'; break;
-                case Keyboard.RIGHT: keyString = '\x1D'; break;
-                case Keyboard.SPACE: keyString = ' '; break;
-                case Keyboard.UP: keyString = '\x91'; break;
+                case KeyboardKeys.BACKSPACE: keyString = '\x14'; break;
+                case KeyboardKeys.DELETE: keyString = '\x14'; break;
+                case KeyboardKeys.DOWN: keyString = '\x11'; break;
+                case KeyboardKeys.ENTER: keyString = '\r'; break;
+                case KeyboardKeys.F1: keyString = '\x85'; break;
+                case KeyboardKeys.F2: keyString = '\x89'; break;
+                case KeyboardKeys.F3: keyString = '\x86'; break;
+                case KeyboardKeys.F4: keyString = '\x8A'; break;
+                case KeyboardKeys.F5: keyString = '\x87'; break;
+                case KeyboardKeys.F6: keyString = '\x8B'; break;
+                case KeyboardKeys.F7: keyString = '\x88'; break;
+                case KeyboardKeys.F8: keyString = '\x8C'; break;
+                case KeyboardKeys.HOME: keyString = '\x13'; break;
+                case KeyboardKeys.INSERT: keyString = '\x94'; break;
+                case KeyboardKeys.LEFT: keyString = '\x9D'; break;
+                case KeyboardKeys.RIGHT: keyString = '\x1D'; break;
+                case KeyboardKeys.SPACE: keyString = ' '; break;
+                case KeyboardKeys.UP: keyString = '\x91'; break;
             }
         } else {
             if (ke.ctrlKey) {
@@ -823,33 +836,33 @@ class Crt {
             } else {
                 switch (ke.keyCode) {
                     // Handle special keys
-                    case Keyboard.BACKSPACE: keyString = '\b'; break;
-                    case Keyboard.DELETE: keyString = '\x7F'; break;
-                    case Keyboard.DOWN: keyString = '\x1B[B'; break;
-                    case Keyboard.END: keyString = '\x1B[K'; break;
-                    case Keyboard.ENTER: keyString = '\r\n'; break;
-                    case Keyboard.ESCAPE: keyString = '\x1B'; break;
-                    case Keyboard.F1: keyString = '\x1BOP'; break;
-                    case Keyboard.F2: keyString = '\x1BOQ'; break;
-                    case Keyboard.F3: keyString = '\x1BOR'; break;
-                    case Keyboard.F4: keyString = '\x1BOS'; break;
-                    case Keyboard.F5: keyString = '\x1BOt'; break;
-                    case Keyboard.F6: keyString = '\x1B[17~'; break;
-                    case Keyboard.F7: keyString = '\x1B[18~'; break;
-                    case Keyboard.F8: keyString = '\x1B[19~'; break;
-                    case Keyboard.F9: keyString = '\x1B[20~'; break;
-                    case Keyboard.F10: keyString = '\x1B[21~'; break;
-                    case Keyboard.F11: keyString = '\x1B[23~'; break;
-                    case Keyboard.F12: keyString = '\x1B[24~'; break;
-                    case Keyboard.HOME: keyString = '\x1B[H'; break;
-                    case Keyboard.INSERT: keyString = '\x1B@'; break;
-                    case Keyboard.LEFT: keyString = '\x1B[D'; break;
-                    case Keyboard.PAGE_DOWN: keyString = '\x1B[U'; break;
-                    case Keyboard.PAGE_UP: keyString = '\x1B[V'; break;
-                    case Keyboard.RIGHT: keyString = '\x1B[C'; break;
-                    case Keyboard.SPACE: keyString = ' '; break;
-                    case Keyboard.TAB: keyString = '\t'; break;
-                    case Keyboard.UP: keyString = '\x1B[A'; break;
+                    case KeyboardKeys.BACKSPACE: keyString = '\b'; break;
+                    case KeyboardKeys.DELETE: keyString = '\x7F'; break;
+                    case KeyboardKeys.DOWN: keyString = '\x1B[B'; break;
+                    case KeyboardKeys.END: keyString = '\x1B[K'; break;
+                    case KeyboardKeys.ENTER: keyString = '\r\n'; break;
+                    case KeyboardKeys.ESCAPE: keyString = '\x1B'; break;
+                    case KeyboardKeys.F1: keyString = '\x1BOP'; break;
+                    case KeyboardKeys.F2: keyString = '\x1BOQ'; break;
+                    case KeyboardKeys.F3: keyString = '\x1BOR'; break;
+                    case KeyboardKeys.F4: keyString = '\x1BOS'; break;
+                    case KeyboardKeys.F5: keyString = '\x1BOt'; break;
+                    case KeyboardKeys.F6: keyString = '\x1B[17~'; break;
+                    case KeyboardKeys.F7: keyString = '\x1B[18~'; break;
+                    case KeyboardKeys.F8: keyString = '\x1B[19~'; break;
+                    case KeyboardKeys.F9: keyString = '\x1B[20~'; break;
+                    case KeyboardKeys.F10: keyString = '\x1B[21~'; break;
+                    case KeyboardKeys.F11: keyString = '\x1B[23~'; break;
+                    case KeyboardKeys.F12: keyString = '\x1B[24~'; break;
+                    case KeyboardKeys.HOME: keyString = '\x1B[H'; break;
+                    case KeyboardKeys.INSERT: keyString = '\x1B@'; break;
+                    case KeyboardKeys.LEFT: keyString = '\x1B[D'; break;
+                    case KeyboardKeys.PAGE_DOWN: keyString = '\x1B[U'; break;
+                    case KeyboardKeys.PAGE_UP: keyString = '\x1B[V'; break;
+                    case KeyboardKeys.RIGHT: keyString = '\x1B[C'; break;
+                    case KeyboardKeys.SPACE: keyString = ' '; break;
+                    case KeyboardKeys.TAB: keyString = '\t'; break;
+                    case KeyboardKeys.UP: keyString = '\x1B[A'; break;
                 }
             }
         }
@@ -1159,7 +1172,7 @@ class Crt {
         //this._BenchPutImage.Reset();
         //this._BenchUpdateBuffer.Reset();
     }
-    
+
     public RestoreScreen(buffer: CharInfo[][], left: number, top: number, right: number, bottom: number): void {
         var Height: number = bottom - top + 1;
         var Width: number = right - left + 1;
@@ -1337,37 +1350,33 @@ class Crt {
                 var Width: number = (right - left + 1) * this._Font.Width;
                 var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
                 if (Height > 0) {
-                    var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
+                    // From: http://stackoverflow.com/a/6003174/342378
+                    this._TempCanvasContext.drawImage(this._Canvas, Left, Top, Width, Height, 0, 0, Width, Height);
                     Left = (left - 1) * this._Font.Width;
                     Top = (top - 1) * this._Font.Height;
-                    this._CanvasContext.putImageData(Buf, Left, Top);
+                    this._CanvasContext.drawImage(this._TempCanvas, 0, 0, Width, Height, Left, Top, Width, Height);
                 }
             }
             BScrollUp.Stop();
 
             // Blank
             // TODO This fails for maskreet in Chrome -- looks like it sometimes decides to ignore the call to fillRect()
-            // this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
-            // Left = (left - 1) * this._Font.Width;
-            // Top = (bottom - count) * this._Font.Height;
-            // Width = (right - left + 1) * this._Font.Width;
-            // Height = (count * this._Font.Height);
-            // this._CanvasContext.fillRect(Left, Top, Width, Height);
-
-            // Doesn't handle transparency
-            // var Blanks: string = StringUtils.PadLeft('', ' ', right - left + 1);
-            // for (var Line: number = 0; Line < count; Line++) {
-            //     this.FastWrite(Blanks, left, bottom - count + 1 + Line, charInfo, false);
-            // }
+            // TODOX Confirm this works with both scrollback types, with full screen and window
+            this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
+            Left = (left - 1) * this._Font.Width;
+            Top = (bottom - count) * this._Font.Height;
+            Width = (right - left + 1) * this._Font.Width;
+            Height = (count * this._Font.Height);
+            this._CanvasContext.fillRect(Left, Top, Width, Height);
 
             // TODO If this works the other custom scroller needs to be updated too
-            var BClearBottom: Benchmark = Benchmarks.Start('ClearBottom');
-            for (var y: number = 0; y < count; y++) {
-                for (var x: number = left; x <= right; x++) {
-                    this.FastWrite(' ', x, bottom - count + 1 + y, charInfo, false);
-                }
-            }
-            BClearBottom.Stop();
+            //var BClearBottom: Benchmark = Benchmarks.Start('ClearBottom');
+            //for (var y: number = 0; y < count; y++) {
+            //    for (var x: number = left; x <= right; x++) {
+            //        this.FastWrite(' ', x, bottom - count + 1 + y, charInfo, false);
+            //    }
+            //}
+            //BClearBottom.Stop();
         }
 
         var BScrollUpdateBuffer: Benchmark = Benchmarks.Start('ScrollUpdateBuffer');
@@ -1718,7 +1727,6 @@ class Crt {
             if ((right <= this._ScreenSize.x) && (bottom <= this._ScreenSize.y)) {
                 this._WindMin = (left - 1) + ((top - 1) << 8);
                 this._WindMax = (right - 1) + ((bottom - 1) << 8);
-                this._Cursor.WindowOffset = new Point(left - 1, top - 1);
                 this.GotoXY(1, 1);
             }
         }

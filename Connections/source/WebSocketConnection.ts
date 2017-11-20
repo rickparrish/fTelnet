@@ -94,8 +94,8 @@ class WebSocketConnection {
         if (typeof proxyPortSecure === 'undefined') { proxyPortSecure = 443; }
 
         // TODOX Cordova socket does not support windows universal yet, so force proxy on iemobile
-        if (window.cordova && !UseCordovaSocket) {
-            proxyHostname = 'proxy-us-ga.ftelnet.ca';
+        if (!!window.cordova && !UseCordovaSocket) {
+            proxyHostname = 'proxy-us-nj.ftelnet.ca';
             proxyPort = 80;
             proxyPortSecure = 443;
         }

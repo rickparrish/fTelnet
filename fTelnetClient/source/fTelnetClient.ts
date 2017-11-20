@@ -148,6 +148,7 @@ class fTelnetClient {
 
         // Create the ansi cursor position handler
         this._Ansi = new Ansi(this._Crt);
+        this._Ansi.onesc0c.on((): void => { this.OnAnsiESC0c(); });
         this._Ansi.onesc5n.on((): void => { this.OnAnsiESC5n(); });
         this._Ansi.onesc6n.on((): void => { this.OnAnsiESC6n(); });
         this._Ansi.onesc255n.on((): void => { this.OnAnsiESC255n(); });
@@ -200,25 +201,25 @@ class fTelnetClient {
             var ScrollbackLineUp: HTMLAnchorElement = document.createElement('a');
             ScrollbackLineUp.href = '#';
             ScrollbackLineUp.innerHTML = 'Line Up';
-            ScrollbackLineUp.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(Keyboard.UP, Keyboard.UP, false, false, false); e.preventDefault(); return false; });
+            ScrollbackLineUp.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(KeyboardKeys.UP, KeyboardKeys.UP, false, false, false); e.preventDefault(); return false; });
             this._ScrollbackBar.appendChild(ScrollbackLineUp);
 
             var ScrollbackLineDown: HTMLAnchorElement = document.createElement('a');
             ScrollbackLineDown.href = '#';
             ScrollbackLineDown.innerHTML = 'Line Down';
-            ScrollbackLineDown.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(Keyboard.DOWN, Keyboard.DOWN, false, false, false); e.preventDefault(); return false; });
+            ScrollbackLineDown.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(KeyboardKeys.DOWN, KeyboardKeys.DOWN, false, false, false); e.preventDefault(); return false; });
             this._ScrollbackBar.appendChild(ScrollbackLineDown);
 
             var ScrollbackPageUp: HTMLAnchorElement = document.createElement('a');
             ScrollbackPageUp.href = '#';
             ScrollbackPageUp.innerHTML = 'Page Up';
-            ScrollbackPageUp.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(Keyboard.PAGE_UP, Keyboard.PAGE_UP, false, false, false); e.preventDefault(); return false; });
+            ScrollbackPageUp.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(KeyboardKeys.PAGE_UP, KeyboardKeys.PAGE_UP, false, false, false); e.preventDefault(); return false; });
             this._ScrollbackBar.appendChild(ScrollbackPageUp);
 
             var ScrollbackPageDown: HTMLAnchorElement = document.createElement('a');
             ScrollbackPageDown.href = '#';
             ScrollbackPageDown.innerHTML = 'Page Down';
-            ScrollbackPageDown.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(Keyboard.PAGE_DOWN, Keyboard.PAGE_DOWN, false, false, false); e.preventDefault(); return false; });
+            ScrollbackPageDown.addEventListener('click', (e: MouseEvent): boolean => { this._Crt.PushKeyDown(KeyboardKeys.PAGE_DOWN, KeyboardKeys.PAGE_DOWN, false, false, false); e.preventDefault(); return false; });
             this._ScrollbackBar.appendChild(ScrollbackPageDown);
 
             var ScrollbackExit: HTMLAnchorElement = document.createElement('a');
@@ -318,22 +319,24 @@ class fTelnetClient {
             MenuButtonsTable.appendChild(MenuButtonsRow3);
         }
 
-        var MenuButtonsRow4: HTMLTableRowElement = document.createElement('tr');
-        var MenuButtonsRow4Cell1: HTMLTableCellElement = document.createElement('td');
-        var MenuButtonsKeyboard: HTMLAnchorElement = document.createElement('a');
-        MenuButtonsKeyboard.href = '#';
-        MenuButtonsKeyboard.innerHTML = 'Keyboard';
-        MenuButtonsKeyboard.addEventListener('click', (me: MouseEvent): boolean => { this.VirtualKeyboardVisible = !this.VirtualKeyboardVisible; me.preventDefault(); return false; });
-        MenuButtonsRow4Cell1.appendChild(MenuButtonsKeyboard);
-        MenuButtonsRow4.appendChild(MenuButtonsRow4Cell1);
-        var MenuButtonsRow4Cell2: HTMLTableCellElement = document.createElement('td');
-        var MenuButtonsFullScreen: HTMLAnchorElement = document.createElement('a');
-        MenuButtonsFullScreen.href = '#';
-        MenuButtonsFullScreen.innerHTML = 'Full&nbsp;Screen';
-        MenuButtonsFullScreen.addEventListener('click', (me: MouseEvent): boolean => { this.FullScreenToggle(); me.preventDefault(); return false; });
-        MenuButtonsRow4Cell2.appendChild(MenuButtonsFullScreen);
-        MenuButtonsRow4.appendChild(MenuButtonsRow4Cell2);
-        MenuButtonsTable.appendChild(MenuButtonsRow4);
+        if (!window.cordova) {
+            var MenuButtonsRow4: HTMLTableRowElement = document.createElement('tr');
+            var MenuButtonsRow4Cell1: HTMLTableCellElement = document.createElement('td');
+            var MenuButtonsKeyboard: HTMLAnchorElement = document.createElement('a');
+            MenuButtonsKeyboard.href = '#';
+            MenuButtonsKeyboard.innerHTML = 'Keyboard';
+            MenuButtonsKeyboard.addEventListener('click', (me: MouseEvent): boolean => { this.VirtualKeyboardVisible = !this.VirtualKeyboardVisible; me.preventDefault(); return false; });
+            MenuButtonsRow4Cell1.appendChild(MenuButtonsKeyboard);
+            MenuButtonsRow4.appendChild(MenuButtonsRow4Cell1);
+            var MenuButtonsRow4Cell2: HTMLTableCellElement = document.createElement('td');
+            var MenuButtonsFullScreen: HTMLAnchorElement = document.createElement('a');
+            MenuButtonsFullScreen.href = '#';
+            MenuButtonsFullScreen.innerHTML = 'Full&nbsp;Screen';
+            MenuButtonsFullScreen.addEventListener('click', (me: MouseEvent): boolean => { this.FullScreenToggle(); me.preventDefault(); return false; });
+            MenuButtonsRow4Cell2.appendChild(MenuButtonsFullScreen);
+            MenuButtonsRow4.appendChild(MenuButtonsRow4Cell2);
+            MenuButtonsTable.appendChild(MenuButtonsRow4);
+        }
 
         if (!this._UseModernScrollback) {
             var MenuButtonsRow5: HTMLTableRowElement = document.createElement('tr');
@@ -581,6 +584,12 @@ class fTelnetClient {
         }
     }
 
+    private OnAnsiESC0c(): void {
+        if (typeof this._Connection === 'undefined') { return; }
+        if (!this._Connection.connected) { return; }
+        this._Connection.writeString('\x1B[?50;86;84;88c'); // reply for VTX ;-)
+    }
+
     private OnAnsiESC5n(): void {
         if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
@@ -767,9 +776,11 @@ class fTelnetClient {
 
         // Pick virtual keyboard width
         if ((document.getElementById('fTelnetScript') !== null) && (document.getElementById('fTelnetKeyboardCss') !== null)) {
-            var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480];
+            var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480, 360];
             for (var i: number = 0; i < KeyboardSizes.length; i++) {
-                if ((NewWidth >= KeyboardSizes[i]) || (i === (KeyboardSizes.length - 1))) {
+                // Check if the keyboard size is less than or equal to both the new crt size and the screen size
+                // The screen size check is so that we use the 360 width on phones (otherwise it'd use the 480 size to match the crt window)
+                if (((NewWidth >= KeyboardSizes[i]) && (KeyboardSizes[i] <= screen.width)) || (i === (KeyboardSizes.length - 1))) {
                     (<HTMLLinkElement>document.getElementById('fTelnetKeyboardCss')).href = StringUtils.GetUrl('keyboard/keyboard-' + KeyboardSizes[i].toString(10) + '.min.css');
                     break;
                 }

@@ -1,4 +1,6 @@
 // TODO List:
+// Add option to automatically reconnect (maybe via two options: reconnect interval, and reconnect count)
+// Sequence to clear a region
 // Mo's MUD has a display issue that isn't present in SyncTerm
 // Split fTelnet.ts up into smaller chunks (ie maybe separate class for menu buttons that raise events on click)
 // Maybe underline detected hyperlinks?

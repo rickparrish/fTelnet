@@ -25,9 +25,8 @@ class Cursor {
     // Private variables
     private _BlinkRate: number;
     private _BlinkState: BlinkState;
-    private _Canvas: HTMLCanvasElement;
     private _Colour: string;
-    private _Context: CanvasRenderingContext2D;
+    private _LastPosition: Point;
     private _Position: Point;
     private _Size: Point;
     private _Timer: number;
@@ -35,12 +34,13 @@ class Cursor {
     private _WindowOffset: Point;
     private _WindowOffsetAdjusted: Point;
 
-    constructor(parent: HTMLElement, colour: number, size: Point) {
+    constructor(colour: number, size: Point) {
         this._BlinkRate = 500;
         this._BlinkState = BlinkState.Hide;
         // this._Canvas
         this._Colour = '#' + StringUtils.PadLeft(colour.toString(16), '0', 6);
         // this._Context
+        this._LastPosition = new Point(1, 1);
         this._Position = new Point(1, 1);
         this._Size = size;
         // this._Timer
@@ -48,21 +48,7 @@ class Cursor {
         this._WindowOffset = new Point(0, 0);
         this._WindowOffsetAdjusted = new Point(0, 0);
 
-        this._Canvas = document.createElement('canvas');
-        if (this._Canvas.getContext) {
-            this._Canvas.style.position = 'absolute';
-            this._Canvas.style.zIndex = '100'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
-            var CanvasContext = this._Canvas.getContext('2d');
-            if (CanvasContext !== null) { this._Context = CanvasContext; } // TODOX Handle error if CanvasContext is null
-            parent.appendChild(this._Canvas);
-
-            // Draw the initial position
-            this.Update();
-            this.Draw();
-
-            // Start the I/O timer
-            this._Timer = setInterval((): void => { this.OnTimer(); }, this._BlinkRate);
-        }
+        this._Timer = setInterval((): void => { this.OnTimer(); }, this._BlinkRate);
     }
 
     public set BlinkRate(value: number) {
@@ -71,33 +57,25 @@ class Cursor {
         this._Timer = setInterval((): void => { this.OnTimer(); }, this._BlinkRate);
     }
 
-    public set Colour(value: string) {
-        this._Colour = value;
-        this.Draw();
+    public get Colour(): string {
+        return this._Colour;
     }
 
-    private Draw(): void {
-        if (this._Context) {
-            this._Canvas.width = this._Size.x;
-            this._Canvas.height = this._Size.y;
+    public set Colour(value: string) {
+        this._Colour = value;
+    }
 
-            this._Context.fillStyle = this._Colour;
-            this._Context.fillRect(0, this._Size.y - (this._Size.y * 0.20), this._Size.x, this._Size.y * 0.20);
-        }
+    public get LastPosition(): Point {
+        return this._LastPosition;
+    }
+
+    public set LastPosition(value: Point) {
+        this._LastPosition = value;
     }
 
     private OnTimer(): void {
         // Flip the blink state
         this._BlinkState = (this._BlinkState === BlinkState.Hide) ? BlinkState.Show : BlinkState.Hide;
-
-        // Update the opacity
-        if (this._Visible) {
-            // Set the opacity to the desired state
-            this._Canvas.style.opacity = (this._BlinkState === BlinkState.Hide) ? '0' : '1';
-        } else {
-            // Set the opacity to off
-            this._Canvas.style.opacity = '0';
-        }
 
         // Let the Crt unit know it can blink text now
         switch (this._BlinkState) {
@@ -112,41 +90,17 @@ class Cursor {
 
     public set Position(value: Point) {
         this._Position = value;
-        this.Update();
+    }
+
+    public get Size(): Point {
+        return this._Size;
     }
 
     public set Size(value: Point) {
         this._Size = value;
-        this.Draw();
-        this.Update();
-    }
-
-    private Update(): void {
-        if (this._Canvas && this._Visible) {
-            this._Canvas.style.left = (this._Position.x - 1) * this._Size.x + this._WindowOffsetAdjusted.x + 'px';
-            this._Canvas.style.top = (this._Position.y - 1) * this._Size.y + this._WindowOffsetAdjusted.y + 'px';
-        }
     }
 
     public set Visible(value: boolean) {
         this._Visible = value;
-        if (this._Visible) { this.Update(); }
-    }
-
-    public set WindowOffset(value: Point) {
-        // Store new window offset
-        if ((value.x !== this._WindowOffset.x) || (value.y !== this._WindowOffset.y)) {
-            this._WindowOffset = value;
-
-            // Reset button position
-            this._Canvas.style.left = '0px';
-            this._Canvas.style.top = '0px';
-            var CursorPosition: Point = Offset.getOffset(this._Canvas);
-
-            this._WindowOffsetAdjusted.x = value.x - CursorPosition.x;
-            this._WindowOffsetAdjusted.y = value.y - CursorPosition.y;
-
-            this.Update();
-        }
     }
 }

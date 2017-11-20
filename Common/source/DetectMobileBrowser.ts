@@ -3,7 +3,7 @@ class DetectMobileBrowser {
     private static _IsMobile: boolean;
 
     public static get IsMobile(): boolean {
-        if (window.cordova) { return true; }
+        if (!!window.cordova) { return true; }
 
         if (typeof this._IsMobile === 'undefined') {
             var a = navigator.userAgent || navigator.vendor;

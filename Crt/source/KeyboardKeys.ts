@@ -1,5 +1,5 @@
 // Partial port of AS3 Keyboard class
-enum Keyboard {
+enum KeyboardKeys {
     ALTERNATE = 18,
     APPMENU = 1001,
     BACKSPACE = 8,

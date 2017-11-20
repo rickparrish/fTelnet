@@ -1,9 +1,4 @@
-﻿#fTelnetCrtCanvas {
-    display: block;
-    margin: auto;
-}
-
-.fTelnetContainer {
+﻿.fTelnetContainer {
     box-sizing: content-box;
     margin: auto;
 }
@@ -38,6 +33,11 @@
     text-align: center;
     text-decoration: none;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.fTelnetCrtCanvas {
+    display: block;
+    margin: auto;
 }
 
 .fTelnetFocusWarning {

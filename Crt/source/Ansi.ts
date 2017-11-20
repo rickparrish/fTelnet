@@ -19,6 +19,7 @@
 */
 class Ansi {
     // Events
+    public onesc0c: IEvent = new TypedEvent();
     public onesc5n: IEvent = new TypedEvent();
     public onesc6n: IEvent = new TypedEvent();
     public onesc255n: IEvent = new TypedEvent();
@@ -142,7 +143,13 @@ class Ansi {
 	                        adding an extra parameter to the end, not by incrementing any existing
 	                        one!
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                console.log('Unhandled ESC sequence: Device Attributes');
+                x = this.GetNextParam(0);
+                switch (x) {
+                    case 0: this.onesc0c.trigger(); break;
+                    default:
+                        console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                        break;
+                }
                 break;
             case 'D':
                 if (this._AnsiIntermediates.length === 0) {
@@ -337,6 +344,7 @@ class Ansi {
                     case 0: this._Crt.ClrEos(); break;
                     case 1: this._Crt.ClrBos(); break;
                     case 2: this._Crt.ClrScr(); break;
+                    case 3: this._Crt.ClrScr(); break; // From: https://en.wikipedia.org/wiki/ANSI_escape_code TODOX Also clear the scrollback buffer
                 }
                 break;
             case 'K': /* CSI [ p1 ] K
@@ -494,6 +502,7 @@ class Ansi {
 	                        35 - Magenta foreground                                 X
 	                        36 - Cyan foreground                                    X
 	                        37 - White foreground                                   X
+                            38 - Set foreground colour
 	                        39 - Default foreground (same as white)	                X
 	                        40 - Black background                                      X
 	                        41 - Red background                                        X
@@ -503,7 +512,10 @@ class Ansi {
 	                        45 - Magenta background                                    X
 	                        46 - Cyan background                                       X
 	                        47 - White background                                      X
+                            48 - Set background colour
 	                        49 - Default background (same as black)                    X
+                            90-97 - Set bright foreground colour
+                            100-107 - Set bright background colour
 	                        All others are ignored.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 while (this._AnsiParams.length > 0) {
@@ -569,7 +581,7 @@ class Ansi {
                         case 38: // Set foreground colour (either 5;n for 256, or 2;r;g;b for 24bit)
                             switch (this.GetNextParam(0)) {
                                 case 2:
-                                    if (this._AnsiParams.length == 3) {
+                                    if (this._AnsiParams.length === 3) {
                                         this._Crt.TextColor24(this.GetNextParam(0), this.GetNextParam(0), this.GetNextParam(0));
                                     } else {
                                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -603,7 +615,7 @@ class Ansi {
                         case 48: // Set background colour (either 5;n for 256, or 2;r;g;b for 24bit)
                             switch (this.GetNextParam(0)) {
                                 case 2:
-                                    if (this._AnsiParams.length == 3) {
+                                    if (this._AnsiParams.length === 3) {
                                         this._Crt.TextBackground24(this.GetNextParam(0), this.GetNextParam(0), this.GetNextParam(0));
                                     } else {
                                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -794,7 +806,7 @@ class Ansi {
                             p2 = red
                             p3 = green
                             p4 = blue */
-                if (this._AnsiParams.length == 4) {
+                if (this._AnsiParams.length === 4) {
                     switch (this.GetNextParam(1)) {
                         case 0:
                             this._Crt.TextBackground24(this.GetNextParam(0), this.GetNextParam(0), this.GetNextParam(0));
