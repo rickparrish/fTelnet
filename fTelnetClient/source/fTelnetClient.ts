@@ -777,11 +777,13 @@ class fTelnetClient {
 
         // Pick virtual keyboard width
         if ((document.getElementById('fTelnetScript') !== null) && (document.getElementById('fTelnetKeyboardCss') !== null)) {
-            var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480, 360];
+            // TODOX Really should build a dynamic keyboard that auto-resizes to the available space
+            var KeyboardSizes: number[] = [960, 800, 720, 640, 560, 480, 360, 320];
             for (var i: number = 0; i < KeyboardSizes.length; i++) {
                 // Check if the keyboard size is less than or equal to both the new crt size and the screen size
-                // The screen size check is so that we use the 360 width on phones (otherwise it'd use the 480 size to match the crt window)
+                // The screen size check is so that we use the 360 or 320 width on phones (otherwise it'd use the 480 size to match the crt window)
                 if (((NewWidth >= KeyboardSizes[i]) && (KeyboardSizes[i] <= screen.width)) || (i === (KeyboardSizes.length - 1))) {
+                    alert(KeyboardSizes[i]);
                     (<HTMLLinkElement>document.getElementById('fTelnetKeyboardCss')).href = StringUtils.GetUrl('keyboard/keyboard-' + KeyboardSizes[i].toString(10) + '.min.css');
                     break;
                 }
