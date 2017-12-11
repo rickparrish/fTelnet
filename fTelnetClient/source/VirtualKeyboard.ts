@@ -27,6 +27,7 @@ class VirtualKeyboard {
     private _Div: HTMLDivElement;
     private _ShiftPressed: boolean = false;
     private _SupportsTouchEvents: boolean = false;
+    private _VibrateDurationInMilliseconds: number = 25;
     private _Visible: boolean = true;
 
     private _ClassKeys: any = {
@@ -261,8 +262,8 @@ class VirtualKeyboard {
             }
 
             // Vibrate on keypress
-            if (!!navigator.vibrate) {
-                navigator.vibrate(100);
+            if (!!navigator.vibrate && (this._VibrateDurationInMilliseconds > 0)) {
+                navigator.vibrate(25);
             }
 
             // Reset flags and redraw, if necessary
@@ -306,8 +307,8 @@ class VirtualKeyboard {
             this._Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
 
             // Vibrate on keypress
-            if (!!navigator.vibrate) {
-                navigator.vibrate(100);
+            if (!!navigator.vibrate && (this._VibrateDurationInMilliseconds > 0)) {
+                navigator.vibrate(25);
             }
 
             if (NeedReset) {
@@ -354,6 +355,14 @@ class VirtualKeyboard {
         this.HighlightKey('fTelnetKeyboardKeyShiftLeft', this._ShiftPressed);
         this.HighlightKey('fTelnetKeyboardKeyCtrl', this._CtrlPressed);
         this.HighlightKey('fTelnetKeyboardKeyAlt', this._AltPressed);
+    }
+
+    public get VibrateDurationInMilliseconds(): number {
+        return this._VibrateDurationInMilliseconds;
+    }
+
+    public set VibrateDurationInMilliseconds(value: number) {
+        this._VibrateDurationInMilliseconds = value;
     }
 
     public get Visible(): boolean {

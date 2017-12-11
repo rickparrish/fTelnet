@@ -358,6 +358,7 @@ class fTelnetClient {
 
         // Create the virtual keyboard
         this._VirtualKeyboard = new VirtualKeyboard(this._Crt, this._fTelnetContainer);
+        this._VirtualKeyboard.VibrateDurationInMilliseconds = this._Options.VirtualKeyboardVibrateDuration;
         this._VirtualKeyboard.Visible = this._Options.VirtualKeyboardVisible;
 
         // Size the scrollback and button divs
@@ -886,6 +887,15 @@ class fTelnetClient {
 
         // Read in the image file as a data URL.
         reader.readAsArrayBuffer(file);
+    }
+
+    public get VirtualKeyboardVibrateDuration(): number {
+        return this._Options.VirtualKeyboardVibrateDuration;
+    }
+
+    public set VirtualKeyboardVibrateDuration(value: number) {
+        this._Options.VirtualKeyboardVibrateDuration = value;
+        this._VirtualKeyboard.VibrateDurationInMilliseconds = value;
     }
 
     // TODOX Ideally this would be in a ToggleVirtualKeyboard
