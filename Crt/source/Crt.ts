@@ -721,7 +721,9 @@ class Crt {
 
     private OnKeyDown(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
-        if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
+        if (!window.cordova) {
+            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
+        }
 
         if (this._InScrollback) {
             var i: number;
@@ -877,7 +879,9 @@ class Crt {
 
     private OnKeyPress(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
-        if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
+        if (!window.cordova) {
+            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
+        }
 
         if (this._InScrollback) { return; }
 
@@ -1360,23 +1364,23 @@ class Crt {
             BScrollUp.Stop();
 
             // Blank
-            // TODO This fails for maskreet in Chrome -- looks like it sometimes decides to ignore the call to fillRect()
-            // TODOX Confirm this works with both scrollback types, with full screen and window
-            this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
-            Left = (left - 1) * this._Font.Width;
-            Top = (bottom - count) * this._Font.Height;
-            Width = (right - left + 1) * this._Font.Width;
-            Height = (count * this._Font.Height);
-            this._CanvasContext.fillRect(Left, Top, Width, Height);
+            // TODOX This fails for maskreet in Chrome -- looks like it sometimes decides to ignore the call to fillRect()
+            // TODOX Been many versions since then, so maybe more reliable now, but needs Y-offset correction in modern scrollback mode
+            //this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
+            //Left = (left - 1) * this._Font.Width;
+            //Top = (bottom - count) * this._Font.Height;
+            //Width = (right - left + 1) * this._Font.Width;
+            //Height = (count * this._Font.Height);
+            //this._CanvasContext.fillRect(Left, Top, Width, Height);
 
-            // TODO If this works the other custom scroller needs to be updated too
-            //var BClearBottom: Benchmark = Benchmarks.Start('ClearBottom');
-            //for (var y: number = 0; y < count; y++) {
-            //    for (var x: number = left; x <= right; x++) {
-            //        this.FastWrite(' ', x, bottom - count + 1 + y, charInfo, false);
-            //    }
-            //}
-            //BClearBottom.Stop();
+            // Blank
+            var BClearBottom: Benchmark = Benchmarks.Start('ClearBottom');
+            for (var y: number = 0; y < count; y++) {
+                for (var x: number = left; x <= right; x++) {
+                    this.FastWrite(' ', x, bottom - count + 1 + y, charInfo, false);
+                }
+            }
+            BClearBottom.Stop();
         }
 
         var BScrollUpdateBuffer: Benchmark = Benchmarks.Start('ScrollUpdateBuffer');

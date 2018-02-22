@@ -797,7 +797,7 @@ class fTelnetClient {
 
     private OnMenuButtonClick(): void {
         this._MenuButtons.style.display = (this._MenuButtons.style.display === 'none') ? 'block' : 'none';
-        this._MenuButtons.style.left = Offset.getOffset(this._MenuButton).x + 'px';
+        this._MenuButtons.style.left = Offset.getOffset(this._MenuButton).x + this._MenuButton.clientWidth + 'px';
         this._MenuButtons.style.top = Offset.getOffset(this._MenuButton).y - this._MenuButtons.clientHeight + 'px';
     }
 
