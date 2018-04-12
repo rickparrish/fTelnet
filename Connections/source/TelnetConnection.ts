@@ -88,41 +88,39 @@ class TelnetConnection extends WebSocketConnection {
     }
 
     private HandleSendLocation(): void {
-        if (this._Proxied) {
-            try {
-                var xhr: XMLHttpRequest = new XMLHttpRequest();
-                xhr.open('get', 'http://myip.randm.ca', true);
-                xhr.onload = (): void => {
-                    var status: number = xhr.status;
-                    if (status === 200) {
-                        this.SendWill(TelnetOption.SendLocation);
-                        this.SendSubnegotiate(TelnetOption.SendLocation);
+        try {
+            var xhr: XMLHttpRequest = new XMLHttpRequest();
+            xhr.open('get', 'http://myip.randm.ca', true);
+            xhr.onload = (): void => {
+                var status: number = xhr.status;
+                if (status === 200) {
+                    this.SendWill(TelnetOption.SendLocation);
+                    this.SendSubnegotiate(TelnetOption.SendLocation);
 
-                        var ToSendString: string = xhr.responseText;
-                        var ToSendBytes: number[] = [];
-                        for (var i: number = 0; i < ToSendString.length; i++) {
-                            var CharCode: number = ToSendString.charCodeAt(i);
-                            ToSendBytes.push(CharCode);
-                            if (CharCode === TelnetCommand.IAC) {
-                                // Double up so it's not treated as an IAC
-                                ToSendBytes.push(TelnetCommand.IAC);
-                            }
+                    var ToSendString: string = xhr.responseText;
+                    var ToSendBytes: number[] = [];
+                    for (var i: number = 0; i < ToSendString.length; i++) {
+                        var CharCode: number = ToSendString.charCodeAt(i);
+                        ToSendBytes.push(CharCode);
+                        if (CharCode === TelnetCommand.IAC) {
+                            // Double up so it's not treated as an IAC
+                            ToSendBytes.push(TelnetCommand.IAC);
                         }
-                        this.Send(ToSendBytes);
-
-                        this.SendSubnegotiateEnd();
-                    } else {
-                        // TODOX alert('failed to get remote ip');
                     }
-                };
-                xhr.onerror = (): void => {
+                    this.Send(ToSendBytes);
+
+                    this.SendSubnegotiateEnd();
+                } else {
                     // TODOX alert('failed to get remote ip');
-                };
-                xhr.send();
-            } catch (e) {
-                console.log('failed to get remote ip: ' + e);
-            }
-        } 
+                }
+            };
+            xhr.onerror = (): void => {
+                // TODOX alert('failed to get remote ip');
+            };
+            xhr.send();
+        } catch (e) {
+            console.log('failed to get remote ip: ' + e);
+        }
     }
 
     private HandleTerminalType(): void {
@@ -337,10 +335,8 @@ class TelnetConnection extends WebSocketConnection {
             this.SendWont(TelnetOption.Echo);
         }
 
-        if (this._Proxied) {
-            this.SendWill(TelnetOption.SendLocation);
-            this.SendWill(TelnetOption.TerminalLocationNumber);
-        }
+        this.SendWill(TelnetOption.SendLocation);
+        this.SendWill(TelnetOption.TerminalLocationNumber);
     }
 
     private SendDo(option: number): void {

@@ -63,7 +63,6 @@ class WebSocketConnection {
     public _LocalEcho: boolean = false;
     public _OutputBuffer: ByteArray;
     public _Protocol: string = 'plain';
-    public _Proxied: boolean = false;
     public _WebSocket: WebSocket;
     public _CordovaSocket: Socket;
 
@@ -103,7 +102,6 @@ class WebSocketConnection {
         this._WasConnected = false;
 
         if (UseCordovaSocket) {
-            this._Proxied = false;
             this._CordovaSocket = new Socket();
             this._CordovaSocket.open(
                 hostname,
@@ -131,10 +129,8 @@ class WebSocketConnection {
 
             var WsOrWss = forceWss ? 'wss' : WebSocketProtocol;
             if (proxyHostname === '') {
-                this._Proxied = false;
                 this._WebSocket = new WebSocket(WsOrWss + '://' + hostname + ':' + port + urlPath, Protocols);
             } else {
-                this._Proxied = true;
                 this._WebSocket = new WebSocket(WsOrWss + '://' + proxyHostname + ':' + (WsOrWss === 'wss' ? proxyPortSecure : proxyPort) + '/' + hostname + '/' + port, Protocols);
             }
 

@@ -103,13 +103,17 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <PropertyGroup>
     <PostBuildEvent>copy /b $(SolutionDir)debug\ftelnet.common.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.norip.noxfer.js
-jsmin &lt;$(SolutionDir)debug\ftelnet.norip.noxfer.js &gt;$(SolutionDir)release\ftelnet.norip.noxfer.min.js
+copy $(SolutionDir)debug\ftelnet.norip.noxfer.js (SolutionDir)release\ftelnet.norip.noxfer.js
+jsmin &lt;$(SolutionDir)release\ftelnet.norip.noxfer.js &gt;$(SolutionDir)release\ftelnet.norip.noxfer.min.js
 copy /b $(SolutionDir)debug\Blob.js + $(SolutionDir)debug\FileSaver.js + $(SolutionDir)debug\ftelnet.common.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.crtcontrols.js + $(SolutionDir)debug\ftelnet.filetransfer.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.norip.xfer.js
-jsmin &lt;$(SolutionDir)debug\ftelnet.norip.xfer.js &gt;$(SolutionDir)release\ftelnet.norip.xfer.min.js
+copy $(SolutionDir)debug\ftelnet.norip.xfer.js $(SolutionDir)release\ftelnet.norip.xfer.js
+jsmin &lt;$(SolutionDir)release\ftelnet.norip.xfer.js &gt;$(SolutionDir)release\ftelnet.norip.xfer.min.js
 copy /b $(SolutionDir)debug\ftelnet.common.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.graph.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.rip.noxfer.js
-jsmin &lt;$(SolutionDir)debug\ftelnet.rip.noxfer.js &gt;$(SolutionDir)release\ftelnet.rip.noxfer.min.js
+copy $(SolutionDir)debug\ftelnet.rip.noxfer.js $(SolutionDir)release\ftelnet.rip.noxfer.js
+jsmin &lt;$(SolutionDir)release\ftelnet.rip.noxfer.js &gt;$(SolutionDir)release\ftelnet.rip.noxfer.min.js
 copy /b $(SolutionDir)debug\Blob.js + $(SolutionDir)debug\FileSaver.js + $(SolutionDir)debug\ftelnet.common.js + $(SolutionDir)debug\ftelnet.crt.js + $(SolutionDir)debug\ftelnet.connections.js + $(SolutionDir)debug\ftelnet.crtcontrols.js + $(SolutionDir)debug\ftelnet.graph.js + $(SolutionDir)debug\ftelnet.filetransfer.js + $(SolutionDir)debug\ftelnet.client.js $(SolutionDir)debug\ftelnet.rip.xfer.js
-jsmin &lt;$(SolutionDir)debug\ftelnet.rip.xfer.js &gt;$(SolutionDir)release\ftelnet.rip.xfer.min.js
+copy $(SolutionDir)debug\ftelnet.rip.xfer.js $(SolutionDir)release\ftelnet.rip.xfer.js
+jsmin &lt;$(SolutionDir)release\ftelnet.rip.xfer.js &gt;$(SolutionDir)release\ftelnet.rip.xfer.min.js
 </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets" Condition="Exists('..\packages\TSLint.MSBuild.0.4.1\build\TSLint.MSBuild.targets')" />
