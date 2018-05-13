@@ -428,6 +428,7 @@ class Ansi {
                 }
                 break;
             case 'M':
+                if (this._AnsiParams.length < 1) { this._AnsiParams.push('1'); }
                 if (this._AnsiParams[0][0] === '=') {
                     /* CSI = [p1] M
                         NON-STANDARD EXTENSION.
@@ -518,6 +519,7 @@ class Ansi {
                             100-107 - Set bright background colour
 	                        All others are ignored.
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
+                if (this._AnsiParams.length < 1) { this._AnsiParams.push('0'); }
                 while (this._AnsiParams.length > 0) {
                     x = this.GetNextParam(0);
                     switch (x) {

@@ -1131,6 +1131,9 @@ var Ansi = (function () {
                 }
                 break;
             case 'M':
+                if (this._AnsiParams.length < 1) {
+                    this._AnsiParams.push('1');
+                }
                 if (this._AnsiParams[0][0] === '=') {
                     x = this.GetNextParam(0);
                     switch (x) {
@@ -1154,6 +1157,9 @@ var Ansi = (function () {
                 }
                 break;
             case 'm':
+                if (this._AnsiParams.length < 1) {
+                    this._AnsiParams.push('0');
+                }
                 while (this._AnsiParams.length > 0) {
                     x = this.GetNextParam(0);
                     switch (x) {
