@@ -118,7 +118,7 @@ class ByteArray {
         }
 
         // TODOX Endian problems?
-        return (this._Bytes[this._Position++] & 0xFF) + ((this._Bytes[this._Position++] & 0xFF) << 8);
+        return ((this._Bytes[this._Position++] & 0xFF) << 8) + (this._Bytes[this._Position++] & 0xFF);
     }
 
     public toString(): string {

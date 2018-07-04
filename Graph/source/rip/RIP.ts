@@ -458,8 +458,8 @@ class RIP {
 
             // Get the image width and height
             BA.position = 0;
-            var width: number = BA.readUnsignedShort();
-            var height: number = BA.readUnsignedShort();
+            var width: number = BA.readUnsignedShort(); // TODOX May need to call a version that reads bytes in reverse order
+            var height: number = BA.readUnsignedShort(); // TODOX May need to call a version that reads bytes in reverse order
 
             // Get the raw bytes
             var InV: number[] = [];

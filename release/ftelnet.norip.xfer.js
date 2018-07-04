@@ -587,7 +587,7 @@ var ByteArray = (function () {
         if (this._Position >= (this._Length - 1)) {
             throw 'There is not sufficient data available to read.';
         }
-        return (this._Bytes[this._Position++] & 0xFF) + ((this._Bytes[this._Position++] & 0xFF) << 8);
+        return ((this._Bytes[this._Position++] & 0xFF) << 8) + (this._Bytes[this._Position++] & 0xFF);
     };
     ByteArray.prototype.toString = function () {
         var Result = '';
