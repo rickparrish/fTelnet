@@ -1542,7 +1542,12 @@ var Crt = (function () {
             }
         }
         this._CanvasContext.fillStyle = this._Cursor.Colour;
-        this._CanvasContext.fillRect((this.WhereXA() - 1) * this._Font.Size.x, (this.WhereYA() * this._Font.Size.y) - (this._Font.Size.y * 0.20), this._Font.Size.x, this._Font.Size.y * 0.20);
+        if (this._UseModernScrollback) {
+            this._CanvasContext.fillRect((this.WhereXA() - 1) * this._Font.Size.x, ((this.WhereYA() + this._ScrollbackSize) * this._Font.Size.y) - (this._Font.Size.y * 0.20), this._Font.Size.x, this._Font.Size.y * 0.20);
+        }
+        else {
+            this._CanvasContext.fillRect((this.WhereXA() - 1) * this._Font.Size.x, (this.WhereYA() * this._Font.Size.y) - (this._Font.Size.y * 0.20), this._Font.Size.x, this._Font.Size.y * 0.20);
+        }
         this._Cursor.LastPosition = new Point(this.WhereXA(), this.WhereYA());
     };
     Crt.prototype.OnBlinkShow = function () {
