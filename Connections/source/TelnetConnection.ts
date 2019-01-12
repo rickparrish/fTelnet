@@ -90,7 +90,7 @@ class TelnetConnection extends WebSocketConnection {
     private HandleSendLocation(): void {
         try {
             var xhr: XMLHttpRequest = new XMLHttpRequest();
-            xhr.open('get', 'http://myip.randm.ca', true);
+            xhr.open('get', '//myip.randm.ca', true);
             xhr.onload = (): void => {
                 var status: number = xhr.status;
                 if (status === 200) {
@@ -148,7 +148,7 @@ class TelnetConnection extends WebSocketConnection {
 
     private HandleTerminalLocationNumber(): void {
         var xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open('get', 'http://myip.randm.ca', true);
+        xhr.open('get', '//myip.randm.ca', true);
         xhr.onload = (): void => {
             var status: number = xhr.status;
             if (status === 200) {
