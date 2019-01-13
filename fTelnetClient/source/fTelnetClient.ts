@@ -392,6 +392,8 @@ class fTelnetClient {
         // }
 
         // Create our main timer
+        // TODOX Fire timer more often, and in handler call Crt.Font.GetChar to cache the characters while we're
+        //       just sitting at the splash screen doing nothing, so later when we actually connect they'll be faster
         this._Timer = setInterval((): void => { this.OnTimer(); }, 250);
 
         // Add our upload control
