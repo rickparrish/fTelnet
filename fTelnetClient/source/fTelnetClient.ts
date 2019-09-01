@@ -452,6 +452,7 @@ class fTelnetClient {
                 this._Connection = new TelnetConnection(this._Crt);
                 this._Connection.LocalEcho = this._Options.LocalEcho;
                 this._Connection.onlocalecho.on((value: boolean): void => { this.OnConnectionLocalEcho(value); });
+                this._Connection.SendLocation = this._Options.SendLocation;
                 break;
         }
 
@@ -488,6 +489,10 @@ class fTelnetClient {
     public get Connected(): boolean {
         if (typeof this._Connection === 'undefined') { return false; }
         return this._Connection.connected;
+    }
+
+    public get Connection(): WebSocketConnection {
+        return this._Connection;
     }
 
     public get Crt(): Crt {
@@ -705,8 +710,10 @@ class fTelnetClient {
     }
 
     private OnConnectionLocalEcho(value: boolean): void {
-        this._Options.LocalEcho = value;
-        this._Crt.LocalEcho = value;
+        if (this._Options.NegotiateLocalEcho) {
+            this._Options.LocalEcho = value;
+            this._Crt.LocalEcho = value;
+        }
     }
 
     private OnConnectionIOError(): void {

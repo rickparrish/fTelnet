@@ -61,8 +61,10 @@ class WebSocketConnection {
     // TODO Protected variables
     public _InputBuffer: ByteArray;
     public _LocalEcho: boolean = false;
+    public _LogIO: boolean = (window.location.hash.indexOf('ftelnetdebug=1') >= 0);
     public _OutputBuffer: ByteArray;
     public _Protocol: string = 'plain';
+    public _SendLocation: boolean = true;
     public _WebSocket: WebSocket;
     public _CordovaSocket: Socket;
 
@@ -290,6 +292,8 @@ class WebSocketConnection {
     }
 
     public Send(data: number[]): void {
+        var DebugLine: string = "";
+
         if (UseCordovaSocket) {
             this._CordovaSocket.write(new Uint8Array(data));
         } else {
@@ -301,16 +305,40 @@ class WebSocketConnection {
             } else if (this._Protocol === 'base64') {
                 // TODO Ensure btoa still works with websockify
                 for (i = 0; i < data.length; i++) {
+                    var B: number = data[i];
+
+                    if (B >= 32 && B <= 126) {
+                        DebugLine += String.fromCharCode(B);
+                    } else {
+                        DebugLine += '~' + B.toString(10);
+                    }
+
                     ToSendString += String.fromCharCode(data[i]);
                 }
                 this._WebSocket.send(btoa(ToSendString));
             } else {
                 for (i = 0; i < data.length; i++) {
+                    var B: number = data[i];
+
+                    if (B >= 32 && B <= 126) {
+                        DebugLine += String.fromCharCode(B);
+                    } else {
+                        DebugLine += '~' + B.toString(10);
+                    }
+
                     ToSendString += String.fromCharCode(data[i]);
                 }
                 this._WebSocket.send(ToSendString);
             }
         }
+
+        if (this._LogIO) {
+            console.log('SEND: ' + DebugLine);
+        }
+    }
+
+    public set SendLocation(value: boolean) {
+        this._SendLocation = value;
     }
 
     // Remap all the write* functions to operate on our output buffer instead

@@ -28,6 +28,7 @@ class fTelnetOptions {
     public ForceWss: boolean = false;
     public Hostname: string = 'bbs.ftelnet.ca';
     public LocalEcho: boolean = false;
+    public NegotiateLocalEcho: boolean = true;
     public Port: number = 1123;
     public ProxyHostname: string = '';
     public ProxyPort: number = 1123;
@@ -37,6 +38,7 @@ class fTelnetOptions {
     public RLoginTerminalType: string = '';
     public ScreenColumns: number = 80;
     public ScreenRows: number = 25;
+    public SendLocation: boolean = true;
     public SplashScreen: string = '';
     public VirtualKeyboardVibrateDuration: number = 25;
     public VirtualKeyboardVisible: boolean = DetectMobileBrowser.IsMobile;

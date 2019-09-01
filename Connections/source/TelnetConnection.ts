@@ -88,38 +88,42 @@ class TelnetConnection extends WebSocketConnection {
     }
 
     private HandleSendLocation(): void {
-        try {
-            var xhr: XMLHttpRequest = new XMLHttpRequest();
-            xhr.open('get', '//myip.randm.ca', true);
-            xhr.onload = (): void => {
-                var status: number = xhr.status;
-                if (status === 200) {
-                    this.SendWill(TelnetOption.SendLocation);
-                    this.SendSubnegotiate(TelnetOption.SendLocation);
+        if (this._SendLocation) {
+            try {
+                var xhr: XMLHttpRequest = new XMLHttpRequest();
+                xhr.open('get', '//myip.randm.ca', true);
+                xhr.onload = (): void => {
+                    var status: number = xhr.status;
+                    if (status === 200) {
+                        this.SendWill(TelnetOption.SendLocation);
+                        this.SendSubnegotiate(TelnetOption.SendLocation);
 
-                    var ToSendString: string = xhr.responseText;
-                    var ToSendBytes: number[] = [];
-                    for (var i: number = 0; i < ToSendString.length; i++) {
-                        var CharCode: number = ToSendString.charCodeAt(i);
-                        ToSendBytes.push(CharCode);
-                        if (CharCode === TelnetCommand.IAC) {
-                            // Double up so it's not treated as an IAC
-                            ToSendBytes.push(TelnetCommand.IAC);
+                        var ToSendString: string = xhr.responseText;
+                        var ToSendBytes: number[] = [];
+                        for (var i: number = 0; i < ToSendString.length; i++) {
+                            var CharCode: number = ToSendString.charCodeAt(i);
+                            ToSendBytes.push(CharCode);
+                            if (CharCode === TelnetCommand.IAC) {
+                                // Double up so it's not treated as an IAC
+                                ToSendBytes.push(TelnetCommand.IAC);
+                            }
                         }
-                    }
-                    this.Send(ToSendBytes);
+                        this.Send(ToSendBytes);
 
-                    this.SendSubnegotiateEnd();
-                } else {
-                    // TODOX alert('failed to get remote ip');
-                }
-            };
-            xhr.onerror = (): void => {
-                // TODOX alert('failed to get remote ip');
-            };
-            xhr.send();
-        } catch (e) {
-            console.log('failed to get remote ip: ' + e);
+                        this.SendSubnegotiateEnd();
+                    } else {
+                        console.log('failed to get remote ip, status=' + status);
+                    }
+                };
+                xhr.onerror = (): void => {
+                    console.log('failed to get remote ip');
+                };
+                xhr.send();
+            } catch (e) {
+                console.log('failed to get remote ip: ' + e);
+            }
+        } else {
+            this.SendWont(TelnetOption.SendLocation);
         }
     }
 
@@ -147,47 +151,51 @@ class TelnetConnection extends WebSocketConnection {
     }
 
     private HandleTerminalLocationNumber(): void {
-        var xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open('get', '//myip.randm.ca', true);
-        xhr.onload = (): void => {
-            var status: number = xhr.status;
-            if (status === 200) {
-                this.SendWill(TelnetOption.TerminalLocationNumber);
-                this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
+        if (this._SendLocation) {
+            var xhr: XMLHttpRequest = new XMLHttpRequest();
+            xhr.open('get', '//myip.randm.ca', true);
+            xhr.onload = (): void => {
+                var status: number = xhr.status;
+                if (status === 200) {
+                    this.SendWill(TelnetOption.TerminalLocationNumber);
+                    this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
 
-                var InternetHostNumber: number = StringUtils.IPtoInteger(xhr.responseText);
-                var TerminalNumber: number = 0xFFFFFFFF; // Indicates "unknown" terminal number
+                    var InternetHostNumber: number = StringUtils.IPtoInteger(xhr.responseText);
+                    var TerminalNumber: number = 0xFFFFFFFF; // Indicates "unknown" terminal number
 
-                var SixtyFourBits: number[] = [];
-                SixtyFourBits.push(0); // Format 0 to indicate we'll send two 32bit numbers
-                SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
-                SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
-                SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
-                SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
-                SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
-                SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
-                SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
-                SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
+                    var SixtyFourBits: number[] = [];
+                    SixtyFourBits.push(0); // Format 0 to indicate we'll send two 32bit numbers
+                    SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
+                    SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
+                    SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
+                    SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
+                    SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
+                    SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
+                    SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
+                    SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
 
-                var ToSendBytes: number[] = [];
-                for (var i: number = 0; i < SixtyFourBits.length; i++) {
-                    ToSendBytes.push(SixtyFourBits[i]);
-                    if (SixtyFourBits[i] === TelnetCommand.IAC) {
-                        // Double up so it's not treated as an IAC
-                        ToSendBytes.push(TelnetCommand.IAC);
+                    var ToSendBytes: number[] = [];
+                    for (var i: number = 0; i < SixtyFourBits.length; i++) {
+                        ToSendBytes.push(SixtyFourBits[i]);
+                        if (SixtyFourBits[i] === TelnetCommand.IAC) {
+                            // Double up so it's not treated as an IAC
+                            ToSendBytes.push(TelnetCommand.IAC);
+                        }
                     }
-                }
-                this.Send(ToSendBytes);
+                    this.Send(ToSendBytes);
 
-                this.SendSubnegotiateEnd();
-            } else {
+                    this.SendSubnegotiateEnd();
+                } else {
+                    // TODOX alert('failed to get remote ip');
+                }
+            };
+            xhr.onerror = (): void => {
                 // TODOX alert('failed to get remote ip');
-            }
-        };
-        xhr.onerror = (): void => {
-            // TODOX alert('failed to get remote ip');
-        };
-        xhr.send();
+            };
+            xhr.send();
+        } else {
+            this.SendWont(TelnetOption.TerminalLocationNumber);
+        }
     }
 
     private HandleWindowSize(): void {
@@ -227,8 +235,15 @@ class TelnetConnection extends WebSocketConnection {
 
     public NegotiateInbound(data: ByteArray): void {
         // Get any waiting data and handle negotiation
+        var DebugLine: string = "";
+
         while (data.bytesAvailable) {
             var B: number = data.readUnsignedByte();
+            if (B >= 32 && B <= 126) {
+                DebugLine += String.fromCharCode(B);
+            } else {
+                DebugLine += '~' + B.toString(10);
+            }
 
             if (this._NegotiationState === TelnetNegotiationState.Data) {
                 if (B === TelnetCommand.IAC) {
@@ -322,6 +337,12 @@ class TelnetConnection extends WebSocketConnection {
                 this._NegotiationState = TelnetNegotiationState.Data;
             }
         }
+
+        if (this._LogIO) {
+            if (DebugLine.length > 0) {
+                console.log('IN: ' + DebugLine);
+            }
+        }
     }
 
     // TODO Need NegotiateOutbound
@@ -335,8 +356,10 @@ class TelnetConnection extends WebSocketConnection {
             this.SendWont(TelnetOption.Echo);
         }
 
-        this.SendWill(TelnetOption.SendLocation);
-        this.SendWill(TelnetOption.TerminalLocationNumber);
+        if (this._SendLocation) {
+            this.SendWill(TelnetOption.SendLocation);
+            this.SendWill(TelnetOption.TerminalLocationNumber);
+        }
     }
 
     private SendDo(option: number): void {
@@ -349,6 +372,14 @@ class TelnetConnection extends WebSocketConnection {
             ToSendBytes.push(TelnetCommand.Do);
             ToSendBytes.push(option);
             this.Send(ToSendBytes);
+
+            if (this._LogIO) {
+                console.log('DO ' + option.toString(10));
+            }
+        } else {
+            if (this._LogIO) {
+                console.log('Duplicate DO ' + option.toString(10));
+            }
         }
     }
 
@@ -362,6 +393,14 @@ class TelnetConnection extends WebSocketConnection {
             ToSendBytes.push(TelnetCommand.Dont);
             ToSendBytes.push(option);
             this.Send(ToSendBytes);
+
+            if (this._LogIO) {
+                console.log('DONT ' + option.toString(10));
+            }
+        } else {
+            if (this._LogIO) {
+                console.log('Duplicate DONT ' + option.toString(10));
+            }
         }
     }
 
@@ -390,6 +429,14 @@ class TelnetConnection extends WebSocketConnection {
             ToSendBytes.push(TelnetCommand.Will);
             ToSendBytes.push(option);
             this.Send(ToSendBytes);
+
+            if (this._LogIO) {
+                console.log('WILL ' + option.toString(10));
+            }
+        } else {
+            if (this._LogIO) {
+                console.log('Duplicate WILL ' + option.toString(10));
+            }
         }
     }
 
@@ -403,6 +450,14 @@ class TelnetConnection extends WebSocketConnection {
             ToSendBytes.push(TelnetCommand.Wont);
             ToSendBytes.push(option);
             this.Send(ToSendBytes);
+
+            if (this._LogIO) {
+                console.log('WONT ' + option.toString(10));
+            }
+        } else {
+            if (this._LogIO) {
+                console.log('Duplicate WONT ' + option.toString(10));
+            }
         }
     }
 }

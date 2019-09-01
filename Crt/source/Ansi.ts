@@ -449,7 +449,7 @@ class Ansi {
                             console.log('Unhandled ESC sequence: Both CSI | and CSI N will introduce an ANSI music string.');
                             break;
                         case 2:
-                            console.log('Unhandled ESC sequence: CSI |, CSI N, and CSI M will all intriduce and ANSI music string.');
+                            console.log('Unhandled ESC sequence: CSI |, CSI N, and CSI M will all introduce and ANSI music string.');
                             break;
                         default:
                             console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');

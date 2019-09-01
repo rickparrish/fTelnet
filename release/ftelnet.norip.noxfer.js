@@ -731,7 +731,7 @@ var Ansi = (function () {
                             console.log('Unhandled ESC sequence: Both CSI | and CSI N will introduce an ANSI music string.');
                             break;
                         case 2:
-                            console.log('Unhandled ESC sequence: CSI |, CSI N, and CSI M will all intriduce and ANSI music string.');
+                            console.log('Unhandled ESC sequence: CSI |, CSI N, and CSI M will all introduce and ANSI music string.');
                             break;
                         default:
                             console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -3325,7 +3325,9 @@ var WebSocketConnection = (function () {
         this.onsecurityerror = new TypedEvent();
         this._WasConnected = false;
         this._LocalEcho = false;
+        this._LogIO = (window.location.hash.indexOf('ftelnetdebug=1') >= 0);
         this._Protocol = 'plain';
+        this._SendLocation = true;
         this._InputBuffer = new ByteArray();
         this._OutputBuffer = new ByteArray();
     }
@@ -3519,6 +3521,7 @@ var WebSocketConnection = (function () {
         return this._InputBuffer.readUnsignedShort();
     };
     WebSocketConnection.prototype.Send = function (data) {
+        var DebugLine = "";
         if (UseCordovaSocket) {
             this._CordovaSocket.write(new Uint8Array(data));
         }
@@ -3530,18 +3533,42 @@ var WebSocketConnection = (function () {
             }
             else if (this._Protocol === 'base64') {
                 for (i = 0; i < data.length; i++) {
+                    var B = data[i];
+                    if (B >= 32 && B <= 126) {
+                        DebugLine += String.fromCharCode(B);
+                    }
+                    else {
+                        DebugLine += '~' + B.toString(10);
+                    }
                     ToSendString += String.fromCharCode(data[i]);
                 }
                 this._WebSocket.send(btoa(ToSendString));
             }
             else {
                 for (i = 0; i < data.length; i++) {
+                    var B = data[i];
+                    if (B >= 32 && B <= 126) {
+                        DebugLine += String.fromCharCode(B);
+                    }
+                    else {
+                        DebugLine += '~' + B.toString(10);
+                    }
                     ToSendString += String.fromCharCode(data[i]);
                 }
                 this._WebSocket.send(ToSendString);
             }
         }
+        if (this._LogIO) {
+            console.log('SEND: ' + DebugLine);
+        }
     };
+    Object.defineProperty(WebSocketConnection.prototype, "SendLocation", {
+        set: function (value) {
+            this._SendLocation = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     WebSocketConnection.prototype.writeByte = function (value) {
         this._OutputBuffer.writeByte(value);
     };
@@ -3700,35 +3727,42 @@ var TelnetConnection = (function (_super) {
     };
     TelnetConnection.prototype.HandleSendLocation = function () {
         var _this = this;
-        try {
-            var xhr = new XMLHttpRequest();
-            xhr.open('get', 'http://myip.randm.ca', true);
-            xhr.onload = function () {
-                var status = xhr.status;
-                if (status === 200) {
-                    _this.SendWill(TelnetOption.SendLocation);
-                    _this.SendSubnegotiate(TelnetOption.SendLocation);
-                    var ToSendString = xhr.responseText;
-                    var ToSendBytes = [];
-                    for (var i = 0; i < ToSendString.length; i++) {
-                        var CharCode = ToSendString.charCodeAt(i);
-                        ToSendBytes.push(CharCode);
-                        if (CharCode === TelnetCommand.IAC) {
-                            ToSendBytes.push(TelnetCommand.IAC);
+        if (this._SendLocation) {
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('get', '//myip.randm.ca', true);
+                xhr.onload = function () {
+                    var status = xhr.status;
+                    if (status === 200) {
+                        _this.SendWill(TelnetOption.SendLocation);
+                        _this.SendSubnegotiate(TelnetOption.SendLocation);
+                        var ToSendString = xhr.responseText;
+                        var ToSendBytes = [];
+                        for (var i = 0; i < ToSendString.length; i++) {
+                            var CharCode = ToSendString.charCodeAt(i);
+                            ToSendBytes.push(CharCode);
+                            if (CharCode === TelnetCommand.IAC) {
+                                ToSendBytes.push(TelnetCommand.IAC);
+                            }
                         }
+                        _this.Send(ToSendBytes);
+                        _this.SendSubnegotiateEnd();
                     }
-                    _this.Send(ToSendBytes);
-                    _this.SendSubnegotiateEnd();
-                }
-                else {
-                }
-            };
-            xhr.onerror = function () {
-            };
-            xhr.send();
+                    else {
+                        console.log('failed to get remote ip, status=' + status);
+                    }
+                };
+                xhr.onerror = function () {
+                    console.log('failed to get remote ip');
+                };
+                xhr.send();
+            }
+            catch (e) {
+                console.log('failed to get remote ip: ' + e);
+            }
         }
-        catch (e) {
-            console.log('failed to get remote ip: ' + e);
+        else {
+            this.SendWont(TelnetOption.SendLocation);
         }
     };
     TelnetConnection.prototype.HandleTerminalType = function () {
@@ -3751,41 +3785,46 @@ var TelnetConnection = (function (_super) {
     };
     TelnetConnection.prototype.HandleTerminalLocationNumber = function () {
         var _this = this;
-        var xhr = new XMLHttpRequest();
-        xhr.open('get', 'http://myip.randm.ca', true);
-        xhr.onload = function () {
-            var status = xhr.status;
-            if (status === 200) {
-                _this.SendWill(TelnetOption.TerminalLocationNumber);
-                _this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
-                var InternetHostNumber = StringUtils.IPtoInteger(xhr.responseText);
-                var TerminalNumber = 0xFFFFFFFF;
-                var SixtyFourBits = [];
-                SixtyFourBits.push(0);
-                SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
-                SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
-                SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
-                SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
-                SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
-                SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
-                SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
-                SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
-                var ToSendBytes = [];
-                for (var i = 0; i < SixtyFourBits.length; i++) {
-                    ToSendBytes.push(SixtyFourBits[i]);
-                    if (SixtyFourBits[i] === TelnetCommand.IAC) {
-                        ToSendBytes.push(TelnetCommand.IAC);
+        if (this._SendLocation) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('get', '//myip.randm.ca', true);
+            xhr.onload = function () {
+                var status = xhr.status;
+                if (status === 200) {
+                    _this.SendWill(TelnetOption.TerminalLocationNumber);
+                    _this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
+                    var InternetHostNumber = StringUtils.IPtoInteger(xhr.responseText);
+                    var TerminalNumber = 0xFFFFFFFF;
+                    var SixtyFourBits = [];
+                    SixtyFourBits.push(0);
+                    SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
+                    SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
+                    SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
+                    SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
+                    SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
+                    SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
+                    SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
+                    SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
+                    var ToSendBytes = [];
+                    for (var i = 0; i < SixtyFourBits.length; i++) {
+                        ToSendBytes.push(SixtyFourBits[i]);
+                        if (SixtyFourBits[i] === TelnetCommand.IAC) {
+                            ToSendBytes.push(TelnetCommand.IAC);
+                        }
                     }
+                    _this.Send(ToSendBytes);
+                    _this.SendSubnegotiateEnd();
                 }
-                _this.Send(ToSendBytes);
-                _this.SendSubnegotiateEnd();
-            }
-            else {
-            }
-        };
-        xhr.onerror = function () {
-        };
-        xhr.send();
+                else {
+                }
+            };
+            xhr.onerror = function () {
+            };
+            xhr.send();
+        }
+        else {
+            this.SendWont(TelnetOption.TerminalLocationNumber);
+        }
     };
     TelnetConnection.prototype.HandleWindowSize = function () {
         this.SendWill(TelnetOption.WindowSize);
@@ -3821,8 +3860,15 @@ var TelnetConnection = (function (_super) {
         configurable: true
     });
     TelnetConnection.prototype.NegotiateInbound = function (data) {
+        var DebugLine = "";
         while (data.bytesAvailable) {
             var B = data.readUnsignedByte();
+            if (B >= 32 && B <= 126) {
+                DebugLine += String.fromCharCode(B);
+            }
+            else {
+                DebugLine += '~' + B.toString(10);
+            }
             if (this._NegotiationState === TelnetNegotiationState.Data) {
                 if (B === TelnetCommand.IAC) {
                     this._NegotiationState = TelnetNegotiationState.IAC;
@@ -3997,6 +4043,11 @@ var TelnetConnection = (function (_super) {
                 this._NegotiationState = TelnetNegotiationState.Data;
             }
         }
+        if (this._LogIO) {
+            if (DebugLine.length > 0) {
+                console.log('IN: ' + DebugLine);
+            }
+        }
     };
     TelnetConnection.prototype.OnSocketOpen = function () {
         _super.prototype.OnSocketOpen.call(this);
@@ -4006,8 +4057,10 @@ var TelnetConnection = (function (_super) {
         else {
             this.SendWont(TelnetOption.Echo);
         }
-        this.SendWill(TelnetOption.SendLocation);
-        this.SendWill(TelnetOption.TerminalLocationNumber);
+        if (this._SendLocation) {
+            this.SendWill(TelnetOption.SendLocation);
+            this.SendWill(TelnetOption.TerminalLocationNumber);
+        }
     };
     TelnetConnection.prototype.SendDo = function (option) {
         if (this._NegotiatedOptions[option] !== TelnetCommand.Do) {
@@ -4017,6 +4070,14 @@ var TelnetConnection = (function (_super) {
             ToSendBytes.push(TelnetCommand.Do);
             ToSendBytes.push(option);
             this.Send(ToSendBytes);
+            if (this._LogIO) {
+                console.log('DO ' + option.toString(10));
+            }
+        }
+        else {
+            if (this._LogIO) {
+                console.log('Duplicate DO ' + option.toString(10));
+            }
         }
     };
     TelnetConnection.prototype.SendDont = function (option) {
@@ -4027,6 +4088,14 @@ var TelnetConnection = (function (_super) {
             ToSendBytes.push(TelnetCommand.Dont);
             ToSendBytes.push(option);
             this.Send(ToSendBytes);
+            if (this._LogIO) {
+                console.log('DONT ' + option.toString(10));
+            }
+        }
+        else {
+            if (this._LogIO) {
+                console.log('Duplicate DONT ' + option.toString(10));
+            }
         }
     };
     TelnetConnection.prototype.SendSubnegotiate = function (option) {
@@ -4050,6 +4119,14 @@ var TelnetConnection = (function (_super) {
             ToSendBytes.push(TelnetCommand.Will);
             ToSendBytes.push(option);
             this.Send(ToSendBytes);
+            if (this._LogIO) {
+                console.log('WILL ' + option.toString(10));
+            }
+        }
+        else {
+            if (this._LogIO) {
+                console.log('Duplicate WILL ' + option.toString(10));
+            }
         }
     };
     TelnetConnection.prototype.SendWont = function (option) {
@@ -4060,6 +4137,14 @@ var TelnetConnection = (function (_super) {
             ToSendBytes.push(TelnetCommand.Wont);
             ToSendBytes.push(option);
             this.Send(ToSendBytes);
+            if (this._LogIO) {
+                console.log('WONT ' + option.toString(10));
+            }
+        }
+        else {
+            if (this._LogIO) {
+                console.log('Duplicate WONT ' + option.toString(10));
+            }
         }
     };
     return TelnetConnection;
@@ -4138,6 +4223,7 @@ var fTelnetOptions = (function () {
         this.ForceWss = false;
         this.Hostname = 'bbs.ftelnet.ca';
         this.LocalEcho = false;
+        this.NegotiateLocalEcho = true;
         this.Port = 1123;
         this.ProxyHostname = '';
         this.ProxyPort = 1123;
@@ -4147,6 +4233,7 @@ var fTelnetOptions = (function () {
         this.RLoginTerminalType = '';
         this.ScreenColumns = 80;
         this.ScreenRows = 25;
+        this.SendLocation = true;
         this.SplashScreen = '';
         this.VirtualKeyboardVibrateDuration = 25;
         this.VirtualKeyboardVisible = DetectMobileBrowser.IsMobile;
@@ -4493,6 +4580,7 @@ var fTelnetClient = (function () {
                 this._Connection = new TelnetConnection(this._Crt);
                 this._Connection.LocalEcho = this._Options.LocalEcho;
                 this._Connection.onlocalecho.on(function (value) { _this.OnConnectionLocalEcho(value); });
+                this._Connection.SendLocation = this._Options.SendLocation;
                 break;
         }
         this._Connection.onclose.on(function () { _this.OnConnectionClose(); });
@@ -4528,6 +4616,13 @@ var fTelnetClient = (function () {
                 return false;
             }
             return this._Connection.connected;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(fTelnetClient.prototype, "Connection", {
+        get: function () {
+            return this._Connection;
         },
         enumerable: true,
         configurable: true
@@ -4755,8 +4850,10 @@ var fTelnetClient = (function () {
         this._LastTimer = new Date().getTime();
     };
     fTelnetClient.prototype.OnConnectionLocalEcho = function (value) {
-        this._Options.LocalEcho = value;
-        this._Crt.LocalEcho = value;
+        if (this._Options.NegotiateLocalEcho) {
+            this._Options.LocalEcho = value;
+            this._Crt.LocalEcho = value;
+        }
     };
     fTelnetClient.prototype.OnConnectionIOError = function () {
         console.log('fTelnet.OnConnectionIOError');
