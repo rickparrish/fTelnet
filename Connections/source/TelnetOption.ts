@@ -71,6 +71,15 @@ enum TelnetOption {
 	DataEntryTerminal = 20,
 	SUPDUP = 21,
 	SUPDUPOutput = 22,
+
+    /// <summary>
+    /// Allows the SEND-LOCATION subnegotiation command to be used if both sides agree
+    /// </summary>
+    /// <remarks>
+    /// Defined in RFC 779
+    /// 
+    /// Default is to not allow the SEND-LOCATION subnegotiation
+    /// </remarks>
 	SendLocation = 23,
 
     /// <summary>
