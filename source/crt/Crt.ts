@@ -94,6 +94,7 @@ class Crt {
     private _ScrollbackPosition: number = -1;
     private _ScrollbackSize: number = 250; // TODO Quick hack to make Edge happy, change back to 500 after finding IndexSizeError fix
     private _ScrollbackTemp: CharInfo[][];
+    private _SkipRedrawWhenSameFontSize: boolean = false;
     private _TempCanvas: HTMLCanvasElement;
     private _TempCanvasContext: CanvasRenderingContext2D;
     private _Transparent: Boolean = false;
@@ -111,7 +112,7 @@ class Crt {
         this._UseModernScrollback = useModernScrollback;
 
         this._Font = new CrtFont();
-        this._Font.onchange.on((): void => { this.OnFontChanged(); });
+        this._Font.onchange.on((oldSize: Point): void => { this.OnFontChanged(oldSize); });
 
         // Create the canvas
         this._Canvas = document.createElement('canvas');
@@ -465,7 +466,9 @@ class Crt {
 
                 //this._BenchPutImage.Start();
                 var BPutImage: Benchmark = Benchmarks.Start('PutImage');
-                if (typeof Char !== 'undefined') {
+                if (typeof Char === 'undefined') {
+                    this._Buffer[y][x + i].NeedsRedraw = true;
+                } else {
                     if (this._UseModernScrollback) {
                         this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height);
                     } else {
@@ -682,7 +685,28 @@ class Crt {
         this.FastWrite(Cell.Ch, X, Y, Cell, false);
     }
 
-    private OnFontChanged(): void {
+    private OnFontChanged(oldSize: Point): void {
+        // Check if the new font is the same size as the old font
+        if ((oldSize.x == this._Font.Size.x) && (oldSize.y == this._Font.Size.y)) {
+            // It's the same size, so check if we want to skip a redraw
+            if (this._SkipRedrawWhenSameFontSize) {
+                // We do want to skip a full redraw, but we still need to handle anything that changed since the font change was requested
+                // This is because any calls to FastWrite that happened while the new font's PNG was being loaded won't have been written to the canvas yet
+                if (typeof this._Buffer !== 'undefined') {
+                    for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
+                        for (var X: number = 1; X <= this._ScreenSize.x; X++) {
+                            if (this._Buffer[Y][X].NeedsRedraw) {
+                                this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
+                                this._Buffer[Y][X].NeedsRedraw = false;
+                            }
+                        }
+                    }
+                }
+                
+                return;
+            }
+        }
+
         // Resize the cursor
         this._Cursor.Size = this._Font.Size;
 
@@ -716,6 +740,7 @@ class Crt {
             for (var Y: number = 1; Y <= this._ScreenSize.y; Y++) {
                 for (var X: number = 1; X <= this._ScreenSize.x; X++) {
                     this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
+                    this._Buffer[Y][X].NeedsRedraw = false;
                 }
             }
         }
@@ -1535,6 +1560,10 @@ class Crt {
 
     public ShowCursor(): void {
         this._Cursor.Visible = true;
+    }
+
+    public set SkipRedrawWhenSameFontSize(value: boolean) {
+        this._SkipRedrawWhenSameFontSize = value;
     }
 
     public get TextAttr(): number {

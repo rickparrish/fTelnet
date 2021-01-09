@@ -24,7 +24,6 @@
             <li><a href="#Use">How to use</a></li>
             <li><a href="#Customize">How to customize</a></li>
             <li><a href="#IE8">Internet Explorer 8 (and older) support</a></li>
-            <li><a href="#Problems">Common problems</a></li>
             <li><a href="#Help">I need more help</a></li>
         </ul>
 
@@ -34,7 +33,7 @@
         <div class="well">
             <p>fTelnet comes in both Managed and Unmanaged versions, and I can't stress enough how much I recommend using the managed version.</p>
             <p>Why do I recommend the managed version?  Because it's pretty much foolproof (no offense intended!), and doesn't require you to keep anything up to date, I do all that for you.</p>
-            <p>So if you want to stop reading now and go try the managed version instead, head on over to the <a href="http://embed.ftelnet.ca/wizard.html">Embed Wizard</a>.  Seriously, you'll be up and running in under 5 minutes.  It's awesome.</p>
+            <p>So if you want to stop reading now and go try the managed version instead, head on over to the <a href="http://embed-v2.ftelnet.ca/">Embed Wizard</a>.  Seriously, you'll be up and running in under 5 minutes.  It's awesome.</p>
 
             <hr />
 
@@ -53,8 +52,8 @@
                 </tr>
                 <tr>
                     <th>Customizing</th>
-                    <td>Limited, but easy to do</td>
-                    <td>Full, but even more reading</td>
+                    <td>Most options can be set automatically via the wizard, a few have to be set manually</td>
+                    <td>All options must be set manually</td>
                 </tr>
                 <tr>
                     <th>Upgrading</th>
@@ -66,25 +65,18 @@
                     <td>I'm there for you</td>
                     <td>I'm there for you, but if it sounds like you didn't RTFM, or if you're in way over your head, my answer to your support request may be <strong>Use the Managed version!</strong></td>
                 </tr>
-                <tr>
-                    <th>Price</th>
-                    <td>Free, but the public proxies cost money to run so I'll only keep the ones that see a lot of use.  If I decide to deactivate your preferred proxy due to low usage, a donation will be required to keep it up and running</td>
-                    <td>Free</td>
-                </tr>
             </table>
 
             <hr />
 
-            <p>Here's the <a href="http://embed.ftelnet.ca/wizard.html">Embed Wizard</a> link again, just in case you changed your mind!</p>
+            <p>Here's the <a href="http://embed-v2.ftelnet.ca/">Embed Wizard</a> link again, just in case you changed your mind!</p>
         </div>
         <a href="#TOC">Back to top</a>
         <hr />
 
         <h2 id="Support">How to get support</h2>
         <div class="well">
-            <p>Email is the only way to get ahold of me.  Usually I'm pretty good about answering quickly, but sometimes I need a break from the computer and it may take a day or two.</p>
-            <p>Don't forget to read this entire document and <a href="../demos/index.html">check out the demos</a> before contacting me.  I created the managed version to make things easy for you, so if you're deciding to use the unmanaged version that tells me you're looking for a challenge, and so you need to put some effort into said challenge before asking for help.</p>
-            <p>If you're truly stuck, <a href="https://www.ftelnet.ca/contact">click here for my contact form</a>.</p>
+            <p>The <a href="https://www.ftelnet.ca/contact/">fTelnet contact page</a> or the <a href="https://github.com/rickparrish/fTelnet/issues">GitHub Issues page</a> are the two best ways to get ahold of me.</p>
         </div>
         <a href="#TOC">Back to top</a>
         <hr />
@@ -98,17 +90,19 @@
 
         <h2 id="Use">How to use</h2>
         <div class="well">
-            <!--TODOX This will have to be updated-->
             <p>Using fTelnet is almost as easy as installing it was.  First you need to include the correct files.  Assuming you have an index.html in your document root, and fTelnet in a subdirectory called fTelnet, you can do that by putting this in your &lt;body> section where you want the client to appear:</p>
             <code>
-                &lt;div id="fTelnetContainer">&lt;/div><br />
-                &lt;!-- Javascript used to power fTelnet --><br />
-                &lt;script src="fTelnet/fTelnet.min.js" id="fTelnetScript">&lt;/script><br />
-                &lt;script><br />
-                &nbsp; &nbsp; fTelnet.Init();
-                &lt;/script><br />
+&lt;div id="fTelnetContainer">&lt;/div><br />
+&lt;script src="ftelnet.norip.noxfer.min.js" id="fTelnetScript">&lt;/script><br />
+&lt;script><br />
+ &nbsp; &nbsp; var Options = new fTelnetOptions();<br />
+ &nbsp; &nbsp; Options.Hostname = "bbs.ftelnet.ca";<br />
+ &nbsp; &nbsp; Options.Port = 23;<br />
+ &nbsp; &nbsp; <br />
+ &nbsp; &nbsp; var Client = new fTelnetClient('fTelnetContainer', Options);<br />
+&lt;/script><br />
             </code>
-            <p>That should now get you up and running.  Want a more complete example?  <a href="../demos/index.html">Check out the demos</a></p>
+            <p>That should now get you up and running.</p>
         </div>
         <a href="#TOC">Back to top</a>
         <hr />
@@ -123,6 +117,15 @@
                     <th>Type</th>
                     <th>Default</th>
                     <th>Notes</th>
+                </tr>
+                <tr>
+                    <td>AllowModernScrollback</td>
+                    <td>boolean</td>
+                    <td>true</td>
+                    <td>
+                        <p><strong>true: </strong> fTelnet will try to detect desktop vs mobile devices, and use a modern scrollable div for desktop users</p>
+                        <p><strong>false: </strong> all users will use the classic scrollback</p>
+                    </td>
                 </tr>
                 <tr>
                     <td>BareLFtoCRLF</td>
@@ -171,7 +174,7 @@
                     <td>Font</td>
                     <td>string</td>
                     <td>CP437</td>
-                    <td>The character set to use.  TODO need to add a popup that lists the available options</td>
+                    <td>The character set to use.  Check the fonts subdirectory to see supported ones</td>
                 </tr>
                 <tr>
                     <td>ForceWss</td>
@@ -197,6 +200,15 @@
                         <p><strong>true: </strong> User input is echo'd to the screen</p>
                         <p><strong>false: </strong> User input is not echo'd to the screen</p>
                         <p>Most BBSes handle echoing input back to the user, which is why the default is false</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>NegotiateLocalEcho</td>
+                    <td>boolean</td>
+                    <td>true</td>
+                    <td>
+                        <p><strong>true: </strong> Your LocalEcho setting is used as the default, but you will allow the telnet server to use negotiation sequences to change this setting</p>
+                        <p><strong>false: </strong> Your LocalEcho setting is used, and negotiation sequences sent by the server are ignored</p>
                     </td>
                 </tr>
                 <tr>
@@ -275,6 +287,25 @@
                     <td>The number of rows making up the client area</td>
                 </tr>
                 <tr>
+                    <td>SendLocation</td>
+                    <td>boolean</td>
+                    <td>true</td>
+                    <td>
+                        <p><strong>true: </strong> If the telnet server sends a negotiation sequence to request the user's IP address, fTelnet will use a 3rd party service to identify the user's IPv4 address, and reply with that</p>
+                        <p><strong>false: </strong> A request sent by the server will be ignored</p>
+						<p>If you're using a public proxy, then all requests will look like they're originating from the proxy's IP address.  With this option enabled, you'll be able to query the user's real IP address.  Requires your telnet server to support the correct negotiation sequence of course</p>
+                    </td>                
+				</tr>
+                <tr>
+                    <td>SkipRedrawWhenSameFontSize</td>
+                    <td>boolean</td>
+                    <td>false</td>
+                    <td>
+                        <p><strong>true: </strong> When the Crt font changes, if the new font is the same size as the old font, the screen won't be redrawn.  This allows you to display a screen using characters from multiple fonts.  NOTE: Any events that force a redraw (selecting text, scrolling with the classic scrollback, etc) will redraw using the new font.</p>
+                        <p><strong>false: </strong> When the Crt font changes, the entire screen is redrawn using the new font.</p>
+                    </td>                
+				</tr>
+                <tr>
                     <td>SplashScreen</td>
                     <td>string</td>
                     <td><em>base64 data</em></td>
@@ -318,37 +349,10 @@
         </div>
         <hr />
 
-        <h2 id="Problems">Common Problems</h2>
-        <div class="well">
-            <p>There's a few things that are easy to miss that make a big difference between fTelnet working and not working.  So a few of them are:</p>
-
-            <h3>I don't see the client anywhere</h3>
-            <blockquote>Did you call <strong>fTelnet.Init();</strong> at the bottom of your page/in an on document ready event?</blockquote>
-
-            <!--TODOX-->
-            <h3>I get a popup error that says "fTelnet Error: Element with id="fTelnetContainer" was not found"</h3>
-            <blockquote>You need a placeholder element (usually a div) with <strong>id="fTelnetContainer"</strong> on your page somewhere.  When you call fTelnet.Init(), it'll put the fTelnet client into that placeholder element.</blockquote>
-
-            <h3>The button bar links/status bar look plain</h3>
-            <blockquote>Did you add a reference to <strong>ftelnet.css</strong>?</blockquote>
-
-            <h3>The virtual keyboard looks ugly</h3>
-            <blockquote>Did you add the placholder stylesheet element with the <strong>id="fTelnetKeyboardCss"</strong>?  And also use <strong>id="fTelnetScript"</strong> when referencing the <strong>ftelnet.min.js</strong> script?</blockquote>
-
-            <h3>I get an error/don't see anything with Internet Explorer 8 and older</h3>
-            <blockquote>Did you add the <strong>&lt;!-- Stop IE8 and below from complaining about Object.defineProperty --></strong> code to your page?  That fixes the error.  It still doesn't fix the client though, IE8 and older don't support Canvas, so all you'll see is "fTelnet Error: Internet Explorer < 9 is not supported."</blockquote>
-
-            <h3>Uploading and downloading don't work</h3>
-            <blockquote>Those features work for me in all the desktop browsers (well not IE9, but it doesn't use real WebSockets), so if you're using a desktop browser get ahold of me and let me know what browser+version.  I haven't had as much luck with the mobile browsers though, so don't bother reporting problems there because there's probably not much I can do.</blockquote>
-        </div>
-        <a href="#TOC">Back to top</a>
-        <hr />
-
         <h2 id="Help">I need more help</h2>
         <div class="well">
             <p>First, re-read this document</p>
-            <p>Second, <a href="../demos/index.html">check out the demos</a></p>
-            <p>Third, consider using the <a href="http://embed.ftelnet.ca/wizard.html">managed version</a></p>
+            <p>Second, consider using the <a href="http://embed-v2.ftelnet.ca/">managed version</a></p>
             <p>And if after all that you still need more help, then <a href="#Support">see the support section above</a></p>
         </div>
         <a href="#TOC">Back to top</a>

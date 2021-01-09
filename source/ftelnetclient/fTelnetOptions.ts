@@ -39,6 +39,7 @@ class fTelnetOptions {
     public ScreenColumns: number = 80;
     public ScreenRows: number = 25;
     public SendLocation: boolean = true;
+    public SkipRedrawWhenSameFontSize: boolean = false;
     public SplashScreen: string = '';
     public VirtualKeyboardVibrateDuration: number = 25;
     public VirtualKeyboardVisible: boolean = DetectMobileBrowser.IsMobile;

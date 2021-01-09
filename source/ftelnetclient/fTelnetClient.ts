@@ -143,6 +143,7 @@ class fTelnetClient {
         this._Crt.onscreensizechange.on((): void => { this.OnCrtScreenSizeChanged(); });
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
         this._Crt.LocalEcho = this._Options.LocalEcho;
+        this._Crt.SkipRedrawWhenSameFontSize = this._Options.SkipRedrawWhenSameFontSize;
         this._Crt.SetFont(this._Options.Font);
         this._Crt.SetScreenSize(this._Options.ScreenColumns, this._Options.ScreenRows);
 

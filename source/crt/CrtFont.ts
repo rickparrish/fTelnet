@@ -230,6 +230,8 @@ class CrtFont {
 
     private OnPngLoad(): void {
         if (this._Loading === 1) {
+            var oldSize = new Point(this._Size.x, this._Size.y);
+
             this._Name = this._NewName;
             this._Size = this._NewSize;
 
@@ -243,7 +245,7 @@ class CrtFont {
 
             // Raise change event
             this._Loading -= 1;
-            this.onchange.trigger();
+            this.onchange.trigger(oldSize);
         } else {
             // Others are still loading, just indicate this one finished
             this._Loading -= 1;

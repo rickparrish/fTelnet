@@ -1566,6 +1566,7 @@ var CharInfo = (function () {
             this.Blink = false;
             this.Ch = ' ';
             this.Fore24 = CrtFont.ANSI_COLOURS[Crt.LIGHTGRAY];
+            this.NeedsRedraw = false;
             this.Reverse = false;
             this.Underline = false;
         }
@@ -1613,6 +1614,7 @@ var Crt = (function () {
         this._ScreenSize = new Point(80, 25);
         this._ScrollbackPosition = -1;
         this._ScrollbackSize = 250;
+        this._SkipRedrawWhenSameFontSize = false;
         this._Transparent = false;
         this._UseModernScrollback = false;
         this._WindMin = 0;
@@ -1620,7 +1622,7 @@ var Crt = (function () {
         this._Container = container;
         this._UseModernScrollback = useModernScrollback;
         this._Font = new CrtFont();
-        this._Font.onchange.on(function () { _this.OnFontChanged(); });
+        this._Font.onchange.on(function (oldSize) { _this.OnFontChanged(oldSize); });
         this._Canvas = document.createElement('canvas');
         this._Canvas.className = 'fTelnetCrtCanvas';
         this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
@@ -1836,7 +1838,10 @@ var Crt = (function () {
                 var Char = this._Font.GetChar(CharCodes[i], charInfo);
                 BGetChar.Stop();
                 var BPutImage = Benchmarks.Start('PutImage');
-                if (typeof Char !== 'undefined') {
+                if (typeof Char === 'undefined') {
+                    this._Buffer[y][x + i].NeedsRedraw = true;
+                }
+                else {
                     if (this._UseModernScrollback) {
                         this._CanvasContext.putImageData(Char, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height);
                     }
@@ -1983,7 +1988,22 @@ var Crt = (function () {
         var Cell = this._Buffer[Y][X];
         this.FastWrite(Cell.Ch, X, Y, Cell, false);
     };
-    Crt.prototype.OnFontChanged = function () {
+    Crt.prototype.OnFontChanged = function (oldSize) {
+        if ((oldSize.x == this._Font.Size.x) && (oldSize.y == this._Font.Size.y)) {
+            if (this._SkipRedrawWhenSameFontSize) {
+                if (typeof this._Buffer !== 'undefined') {
+                    for (var Y = 1; Y <= this._ScreenSize.y; Y++) {
+                        for (var X = 1; X <= this._ScreenSize.x; X++) {
+                            if (this._Buffer[Y][X].NeedsRedraw) {
+                                this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
+                                this._Buffer[Y][X].NeedsRedraw = false;
+                            }
+                        }
+                    }
+                }
+                return;
+            }
+        }
         this._Cursor.Size = this._Font.Size;
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
         if (this._UseModernScrollback) {
@@ -1999,6 +2019,7 @@ var Crt = (function () {
             for (var Y = 1; Y <= this._ScreenSize.y; Y++) {
                 for (var X = 1; X <= this._ScreenSize.x; X++) {
                     this.FastWrite(this._Buffer[Y][X].Ch, X, Y, this._Buffer[Y][X], false);
+                    this._Buffer[Y][X].NeedsRedraw = false;
                 }
             }
         }
@@ -2748,6 +2769,13 @@ var Crt = (function () {
     Crt.prototype.ShowCursor = function () {
         this._Cursor.Visible = true;
     };
+    Object.defineProperty(Crt.prototype, "SkipRedrawWhenSameFontSize", {
+        set: function (value) {
+            this._SkipRedrawWhenSameFontSize = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(Crt.prototype, "TextAttr", {
         get: function () {
             return this._CharInfo.Attr;
@@ -3466,6 +3494,7 @@ var CrtFont = (function () {
     };
     CrtFont.prototype.OnPngLoad = function () {
         if (this._Loading === 1) {
+            var oldSize = new Point(this._Size.x, this._Size.y);
             this._Name = this._NewName;
             this._Size = this._NewSize;
             this._Canvas.width = this._Png.width;
@@ -3473,7 +3502,7 @@ var CrtFont = (function () {
             this._CanvasContext.drawImage(this._Png, 0, 0);
             this._CharMap = [];
             this._Loading -= 1;
-            this.onchange.trigger();
+            this.onchange.trigger(oldSize);
         }
         else {
             this._Loading -= 1;
@@ -6317,6 +6346,7 @@ var fTelnetClient = (function () {
         this._Crt.onscreensizechange.on(function () { _this.OnCrtScreenSizeChanged(); });
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
         this._Crt.LocalEcho = this._Options.LocalEcho;
+        this._Crt.SkipRedrawWhenSameFontSize = this._Options.SkipRedrawWhenSameFontSize;
         this._Crt.SetFont(this._Options.Font);
         this._Crt.SetScreenSize(this._Options.ScreenColumns, this._Options.ScreenRows);
         this._Ansi = new Ansi(this._Crt);
@@ -7064,6 +7094,7 @@ var fTelnetOptions = (function () {
         this.ScreenColumns = 80;
         this.ScreenRows = 25;
         this.SendLocation = true;
+        this.SkipRedrawWhenSameFontSize = false;
         this.SplashScreen = '';
         this.VirtualKeyboardVibrateDuration = 25;
         this.VirtualKeyboardVisible = DetectMobileBrowser.IsMobile;

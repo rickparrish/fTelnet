@@ -23,6 +23,7 @@ class CharInfo {
     public Blink: boolean;
     public Ch: string;
     public Fore24: number;
+    public NeedsRedraw: boolean;
     public Reverse: boolean;
     public Underline: boolean;
 
@@ -45,6 +46,7 @@ class CharInfo {
             this.Blink = false;
             this.Ch = ' ';
             this.Fore24 = CrtFont.ANSI_COLOURS[Crt.LIGHTGRAY];
+            this.NeedsRedraw = false;
             this.Reverse = false;
             this.Underline = false;
         } else {
