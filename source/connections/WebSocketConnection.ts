@@ -51,7 +51,7 @@ class WebSocketConnection {
     public onclose: IEvent = new TypedEvent();
     public onconnect: IEvent = new TypedEvent();
     public ondata: IEvent = new TypedEvent();
-    public onlocalecho: IBooleanEvent = new TypedEvent();
+    public onlocalecho: IEvent = new TypedEvent();
     public onioerror: IEvent = new TypedEvent();
     public onsecurityerror: IEvent = new TypedEvent();
 
@@ -109,13 +109,27 @@ class WebSocketConnection {
                 hostname,
                 port,
                 (): void => { this.OnSocketOpen(); },
-                (message: string): void => { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); this.OnSocketError(e); }
+                (message: string): void => { 
+                    var e = new ErrorEvent('Socket', {
+                        bubbles: true,
+                        cancelable: true,
+                        message: message
+                    }); 
+                    this.OnSocketError(e); 
+                }
             );
 
             // Set event handlers
             this._CordovaSocket.onClose = (): void => { this.OnSocketClose(); };
             this._CordovaSocket.onData = (data: Uint8Array): void => { this.OnCordovaSocketData(data); };
-            this._CordovaSocket.onError = (message: string): void => { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); this.OnSocketError(e); };
+            this._CordovaSocket.onError = (message: string): void => { 
+                var e = new ErrorEvent('Socket', {
+                    bubbles: true,
+                    cancelable: false,
+                    message: message
+                }); 
+                this.OnSocketError(e); 
+            };
         } else {
             var Protocols: string[];
             if (('WebSocket' in window) && (WebSocket.CLOSED === 2 || WebSocket.prototype.CLOSED === 2)) { // From: http://stackoverflow.com/a/17850524/342378

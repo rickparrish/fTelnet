@@ -1,5 +1,5 @@
 ﻿// From: http://stackoverflow.com/a/30810322/342378
-class Clipboard {
+class ClipboardHelper {
     public static GetData(): string {
         if (document.queryCommandSupported('paste')) {
             var textArea: HTMLTextAreaElement = document.createElement('textarea');

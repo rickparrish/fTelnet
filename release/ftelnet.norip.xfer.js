@@ -164,6 +164,7 @@ if (!(typeof Blob === "function" || typeof Blob === "object") || typeof URL === 
             return builder.getBlob(type);
         };
     }(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content || this));
+
 /*! FileSaver.js
  *  A saveAs() FileSaver implementation.
  *  2014-01-24
@@ -411,42 +412,7 @@ var saveAs = saveAs
 // with an attribute `content` that corresponds to the window
 
 if (typeof module !== "undefined") module.exports = saveAs;
-var Benchmarks = (function () {
-    function Benchmarks() {
-    }
-    Benchmarks.Alert = function () {
-        var text = '';
-        for (var i = 0; i < this._Names.length; i++) {
-            text += this._Names[i] + ': ' + this._Benchmarks[this._Names[i]].CumulativeElapsed + '\n';
-        }
-        alert(text);
-    };
-    Benchmarks.Reset = function () {
-        this._Benchmarks = {};
-        this._Names = [];
-    };
-    Benchmarks.Start = function (name) {
-        if (this._Benchmarks[name] === undefined) {
-            this._Benchmarks[name] = new Benchmark();
-            this._Names.push(name);
-        }
-        this._Benchmarks[name].Start();
-        return this._Benchmarks[name];
-    };
-    Benchmarks.Stop = function (name) {
-        this._Benchmarks[name].Stop();
-    };
-    Benchmarks.Log = function () {
-        for (var i = 0; i < this._Names.length; i++) {
-            var text = '';
-            text += this._Names[i] + ': ' + this._Benchmarks[this._Names[i]].CumulativeElapsed;
-            console.log(text);
-        }
-    };
-    return Benchmarks;
-}());
-Benchmarks._Benchmarks = {};
-Benchmarks._Names = [];
+
 var Benchmark = (function () {
     function Benchmark() {
         this._CumulativeElapsed = 0;
@@ -489,6 +455,42 @@ var Benchmark = (function () {
         }
     };
     return Benchmark;
+}());
+var Benchmarks = (function () {
+    function Benchmarks() {
+    }
+    Benchmarks.Alert = function () {
+        var text = '';
+        for (var i = 0; i < this._Names.length; i++) {
+            text += this._Names[i] + ': ' + this._Benchmarks[this._Names[i]].CumulativeElapsed + '\n';
+        }
+        alert(text);
+    };
+    Benchmarks.Reset = function () {
+        this._Benchmarks = {};
+        this._Names = [];
+    };
+    Benchmarks.Start = function (name) {
+        if (this._Benchmarks[name] === undefined) {
+            this._Benchmarks[name] = new Benchmark();
+            this._Names.push(name);
+        }
+        this._Benchmarks[name].Start();
+        return this._Benchmarks[name];
+    };
+    Benchmarks.Stop = function (name) {
+        this._Benchmarks[name].Stop();
+    };
+    Benchmarks.Log = function () {
+        for (var i = 0; i < this._Names.length; i++) {
+            var text = '';
+            text += this._Names[i] + ': ' + this._Benchmarks[this._Names[i]].CumulativeElapsed;
+            console.log(text);
+        }
+    };
+    Benchmarks._Benchmarks = {};
+    Benchmarks._Names = [];
+    return Benchmarks;
 }());
 var ByteArray = (function () {
     function ByteArray() {
@@ -646,10 +648,10 @@ var ByteArray = (function () {
     };
     return ByteArray;
 }());
-var Clipboard = (function () {
-    function Clipboard() {
+var ClipboardHelper = (function () {
+    function ClipboardHelper() {
     }
-    Clipboard.GetData = function () {
+    ClipboardHelper.GetData = function () {
         if (document.queryCommandSupported('paste')) {
             var textArea = document.createElement('textarea');
             textArea.style.position = 'fixed';
@@ -681,7 +683,7 @@ var Clipboard = (function () {
             return prompt('Press CTRL-V then Enter to paste the text from your clipboard') || '';
         }
     };
-    Clipboard.SetData = function (text) {
+    ClipboardHelper.SetData = function (text) {
         if (document.queryCommandSupported('copy')) {
             var textArea = document.createElement('textarea');
             textArea.style.position = 'fixed';
@@ -712,7 +714,7 @@ var Clipboard = (function () {
             prompt('Press CTRL-C then Enter to copy the text to your clipboard', text);
         }
     };
-    return Clipboard;
+    return ClipboardHelper;
 }());
 var DetectMobileBrowser = (function () {
     function DetectMobileBrowser() {
@@ -749,7 +751,6 @@ var GetScrollbarWidth = (function () {
                 var outer = document.createElement('div');
                 outer.style.visibility = 'hidden';
                 outer.style.width = '100px';
-                outer.style.msOverflowStyle = 'scrollbar';
                 document.body.appendChild(outer);
                 var widthNoScroll = outer.offsetWidth;
                 outer.style.overflow = 'scroll';
@@ -919,6 +920,7 @@ var TypedEvent = (function () {
     };
     return TypedEvent;
 }());
+//# sourceMappingURL=common.js.map
 var Ansi = (function () {
     function Ansi(crt) {
         this.onesc0c = new TypedEvent();
@@ -2435,7 +2437,7 @@ var Crt = (function () {
                         Text += '\r\n';
                     }
                 }
-                Clipboard.SetData(Text);
+                ClipboardHelper.SetData(Text);
             }
         }
         delete this._MouseDownPoint;
@@ -3281,41 +3283,41 @@ var Crt = (function () {
         }
         this.Write(text + '\r\n');
     };
+    Crt.BLACK = 0;
+    Crt.BLUE = 1;
+    Crt.GREEN = 2;
+    Crt.CYAN = 3;
+    Crt.RED = 4;
+    Crt.MAGENTA = 5;
+    Crt.BROWN = 6;
+    Crt.LIGHTGRAY = 7;
+    Crt.DARKGRAY = 8;
+    Crt.LIGHTBLUE = 9;
+    Crt.LIGHTGREEN = 10;
+    Crt.LIGHTCYAN = 11;
+    Crt.LIGHTRED = 12;
+    Crt.LIGHTMAGENTA = 13;
+    Crt.YELLOW = 14;
+    Crt.WHITE = 15;
+    Crt.BLINK = 128;
+    Crt.PETSCII_BLACK = 0;
+    Crt.PETSCII_WHITE = 1;
+    Crt.PETSCII_RED = 2;
+    Crt.PETSCII_CYAN = 3;
+    Crt.PETSCII_PURPLE = 4;
+    Crt.PETSCII_GREEN = 5;
+    Crt.PETSCII_BLUE = 6;
+    Crt.PETSCII_YELLOW = 7;
+    Crt.PETSCII_ORANGE = 8;
+    Crt.PETSCII_BROWN = 9;
+    Crt.PETSCII_LIGHTRED = 10;
+    Crt.PETSCII_DARKGRAY = 11;
+    Crt.PETSCII_GRAY = 12;
+    Crt.PETSCII_LIGHTGREEN = 13;
+    Crt.PETSCII_LIGHTBLUE = 14;
+    Crt.PETSCII_LIGHTGRAY = 15;
     return Crt;
 }());
-Crt.BLACK = 0;
-Crt.BLUE = 1;
-Crt.GREEN = 2;
-Crt.CYAN = 3;
-Crt.RED = 4;
-Crt.MAGENTA = 5;
-Crt.BROWN = 6;
-Crt.LIGHTGRAY = 7;
-Crt.DARKGRAY = 8;
-Crt.LIGHTBLUE = 9;
-Crt.LIGHTGREEN = 10;
-Crt.LIGHTCYAN = 11;
-Crt.LIGHTRED = 12;
-Crt.LIGHTMAGENTA = 13;
-Crt.YELLOW = 14;
-Crt.WHITE = 15;
-Crt.BLINK = 128;
-Crt.PETSCII_BLACK = 0;
-Crt.PETSCII_WHITE = 1;
-Crt.PETSCII_RED = 2;
-Crt.PETSCII_CYAN = 3;
-Crt.PETSCII_PURPLE = 4;
-Crt.PETSCII_GREEN = 5;
-Crt.PETSCII_BLUE = 6;
-Crt.PETSCII_YELLOW = 7;
-Crt.PETSCII_ORANGE = 8;
-Crt.PETSCII_BROWN = 9;
-Crt.PETSCII_LIGHTRED = 10;
-Crt.PETSCII_DARKGRAY = 11;
-Crt.PETSCII_GRAY = 12;
-Crt.PETSCII_LIGHTGREEN = 13;
-Crt.PETSCII_LIGHTBLUE = 14;
-Crt.PETSCII_LIGHTGRAY = 15;
 var CrtFont = (function () {
     function CrtFont() {
         this.onchange = new TypedEvent();
@@ -3491,17 +3493,17 @@ var CrtFont = (function () {
         enumerable: true,
         configurable: true
     });
+    CrtFont.TRANSPARENT_CHARCODE = 1000;
+    CrtFont.ANSI_COLOURS = [
+        0x000000, 0x0000A8, 0x00A800, 0x00A8A8, 0xA80000, 0xA800A8, 0xA85400, 0xA8A8A8,
+        0x545454, 0x5454FC, 0x54FC54, 0x54FCFC, 0xFC5454, 0xFC54FC, 0xFCFC54, 0xFCFCFC
+    ];
+    CrtFont.PETSCII_COLOURS = [
+        0x000000, 0xFDFEFC, 0xBE1A24, 0x30E6C6, 0xB41AE2, 0x1FD21E, 0x211BAE, 0xDFF60A,
+        0xB84104, 0x6A3304, 0xFE4A57, 0x424540, 0x70746F, 0x59FE59, 0x5F53FE, 0xA4A7A2
+    ];
     return CrtFont;
 }());
-CrtFont.TRANSPARENT_CHARCODE = 1000;
-CrtFont.ANSI_COLOURS = [
-    0x000000, 0x0000A8, 0x00A800, 0x00A8A8, 0xA80000, 0xA800A8, 0xA85400, 0xA8A8A8,
-    0x545454, 0x5454FC, 0x54FC54, 0x54FCFC, 0xFC5454, 0xFC54FC, 0xFCFC54, 0xFCFCFC
-];
-CrtFont.PETSCII_COLOURS = [
-    0x000000, 0xFDFEFC, 0xBE1A24, 0x30E6C6, 0xB41AE2, 0x1FD21E, 0x211BAE, 0xDFF60A,
-    0xB84104, 0x6A3304, 0xFE4A57, 0x424540, 0x70746F, 0x59FE59, 0x5F53FE, 0xA4A7A2
-];
 var CrtFonts = (function () {
     function CrtFonts() {
     }
@@ -3560,10 +3562,10 @@ var CrtFonts = (function () {
     CrtFonts.HasFont = function (font) {
         return (this._FontNames.indexOf(font) >= 0);
     };
+    CrtFonts._FontNames = ['Amiga-BStrict_8x8', 'Amiga-BStruct_8x8', 'Amiga-MicroKnight_8x16', 'Amiga-MicroKnight_8x8', 'Amiga-MoSoul_8x16', 'Amiga-MoSoul_8x8', 'Amiga-PotNoodle_8x11', 'Amiga-PotNoodle_8x16', 'Amiga-TopazPlus_8x11', 'Amiga-Topaz_8x11', 'Amiga-Topaz_8x16', 'Atari-Arabic_16x16', 'Atari-Arabic_8x16', 'Atari-Graphics_16x16', 'Atari-Graphics_8x16', 'Atari-Graphics_8x8', 'Atari-International_16x16', 'Atari-International_8x16', 'C128-Lower_8x16', 'C128-Upper_8x16', 'C128-Upper_8x8', 'C128_Lower_8x8', 'C64-Lower_16x16', 'C64-Lower_8x16', 'C64-Lower_8x8', 'C64-Upper_16x16', 'C64-Upper_8x16', 'C64-Upper_8x8', 'CP437_10x19', 'CP437_12x23', 'CP437_6x8', 'CP437_7x12', 'CP437_8x12', 'CP437_8x13', 'CP437_8x14', 'CP437_8x16', 'CP437_8x8', 'CP437_9x16', 'CP737_12x23', 'CP737_9x16', 'CP775_9x16', 'CP850_10x19', 'CP850_12x23', 'CP850_8x13', 'CP850_9x16', 'CP852_10x19', 'CP852_12x23', 'CP852_9x16', 'CP855_9x16', 'CP857_9x16', 'CP860_9x16', 'CP861_9x16', 'CP862_10x19', 'CP863_9x16', 'CP865_10x19', 'CP865_12x23', 'CP865_8x13', 'CP865_9x16', 'CP866_9x16', 'CP869_9x16', 'RIP_7x8', 'RIP_7x14', 'RIP_8x8', 'RIP_8x14', 'RIP_16x14', 'SyncTerm-0_8x14', 'SyncTerm-0_8x16', 'SyncTerm-0_8x8', 'SyncTerm-10_8x16', 'SyncTerm-11_8x14', 'SyncTerm-11_8x16', 'SyncTerm-11_8x8', 'SyncTerm-12_8x16', 'SyncTerm-13_8x16', 'SyncTerm-14_8x14', 'SyncTerm-14_8x16', 'SyncTerm-14_8x8', 'SyncTerm-15_8x14', 'SyncTerm-15_8x16', 'SyncTerm-15_8x8', 'SyncTerm-16_8x14', 'SyncTerm-16_8x16', 'SyncTerm-16_8x8', 'SyncTerm-17_8x16', 'SyncTerm-17_8x8', 'SyncTerm-18_8x14', 'SyncTerm-18_8x16', 'SyncTerm-18_8x8', 'SyncTerm-19_8x16', 'SyncTerm-19_8x8', 'SyncTerm-1_8x16', 'SyncTerm-20_8x14', 'SyncTerm-20_8x16', 'SyncTerm-20_8x8', 'SyncTerm-21_8x14', 'SyncTerm-21_8x16', 'SyncTerm-21_8x8', 'SyncTerm-22_8x16', 'SyncTerm-23_8x14', 'SyncTerm-23_8x16', 'SyncTerm-23_8x8', 'SyncTerm-24_8x14', 'SyncTerm-24_8x16', 'SyncTerm-24_8x8', 'SyncTerm-25_8x14', 'SyncTerm-25_8x16', 'SyncTerm-25_8x8', 'SyncTerm-26_8x16', 'SyncTerm-26_8x8', 'SyncTerm-27_8x16', 'SyncTerm-28_8x14', 'SyncTerm-28_8x16', 'SyncTerm-28_8x8', 'SyncTerm-29_8x14', 'SyncTerm-29_8x16', 'SyncTerm-29_8x8', 'SyncTerm-2_8x14', 'SyncTerm-2_8x16', 'SyncTerm-2_8x8', 'SyncTerm-30_8x16', 'SyncTerm-31_8x16', 'SyncTerm-32_8x16', 'SyncTerm-32_8x8', 'SyncTerm-33_8x16', 'SyncTerm-33_8x8', 'SyncTerm-34_8x16', 'SyncTerm-34_8x8', 'SyncTerm-35_8x16', 'SyncTerm-35_8x8', 'SyncTerm-36_8x16', 'SyncTerm-36_8x8', 'SyncTerm-37_8x16', 'SyncTerm-38_8x16', 'SyncTerm-39_8x16', 'SyncTerm-3_8x14', 'SyncTerm-3_8x16', 'SyncTerm-3_8x8', 'SyncTerm-40_8x16', 'SyncTerm-4_8x16', 'SyncTerm-5_8x16', 'SyncTerm-6_8x16', 'SyncTerm-7_8x14', 'SyncTerm-7_8x16', 'SyncTerm-7_8x8', 'SyncTerm-8_8x14', 'SyncTerm-8_8x16', 'SyncTerm-8_8x8', 'SyncTerm-9_8x14', 'SyncTerm-9_8x16', 'SyncTerm-9_8x8'];
+    CrtFonts._Fonts = [];
     return CrtFonts;
 }());
-CrtFonts._FontNames = ['Amiga-BStrict_8x8', 'Amiga-BStruct_8x8', 'Amiga-MicroKnight_8x16', 'Amiga-MicroKnight_8x8', 'Amiga-MoSoul_8x16', 'Amiga-MoSoul_8x8', 'Amiga-PotNoodle_8x11', 'Amiga-PotNoodle_8x16', 'Amiga-TopazPlus_8x11', 'Amiga-Topaz_8x11', 'Amiga-Topaz_8x16', 'Atari-Arabic_16x16', 'Atari-Arabic_8x16', 'Atari-Graphics_16x16', 'Atari-Graphics_8x16', 'Atari-Graphics_8x8', 'Atari-International_16x16', 'Atari-International_8x16', 'C128-Lower_8x16', 'C128-Upper_8x16', 'C128-Upper_8x8', 'C128_Lower_8x8', 'C64-Lower_16x16', 'C64-Lower_8x16', 'C64-Lower_8x8', 'C64-Upper_16x16', 'C64-Upper_8x16', 'C64-Upper_8x8', 'CP437_10x19', 'CP437_12x23', 'CP437_6x8', 'CP437_7x12', 'CP437_8x12', 'CP437_8x13', 'CP437_8x14', 'CP437_8x16', 'CP437_8x8', 'CP437_9x16', 'CP737_12x23', 'CP737_9x16', 'CP775_9x16', 'CP850_10x19', 'CP850_12x23', 'CP850_8x13', 'CP850_9x16', 'CP852_10x19', 'CP852_12x23', 'CP852_9x16', 'CP855_9x16', 'CP857_9x16', 'CP860_9x16', 'CP861_9x16', 'CP862_10x19', 'CP863_9x16', 'CP865_10x19', 'CP865_12x23', 'CP865_8x13', 'CP865_9x16', 'CP866_9x16', 'CP869_9x16', 'RIP_7x8', 'RIP_7x14', 'RIP_8x8', 'RIP_8x14', 'RIP_16x14', 'SyncTerm-0_8x14', 'SyncTerm-0_8x16', 'SyncTerm-0_8x8', 'SyncTerm-10_8x16', 'SyncTerm-11_8x14', 'SyncTerm-11_8x16', 'SyncTerm-11_8x8', 'SyncTerm-12_8x16', 'SyncTerm-13_8x16', 'SyncTerm-14_8x14', 'SyncTerm-14_8x16', 'SyncTerm-14_8x8', 'SyncTerm-15_8x14', 'SyncTerm-15_8x16', 'SyncTerm-15_8x8', 'SyncTerm-16_8x14', 'SyncTerm-16_8x16', 'SyncTerm-16_8x8', 'SyncTerm-17_8x16', 'SyncTerm-17_8x8', 'SyncTerm-18_8x14', 'SyncTerm-18_8x16', 'SyncTerm-18_8x8', 'SyncTerm-19_8x16', 'SyncTerm-19_8x8', 'SyncTerm-1_8x16', 'SyncTerm-20_8x14', 'SyncTerm-20_8x16', 'SyncTerm-20_8x8', 'SyncTerm-21_8x14', 'SyncTerm-21_8x16', 'SyncTerm-21_8x8', 'SyncTerm-22_8x16', 'SyncTerm-23_8x14', 'SyncTerm-23_8x16', 'SyncTerm-23_8x8', 'SyncTerm-24_8x14', 'SyncTerm-24_8x16', 'SyncTerm-24_8x8', 'SyncTerm-25_8x14', 'SyncTerm-25_8x16', 'SyncTerm-25_8x8', 'SyncTerm-26_8x16', 'SyncTerm-26_8x8', 'SyncTerm-27_8x16', 'SyncTerm-28_8x14', 'SyncTerm-28_8x16', 'SyncTerm-28_8x8', 'SyncTerm-29_8x14', 'SyncTerm-29_8x16', 'SyncTerm-29_8x8', 'SyncTerm-2_8x14', 'SyncTerm-2_8x16', 'SyncTerm-2_8x8', 'SyncTerm-30_8x16', 'SyncTerm-31_8x16', 'SyncTerm-32_8x16', 'SyncTerm-32_8x8', 'SyncTerm-33_8x16', 'SyncTerm-33_8x8', 'SyncTerm-34_8x16', 'SyncTerm-34_8x8', 'SyncTerm-35_8x16', 'SyncTerm-35_8x8', 'SyncTerm-36_8x16', 'SyncTerm-36_8x8', 'SyncTerm-37_8x16', 'SyncTerm-38_8x16', 'SyncTerm-39_8x16', 'SyncTerm-3_8x14', 'SyncTerm-3_8x16', 'SyncTerm-3_8x8', 'SyncTerm-40_8x16', 'SyncTerm-4_8x16', 'SyncTerm-5_8x16', 'SyncTerm-6_8x16', 'SyncTerm-7_8x14', 'SyncTerm-7_8x16', 'SyncTerm-7_8x8', 'SyncTerm-8_8x14', 'SyncTerm-8_8x16', 'SyncTerm-8_8x8', 'SyncTerm-9_8x14', 'SyncTerm-9_8x16', 'SyncTerm-9_8x8'];
-CrtFonts._Fonts = [];
 CrtFonts.__ctor();
 var Cursor = (function () {
     function Cursor(colour, size) {
@@ -3651,6 +3653,17 @@ var Cursor = (function () {
     });
     return Cursor;
 }());
+var KeyPressEvent = (function () {
+    function KeyPressEvent(keyEvent, keyString) {
+        this.altKey = keyEvent.altKey;
+        this.charCode = keyEvent.charCode;
+        this.ctrlKey = keyEvent.ctrlKey;
+        this.keyCode = keyEvent.keyCode;
+        this.keyString = keyString;
+        this.shiftKey = keyEvent.shiftKey;
+    }
+    return KeyPressEvent;
+}());
 var KeyboardKeys;
 (function (KeyboardKeys) {
     KeyboardKeys[KeyboardKeys["ALTERNATE"] = 18] = "ALTERNATE";
@@ -3692,17 +3705,7 @@ var KeyboardKeys;
     KeyboardKeys[KeyboardKeys["WINDOWS"] = 1003] = "WINDOWS";
     KeyboardKeys[KeyboardKeys["UP"] = 38] = "UP";
 })(KeyboardKeys || (KeyboardKeys = {}));
-var KeyPressEvent = (function () {
-    function KeyPressEvent(keyEvent, keyString) {
-        this.altKey = keyEvent.altKey;
-        this.charCode = keyEvent.charCode;
-        this.ctrlKey = keyEvent.ctrlKey;
-        this.keyCode = keyEvent.keyCode;
-        this.keyString = keyString;
-        this.shiftKey = keyEvent.shiftKey;
-    }
-    return KeyPressEvent;
-}());
+//# sourceMappingURL=crt.js.map
 var RLoginCommand;
 (function (RLoginCommand) {
     RLoginCommand[RLoginCommand["Cookie"] = 255] = "Cookie";
@@ -3782,10 +3785,24 @@ var WebSocketConnection = (function () {
         this._WasConnected = false;
         if (UseCordovaSocket) {
             this._CordovaSocket = new Socket();
-            this._CordovaSocket.open(hostname, port, function () { _this.OnSocketOpen(); }, function (message) { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); _this.OnSocketError(e); });
+            this._CordovaSocket.open(hostname, port, function () { _this.OnSocketOpen(); }, function (message) {
+                var e = new ErrorEvent('Socket', {
+                    bubbles: true,
+                    cancelable: true,
+                    message: message
+                });
+                _this.OnSocketError(e);
+            });
             this._CordovaSocket.onClose = function () { _this.OnSocketClose(); };
             this._CordovaSocket.onData = function (data) { _this.OnCordovaSocketData(data); };
-            this._CordovaSocket.onError = function (message) { var e = new ErrorEvent(); e.initErrorEvent('Socket', true, false, message, '', -1); _this.OnSocketError(e); };
+            this._CordovaSocket.onError = function (message) {
+                var e = new ErrorEvent('Socket', {
+                    bubbles: true,
+                    cancelable: false,
+                    message: message
+                });
+                _this.OnSocketError(e);
+            };
         }
         else {
             var Protocols;
@@ -3997,11 +4014,19 @@ var WebSocketConnection = (function () {
     };
     return WebSocketConnection;
 }());
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var RLoginConnection = (function (_super) {
     __extends(RLoginConnection, _super);
     function RLoginConnection() {
@@ -4143,7 +4168,7 @@ var TelnetConnection = (function (_super) {
         if (this._SendLocation) {
             try {
                 var xhr = new XMLHttpRequest();
-                xhr.open('get', '//myip.randm.ca', true);
+                xhr.open('get', 'https://text.ipv4.wtfismyip.com/', true);
                 xhr.onload = function () {
                     var status = xhr.status;
                     if (status === 200) {
@@ -4200,7 +4225,7 @@ var TelnetConnection = (function (_super) {
         var _this = this;
         if (this._SendLocation) {
             var xhr = new XMLHttpRequest();
-            xhr.open('get', '//myip.randm.ca', true);
+            xhr.open('get', 'https://text.ipv4.wtfismyip.com/', true);
             xhr.onload = function () {
                 var status = xhr.status;
                 if (status === 200) {
@@ -4624,6 +4649,7 @@ var TelnetOption;
     TelnetOption[TelnetOption["SENDURL"] = 48] = "SENDURL";
     TelnetOption[TelnetOption["FORWARD_X"] = 49] = "FORWARD_X";
 })(TelnetOption || (TelnetOption = {}));
+//# sourceMappingURL=connections.js.map
 var BorderStyle;
 (function (BorderStyle) {
     BorderStyle[BorderStyle["Single"] = 0] = "Single";
@@ -4822,11 +4848,19 @@ var CrtControl = (function () {
     });
     return CrtControl;
 }());
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var CrtLabel = (function (_super) {
     __extends(CrtLabel, _super);
     function CrtLabel(crt, parent, left, top, width, text, textAlign, foreColour, backColour) {
@@ -5247,6 +5281,7 @@ var ProgressBarStyle;
     ProgressBarStyle[ProgressBarStyle["Continuous"] = 219] = "Continuous";
     ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
 })(ProgressBarStyle || (ProgressBarStyle = {}));
+//# sourceMappingURL=crtcontrols.js.map
 var CRC = (function () {
     function CRC() {
     }
@@ -5265,42 +5300,42 @@ var CRC = (function () {
     CRC.UpdateCrc = function (curByte, curCrc) {
         return (this.CRC_TABLE[(curCrc >> 8) & 0x00FF] ^ (curCrc << 8) ^ curByte) & 0xFFFF;
     };
+    CRC.CRC_TABLE = [
+        0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
+        0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
+        0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
+        0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
+        0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485,
+        0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
+        0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4,
+        0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc,
+        0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823,
+        0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b,
+        0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12,
+        0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a,
+        0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41,
+        0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49,
+        0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70,
+        0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78,
+        0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f,
+        0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067,
+        0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e,
+        0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256,
+        0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d,
+        0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
+        0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c,
+        0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634,
+        0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab,
+        0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3,
+        0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a,
+        0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92,
+        0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
+        0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
+        0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
+        0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
+    ];
     return CRC;
 }());
-CRC.CRC_TABLE = [
-    0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
-    0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
-    0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
-    0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
-    0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485,
-    0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
-    0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4,
-    0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc,
-    0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823,
-    0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b,
-    0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12,
-    0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a,
-    0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41,
-    0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49,
-    0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70,
-    0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78,
-    0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f,
-    0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067,
-    0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e,
-    0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256,
-    0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d,
-    0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
-    0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c,
-    0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634,
-    0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab,
-    0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3,
-    0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a,
-    0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92,
-    0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
-    0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
-    0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
-    0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
-];
 var FileRecord = (function () {
     function FileRecord(name, size) {
         this._Data = new ByteArray();
@@ -5880,35 +5915,326 @@ var YModemSendState;
     YModemSendState[YModemSendState["SendingData"] = 3] = "SendingData";
     YModemSendState[YModemSendState["WaitingForFileAck"] = 4] = "WaitingForFileAck";
 })(YModemSendState || (YModemSendState = {}));
-var fTelnetOptions = (function () {
-    function fTelnetOptions() {
-        this.AllowModernScrollback = true;
-        this.BareLFtoCRLF = false;
-        this.BitsPerSecond = 57600;
-        this.ConnectionType = 'telnet';
-        this.Emulation = 'ansi-bbs';
-        this.Enter = '\r';
-        this.Font = 'CP437';
-        this.ForceWss = false;
-        this.Hostname = 'bbs.ftelnet.ca';
-        this.LocalEcho = false;
-        this.NegotiateLocalEcho = true;
-        this.Port = 1123;
-        this.ProxyHostname = '';
-        this.ProxyPort = 1123;
-        this.ProxyPortSecure = 11235;
-        this.RLoginClientUsername = '';
-        this.RLoginServerUsername = '';
-        this.RLoginTerminalType = '';
-        this.ScreenColumns = 80;
-        this.ScreenRows = 25;
-        this.SendLocation = true;
-        this.SplashScreen = '';
-        this.VirtualKeyboardVibrateDuration = 25;
-        this.VirtualKeyboardVisible = DetectMobileBrowser.IsMobile;
-        this.WebSocketUrlPath = '';
+//# sourceMappingURL=filetransfer.js.map
+var VirtualKeyboard = (function () {
+    function VirtualKeyboard(crt, container) {
+        var _this = this;
+        this._AltPressed = false;
+        this._CapsLockEnabled = false;
+        this._CtrlPressed = false;
+        this._ShiftPressed = false;
+        this._SupportsTouchEvents = false;
+        this._VibrateDurationInMilliseconds = 25;
+        this._Visible = true;
+        this._ClassKeys = {
+            '27': 'Escape',
+            '36': 'HomeEndInsertDelete',
+            '35': 'HomeEndInsertDelete',
+            '45': 'HomeEndInsertDelete',
+            '46': 'HomeEndInsertDelete',
+            '8': 'Backspace',
+            '9': 'Tab',
+            '220': 'Backslash',
+            '20': 'CapsLock',
+            '13': 'Enter',
+            '1004': 'ShiftLeft',
+            '38': 'ArrowUp',
+            '17': 'Ctrl',
+            '18': 'Alt',
+            '32': 'Spacebar',
+            '37': 'ArrowLeft',
+            '40': 'ArrowDown',
+            '39': 'ArrowRight'
+        };
+        this._Keys = [];
+        this._Crt = crt;
+        container.appendChild(this.CreateDivElement());
+        var Keys = document.getElementsByClassName('fTelnetKeyboardKey');
+        for (var i = 0; i < Keys.length; i++) {
+            if (Keys[i].addEventListener) {
+                var KeyCode = Keys[i].getAttribute('data-keycode');
+                if (KeyCode !== null) {
+                    if (this._Keys[KeyCode][2] > 0) {
+                        Keys[i].addEventListener('click', function (e) { if (!_this._SupportsTouchEvents) {
+                            _this.OnCharCode(e);
+                        } }, false);
+                        Keys[i].addEventListener('touchend', function (e) { _this.OnCharCode(e); }, false);
+                        Keys[i].addEventListener('touchstart', function () { _this.OnTouchStart(); }, false);
+                    }
+                    else {
+                        Keys[i].addEventListener('click', function (e) { if (!_this._SupportsTouchEvents) {
+                            _this.OnKeyCode(e);
+                        } }, false);
+                        Keys[i].addEventListener('touchend', function (e) { _this.OnKeyCode(e); }, false);
+                        Keys[i].addEventListener('touchstart', function () { _this.OnTouchStart(); }, false);
+                    }
+                }
+            }
+        }
     }
-    return fTelnetOptions;
+    VirtualKeyboard.prototype.CreateDivElement = function () {
+        var Rows = [
+            [
+                [27, 'Esc', 0, 0],
+                [112, 'F1', 0, 0],
+                [113, 'F2', 0, 0],
+                [114, 'F3', 0, 0],
+                [115, 'F4', 0, 0],
+                [116, 'F5', 0, 0],
+                [117, 'F6', 0, 0],
+                [118, 'F7', 0, 0],
+                [119, 'F8', 0, 0],
+                [120, 'F9', 0, 0],
+                [121, 'F10', 0, 0],
+                [122, 'F11', 0, 0],
+                [123, 'F12', 0, 0],
+                [36, 'Home', 0, 0],
+                [35, 'End', 0, 0],
+                [45, 'Ins', 0, 0],
+                [46, 'Del', 0, 0]
+            ],
+            [
+                [192, '~<br />`', 126, 96],
+                [49, '!<br />1', 33, 49],
+                [50, '@<br />2', 64, 50],
+                [51, '#<br />3', 35, 51],
+                [52, '$<br />4', 36, 52],
+                [53, '%<br />5', 37, 53],
+                [54, '^<br />6', 94, 54],
+                [55, '&<br />7', 38, 55],
+                [56, '*<br />8', 42, 56],
+                [57, '(<br />9', 40, 57],
+                [48, ')<br />0', 41, 48],
+                [173, '_<br />-', 95, 45],
+                [61, '+<br />=', 43, 61],
+                [8, 'Backspace', 0, 0]
+            ],
+            [
+                [9, 'Tab', 0, 0],
+                [81, 'Q', 81, 113],
+                [87, 'W', 87, 119],
+                [69, 'E', 69, 101],
+                [82, 'R', 82, 114],
+                [84, 'T', 84, 116],
+                [89, 'Y', 89, 121],
+                [85, 'U', 85, 117],
+                [73, 'I', 73, 105],
+                [79, 'O', 79, 111],
+                [80, 'P', 80, 112],
+                [219, '{<br />[', 123, 91],
+                [221, '}<br />]', 125, 93],
+                [220, '|<br />\\', 124, 92]
+            ],
+            [
+                [20, 'Caps Lock', 0, 0],
+                [65, 'A', 65, 97],
+                [83, 'S', 83, 115],
+                [68, 'D', 68, 100],
+                [70, 'F', 70, 102],
+                [71, 'G', 71, 103],
+                [72, 'H', 72, 104],
+                [74, 'J', 74, 106],
+                [75, 'K', 75, 107],
+                [76, 'L', 76, 108],
+                [59, ':<br />;', 58, 59],
+                [222, '"<br />\'', 34, 39],
+                [13, 'Enter', 0, 0]
+            ],
+            [
+                [1004, 'Shift', 0, 0],
+                [90, 'Z', 90, 122],
+                [88, 'X', 88, 120],
+                [67, 'C', 67, 99],
+                [86, 'V', 86, 118],
+                [66, 'B', 66, 98],
+                [78, 'N', 78, 110],
+                [77, 'M', 77, 109],
+                [188, '&lt;<br />,', 60, 44],
+                [190, '&gt;<br />.', 62, 46],
+                [191, '?<br />/', 63, 47],
+                [33, 'Page<br />Up', 0, 0],
+                [38, '', 0, 0],
+                [34, 'Page<br />Down', 0, 0]
+            ],
+            [
+                [17, 'Ctrl', 0, 0],
+                [18, 'Alt', 0, 0],
+                [32, '&nbsp;', 0, 0],
+                [18, 'Alt', 0, 0],
+                [17, 'Ctrl', 0, 0],
+                [37, '', 0, 0],
+                [40, '', 0, 0],
+                [39, '', 0, 0]
+            ]
+        ];
+        var Html = '';
+        for (var Row = 0; Row < Rows.length; Row++) {
+            Html += '<div class="fTelnetKeyboardRow';
+            if (Row === 0) {
+                Html += ' fTelnetKeyboardRowFunction';
+            }
+            Html += '">';
+            for (var i = 0; i < Rows[Row].length; i++) {
+                Html += '<div class="fTelnetKeyboardKey';
+                if (typeof this._ClassKeys[Rows[Row][i][0]] !== 'undefined') {
+                    Html += ' fTelnetKeyboardKey' + this._ClassKeys[Rows[Row][i][0]];
+                }
+                Html += '" data-keycode="' + Rows[Row][i][0] + '">';
+                Html += Rows[Row][i][1];
+                Html += '</div>';
+                this._Keys[Rows[Row][i][0]] = Rows[Row][i];
+            }
+            Html += '</div>';
+        }
+        var ChildDiv = document.createElement('div');
+        ChildDiv.className = 'fTelnetKeyboard';
+        ChildDiv.innerHTML = Html;
+        this._Div = document.createElement('div');
+        this._Div.className = 'fTelnetKeyboardWrapper';
+        this._Div.appendChild(ChildDiv);
+        this._Div.style.display = (this._Visible ? 'block' : 'none');
+        return this._Div;
+    };
+    VirtualKeyboard.prototype.HighlightKey = function (className, lit) {
+        var Keys = document.getElementsByClassName(className);
+        for (var i = 0; i < Keys.length; i++) {
+            if (lit) {
+                Keys[i].style.color = '#00ff00';
+            }
+            else {
+                Keys[i].removeAttribute('style');
+            }
+        }
+    };
+    VirtualKeyboard.prototype.OnCharCode = function (e) {
+        var KeyCodeString = e.target.getAttribute('data-keycode');
+        if (KeyCodeString !== null) {
+            var KeyCode = parseInt(KeyCodeString, 10);
+            var CharCode = 0;
+            if ((KeyCode >= 65) && (KeyCode <= 90)) {
+                CharCode = parseInt((this._ShiftPressed !== this._CapsLockEnabled) ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
+            }
+            else {
+                CharCode = parseInt(this._ShiftPressed ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
+            }
+            var NeedReDraw = false;
+            var RegularKey = true;
+            if (this._AltPressed) {
+                NeedReDraw = true;
+                RegularKey = false;
+            }
+            if (this._CtrlPressed) {
+                NeedReDraw = true;
+                RegularKey = false;
+            }
+            if (this._ShiftPressed) {
+                NeedReDraw = true;
+            }
+            this._Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+            if (RegularKey) {
+                this._Crt.PushKeyPress(CharCode, 0, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+            }
+            if (!!navigator.vibrate && (this._VibrateDurationInMilliseconds > 0)) {
+                navigator.vibrate(25);
+            }
+            if (NeedReDraw) {
+                this._AltPressed = false;
+                this._CtrlPressed = false;
+                this._ShiftPressed = false;
+                this.ReDrawSpecialKeys();
+            }
+        }
+    };
+    VirtualKeyboard.prototype.OnKeyCode = function (e) {
+        var KeyCodeString = e.target.getAttribute('data-keycode');
+        if (KeyCodeString !== null) {
+            var KeyCode = parseInt(KeyCodeString, 10);
+            var NeedReset = false;
+            switch (KeyCode) {
+                case KeyboardKeys.ALTERNATE:
+                    this._AltPressed = !this._AltPressed;
+                    this.ReDrawSpecialKeys();
+                    break;
+                case KeyboardKeys.CAPS_LOCK:
+                    this._CapsLockEnabled = !this._CapsLockEnabled;
+                    this.ReDrawSpecialKeys();
+                    break;
+                case KeyboardKeys.CONTROL:
+                    this._CtrlPressed = !this._CtrlPressed;
+                    this.ReDrawSpecialKeys();
+                    break;
+                case KeyboardKeys.SHIFTLEFT:
+                    this._ShiftPressed = !this._ShiftPressed;
+                    this.ReDrawSpecialKeys();
+                    break;
+                default:
+                    NeedReset = true;
+                    break;
+            }
+            this._Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
+            if (!!navigator.vibrate && (this._VibrateDurationInMilliseconds > 0)) {
+                navigator.vibrate(25);
+            }
+            if (NeedReset) {
+                this._AltPressed = false;
+                this._CtrlPressed = false;
+                this._ShiftPressed = false;
+                this.ReDrawSpecialKeys();
+            }
+        }
+    };
+    VirtualKeyboard.prototype.OnTouchStart = function () {
+        if (this._SupportsTouchEvents) {
+            return;
+        }
+        this._SupportsTouchEvents = true;
+        var Keys = document.getElementsByClassName('fTelnetKeyboardKey');
+        for (var i = 0; i < Keys.length; i++) {
+            if (Keys[i].removeEventListener) {
+                var KeyCode = Keys[i].getAttribute('data-keycode');
+                if (KeyCode !== null) {
+                    if (this._Keys[KeyCode][2] > 0) {
+                        Keys[i].removeEventListener('click', this.OnCharCode);
+                        Keys[i].removeEventListener('touchstart', this.OnTouchStart, false);
+                    }
+                    else {
+                        Keys[i].removeEventListener('click', this.OnKeyCode, false);
+                        Keys[i].removeEventListener('touchstart', this.OnTouchStart, false);
+                    }
+                }
+            }
+        }
+    };
+    VirtualKeyboard.prototype.ReDrawSpecialKeys = function () {
+        this.HighlightKey('fTelnetKeyboardKeyCapsLock', this._CapsLockEnabled);
+        this.HighlightKey('fTelnetKeyboardKeyShiftLeft', this._ShiftPressed);
+        this.HighlightKey('fTelnetKeyboardKeyCtrl', this._CtrlPressed);
+        this.HighlightKey('fTelnetKeyboardKeyAlt', this._AltPressed);
+    };
+    Object.defineProperty(VirtualKeyboard.prototype, "VibrateDurationInMilliseconds", {
+        get: function () {
+            return this._VibrateDurationInMilliseconds;
+        },
+        set: function (value) {
+            this._VibrateDurationInMilliseconds = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(VirtualKeyboard.prototype, "Visible", {
+        get: function () {
+            return this._Visible;
+        },
+        set: function (value) {
+            this._Visible = value;
+            if (typeof this._Div !== 'undefined') {
+                this._Div.style.display = (value ? 'block' : 'none');
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return VirtualKeyboard;
 }());
 var fTelnetClient = (function () {
     function fTelnetClient(containerId, options) {
@@ -6219,7 +6545,7 @@ var fTelnetClient = (function () {
         if (!this._Connection.connected) {
             return;
         }
-        var Text = Clipboard.GetData();
+        var Text = ClipboardHelper.GetData();
         for (var i = 0; i < Text.length; i++) {
             var B = Text.charCodeAt(i);
             if ((B === 13) || (B === 32)) {
@@ -6715,323 +7041,34 @@ var fTelnetClient = (function () {
     });
     return fTelnetClient;
 }());
-var VirtualKeyboard = (function () {
-    function VirtualKeyboard(crt, container) {
-        var _this = this;
-        this._AltPressed = false;
-        this._CapsLockEnabled = false;
-        this._CtrlPressed = false;
-        this._ShiftPressed = false;
-        this._SupportsTouchEvents = false;
-        this._VibrateDurationInMilliseconds = 25;
-        this._Visible = true;
-        this._ClassKeys = {
-            '27': 'Escape',
-            '36': 'HomeEndInsertDelete',
-            '35': 'HomeEndInsertDelete',
-            '45': 'HomeEndInsertDelete',
-            '46': 'HomeEndInsertDelete',
-            '8': 'Backspace',
-            '9': 'Tab',
-            '220': 'Backslash',
-            '20': 'CapsLock',
-            '13': 'Enter',
-            '1004': 'ShiftLeft',
-            '38': 'ArrowUp',
-            '17': 'Ctrl',
-            '18': 'Alt',
-            '32': 'Spacebar',
-            '37': 'ArrowLeft',
-            '40': 'ArrowDown',
-            '39': 'ArrowRight'
-        };
-        this._Keys = [];
-        this._Crt = crt;
-        container.appendChild(this.CreateDivElement());
-        var Keys = document.getElementsByClassName('fTelnetKeyboardKey');
-        for (var i = 0; i < Keys.length; i++) {
-            if (Keys[i].addEventListener) {
-                var KeyCode = Keys[i].getAttribute('data-keycode');
-                if (KeyCode !== null) {
-                    if (this._Keys[KeyCode][2] > 0) {
-                        Keys[i].addEventListener('click', function (e) { if (!_this._SupportsTouchEvents) {
-                            _this.OnCharCode(e);
-                        } }, false);
-                        Keys[i].addEventListener('touchend', function (e) { _this.OnCharCode(e); }, false);
-                        Keys[i].addEventListener('touchstart', function () { _this.OnTouchStart(); }, false);
-                    }
-                    else {
-                        Keys[i].addEventListener('click', function (e) { if (!_this._SupportsTouchEvents) {
-                            _this.OnKeyCode(e);
-                        } }, false);
-                        Keys[i].addEventListener('touchend', function (e) { _this.OnKeyCode(e); }, false);
-                        Keys[i].addEventListener('touchstart', function () { _this.OnTouchStart(); }, false);
-                    }
-                }
-            }
-        }
+var fTelnetOptions = (function () {
+    function fTelnetOptions() {
+        this.AllowModernScrollback = true;
+        this.BareLFtoCRLF = false;
+        this.BitsPerSecond = 57600;
+        this.ConnectionType = 'telnet';
+        this.Emulation = 'ansi-bbs';
+        this.Enter = '\r';
+        this.Font = 'CP437';
+        this.ForceWss = false;
+        this.Hostname = 'bbs.ftelnet.ca';
+        this.LocalEcho = false;
+        this.NegotiateLocalEcho = true;
+        this.Port = 1123;
+        this.ProxyHostname = '';
+        this.ProxyPort = 1123;
+        this.ProxyPortSecure = 11235;
+        this.RLoginClientUsername = '';
+        this.RLoginServerUsername = '';
+        this.RLoginTerminalType = '';
+        this.ScreenColumns = 80;
+        this.ScreenRows = 25;
+        this.SendLocation = true;
+        this.SplashScreen = '';
+        this.VirtualKeyboardVibrateDuration = 25;
+        this.VirtualKeyboardVisible = DetectMobileBrowser.IsMobile;
+        this.WebSocketUrlPath = '';
     }
-    VirtualKeyboard.prototype.CreateDivElement = function () {
-        var Rows = [
-            [
-                [27, 'Esc', 0, 0],
-                [112, 'F1', 0, 0],
-                [113, 'F2', 0, 0],
-                [114, 'F3', 0, 0],
-                [115, 'F4', 0, 0],
-                [116, 'F5', 0, 0],
-                [117, 'F6', 0, 0],
-                [118, 'F7', 0, 0],
-                [119, 'F8', 0, 0],
-                [120, 'F9', 0, 0],
-                [121, 'F10', 0, 0],
-                [122, 'F11', 0, 0],
-                [123, 'F12', 0, 0],
-                [36, 'Home', 0, 0],
-                [35, 'End', 0, 0],
-                [45, 'Ins', 0, 0],
-                [46, 'Del', 0, 0]
-            ],
-            [
-                [192, '~<br />`', 126, 96],
-                [49, '!<br />1', 33, 49],
-                [50, '@<br />2', 64, 50],
-                [51, '#<br />3', 35, 51],
-                [52, '$<br />4', 36, 52],
-                [53, '%<br />5', 37, 53],
-                [54, '^<br />6', 94, 54],
-                [55, '&<br />7', 38, 55],
-                [56, '*<br />8', 42, 56],
-                [57, '(<br />9', 40, 57],
-                [48, ')<br />0', 41, 48],
-                [173, '_<br />-', 95, 45],
-                [61, '+<br />=', 43, 61],
-                [8, 'Backspace', 0, 0]
-            ],
-            [
-                [9, 'Tab', 0, 0],
-                [81, 'Q', 81, 113],
-                [87, 'W', 87, 119],
-                [69, 'E', 69, 101],
-                [82, 'R', 82, 114],
-                [84, 'T', 84, 116],
-                [89, 'Y', 89, 121],
-                [85, 'U', 85, 117],
-                [73, 'I', 73, 105],
-                [79, 'O', 79, 111],
-                [80, 'P', 80, 112],
-                [219, '{<br />[', 123, 91],
-                [221, '}<br />]', 125, 93],
-                [220, '|<br />\\', 124, 92]
-            ],
-            [
-                [20, 'Caps Lock', 0, 0],
-                [65, 'A', 65, 97],
-                [83, 'S', 83, 115],
-                [68, 'D', 68, 100],
-                [70, 'F', 70, 102],
-                [71, 'G', 71, 103],
-                [72, 'H', 72, 104],
-                [74, 'J', 74, 106],
-                [75, 'K', 75, 107],
-                [76, 'L', 76, 108],
-                [59, ':<br />;', 58, 59],
-                [222, '"<br />\'', 34, 39],
-                [13, 'Enter', 0, 0]
-            ],
-            [
-                [1004, 'Shift', 0, 0],
-                [90, 'Z', 90, 122],
-                [88, 'X', 88, 120],
-                [67, 'C', 67, 99],
-                [86, 'V', 86, 118],
-                [66, 'B', 66, 98],
-                [78, 'N', 78, 110],
-                [77, 'M', 77, 109],
-                [188, '&lt;<br />,', 60, 44],
-                [190, '&gt;<br />.', 62, 46],
-                [191, '?<br />/', 63, 47],
-                [33, 'Page<br />Up', 0, 0],
-                [38, '', 0, 0],
-                [34, 'Page<br />Down', 0, 0]
-            ],
-            [
-                [17, 'Ctrl', 0, 0],
-                [18, 'Alt', 0, 0],
-                [32, '&nbsp;', 0, 0],
-                [18, 'Alt', 0, 0],
-                [17, 'Ctrl', 0, 0],
-                [37, '', 0, 0],
-                [40, '', 0, 0],
-                [39, '', 0, 0]
-            ]
-        ];
-        var Html = '';
-        for (var Row = 0; Row < Rows.length; Row++) {
-            Html += '<div class="fTelnetKeyboardRow';
-            if (Row === 0) {
-                Html += ' fTelnetKeyboardRowFunction';
-            }
-            Html += '">';
-            for (var i = 0; i < Rows[Row].length; i++) {
-                Html += '<div class="fTelnetKeyboardKey';
-                if (typeof this._ClassKeys[Rows[Row][i][0]] !== 'undefined') {
-                    Html += ' fTelnetKeyboardKey' + this._ClassKeys[Rows[Row][i][0]];
-                }
-                Html += '" data-keycode="' + Rows[Row][i][0] + '">';
-                Html += Rows[Row][i][1];
-                Html += '</div>';
-                this._Keys[Rows[Row][i][0]] = Rows[Row][i];
-            }
-            Html += '</div>';
-        }
-        var ChildDiv = document.createElement('div');
-        ChildDiv.className = 'fTelnetKeyboard';
-        ChildDiv.innerHTML = Html;
-        this._Div = document.createElement('div');
-        this._Div.className = 'fTelnetKeyboardWrapper';
-        this._Div.appendChild(ChildDiv);
-        this._Div.style.display = (this._Visible ? 'block' : 'none');
-        return this._Div;
-    };
-    VirtualKeyboard.prototype.HighlightKey = function (className, lit) {
-        var Keys = document.getElementsByClassName(className);
-        for (var i = 0; i < Keys.length; i++) {
-            if (lit) {
-                Keys[i].style.color = '#00ff00';
-            }
-            else {
-                Keys[i].removeAttribute('style');
-            }
-        }
-    };
-    VirtualKeyboard.prototype.OnCharCode = function (e) {
-        var KeyCodeString = e.target.getAttribute('data-keycode');
-        if (KeyCodeString !== null) {
-            var KeyCode = parseInt(KeyCodeString, 10);
-            var CharCode = 0;
-            if ((KeyCode >= 65) && (KeyCode <= 90)) {
-                CharCode = parseInt((this._ShiftPressed !== this._CapsLockEnabled) ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
-            }
-            else {
-                CharCode = parseInt(this._ShiftPressed ? this._Keys[KeyCode][2] : this._Keys[KeyCode][3], 10);
-            }
-            var NeedReDraw = false;
-            var RegularKey = true;
-            if (this._AltPressed) {
-                NeedReDraw = true;
-                RegularKey = false;
-            }
-            if (this._CtrlPressed) {
-                NeedReDraw = true;
-                RegularKey = false;
-            }
-            if (this._ShiftPressed) {
-                NeedReDraw = true;
-            }
-            this._Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
-            if (RegularKey) {
-                this._Crt.PushKeyPress(CharCode, 0, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
-            }
-            if (!!navigator.vibrate && (this._VibrateDurationInMilliseconds > 0)) {
-                navigator.vibrate(25);
-            }
-            if (NeedReDraw) {
-                this._AltPressed = false;
-                this._CtrlPressed = false;
-                this._ShiftPressed = false;
-                this.ReDrawSpecialKeys();
-            }
-        }
-    };
-    VirtualKeyboard.prototype.OnKeyCode = function (e) {
-        var KeyCodeString = e.target.getAttribute('data-keycode');
-        if (KeyCodeString !== null) {
-            var KeyCode = parseInt(KeyCodeString, 10);
-            var NeedReset = false;
-            switch (KeyCode) {
-                case KeyboardKeys.ALTERNATE:
-                    this._AltPressed = !this._AltPressed;
-                    this.ReDrawSpecialKeys();
-                    break;
-                case KeyboardKeys.CAPS_LOCK:
-                    this._CapsLockEnabled = !this._CapsLockEnabled;
-                    this.ReDrawSpecialKeys();
-                    break;
-                case KeyboardKeys.CONTROL:
-                    this._CtrlPressed = !this._CtrlPressed;
-                    this.ReDrawSpecialKeys();
-                    break;
-                case KeyboardKeys.SHIFTLEFT:
-                    this._ShiftPressed = !this._ShiftPressed;
-                    this.ReDrawSpecialKeys();
-                    break;
-                default:
-                    NeedReset = true;
-                    break;
-            }
-            this._Crt.PushKeyDown(0, KeyCode, this._CtrlPressed, this._AltPressed, this._ShiftPressed);
-            if (!!navigator.vibrate && (this._VibrateDurationInMilliseconds > 0)) {
-                navigator.vibrate(25);
-            }
-            if (NeedReset) {
-                this._AltPressed = false;
-                this._CtrlPressed = false;
-                this._ShiftPressed = false;
-                this.ReDrawSpecialKeys();
-            }
-        }
-    };
-    VirtualKeyboard.prototype.OnTouchStart = function () {
-        if (this._SupportsTouchEvents) {
-            return;
-        }
-        this._SupportsTouchEvents = true;
-        var Keys = document.getElementsByClassName('fTelnetKeyboardKey');
-        for (var i = 0; i < Keys.length; i++) {
-            if (Keys[i].removeEventListener) {
-                var KeyCode = Keys[i].getAttribute('data-keycode');
-                if (KeyCode !== null) {
-                    if (this._Keys[KeyCode][2] > 0) {
-                        Keys[i].removeEventListener('click', this.OnCharCode);
-                        Keys[i].removeEventListener('touchstart', this.OnTouchStart, false);
-                    }
-                    else {
-                        Keys[i].removeEventListener('click', this.OnKeyCode, false);
-                        Keys[i].removeEventListener('touchstart', this.OnTouchStart, false);
-                    }
-                }
-            }
-        }
-    };
-    VirtualKeyboard.prototype.ReDrawSpecialKeys = function () {
-        this.HighlightKey('fTelnetKeyboardKeyCapsLock', this._CapsLockEnabled);
-        this.HighlightKey('fTelnetKeyboardKeyShiftLeft', this._ShiftPressed);
-        this.HighlightKey('fTelnetKeyboardKeyCtrl', this._CtrlPressed);
-        this.HighlightKey('fTelnetKeyboardKeyAlt', this._AltPressed);
-    };
-    Object.defineProperty(VirtualKeyboard.prototype, "VibrateDurationInMilliseconds", {
-        get: function () {
-            return this._VibrateDurationInMilliseconds;
-        },
-        set: function (value) {
-            this._VibrateDurationInMilliseconds = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(VirtualKeyboard.prototype, "Visible", {
-        get: function () {
-            return this._Visible;
-        },
-        set: function (value) {
-            this._Visible = value;
-            if (typeof this._Div !== 'undefined') {
-                this._Div.style.display = (value ? 'block' : 'none');
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return VirtualKeyboard;
+    return fTelnetOptions;
 }());
+//# sourceMappingURL=ftelnetclient.js.map

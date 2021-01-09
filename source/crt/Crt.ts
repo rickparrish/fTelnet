@@ -1075,7 +1075,7 @@ class Crt {
                 }
 
                 // Copy to the clipboard
-                Clipboard.SetData(Text);
+                ClipboardHelper.SetData(Text);
             }
         }
 

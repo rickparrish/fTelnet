@@ -19,7 +19,7 @@
 */
 class fTelnetClient {
     // Events
-    public ondata: IMessageEvent = new TypedEvent();
+    public ondata: IEvent = new TypedEvent();
 
     // Private variables
     private _Ansi: Ansi;
@@ -421,7 +421,7 @@ class fTelnetClient {
         if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
 
-        var Text = Clipboard.GetData();
+        var Text = ClipboardHelper.GetData();
         for (var i = 0; i < Text.length; i++) {
             var B: number = Text.charCodeAt(i);
             if ((B === 13) || (B === 32)) {
@@ -886,7 +886,7 @@ class fTelnetClient {
         // Closure to capture the file information.
         reader.onload = (): void => {
             var FR: FileRecord = new FileRecord(file.name, file.size);
-            var Buffer: ArrayBuffer = reader.result;
+            var Buffer: ArrayBuffer = reader.result as ArrayBuffer;
             var Bytes: Uint8Array = new Uint8Array(Buffer);
             for (var i: number = 0; i < Bytes.length; i++) {
                 FR.data.writeByte(Bytes[i]);

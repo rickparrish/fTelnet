@@ -58,10 +58,10 @@ class VirtualKeyboard {
         container.appendChild(this.CreateDivElement());
 
         // Handle click events for all keys
-        var Keys: NodeList = document.getElementsByClassName('fTelnetKeyboardKey');
+        var Keys: HTMLCollectionOf<HTMLElement> = document.getElementsByClassName('fTelnetKeyboardKey') as HTMLCollectionOf<HTMLElement>;
         for (var i: number = 0; i < Keys.length; i++) {
             if (Keys[i].addEventListener) {  // all browsers except IE before version 9
-                var KeyCode: string | null = (<HTMLDivElement>Keys[i]).getAttribute('data-keycode');
+                var KeyCode: string | null = Keys[i].getAttribute('data-keycode');
                 if (KeyCode !== null) {
                     if (this._Keys[KeyCode][2] > 0) { // [2] is the CharCodeShifted, which only a non-special key has
                         // Regular character
@@ -216,12 +216,12 @@ class VirtualKeyboard {
     }
 
     private HighlightKey(className: string, lit: boolean): void {
-        var Keys: NodeList = document.getElementsByClassName(className);
+        var Keys: HTMLCollectionOf<HTMLElement> = document.getElementsByClassName(className) as HTMLCollectionOf<HTMLElement>;
         for (var i: number = 0; i < Keys.length; i++) {
             if (lit) {
-                (<HTMLDivElement>Keys[i]).style.color = '#00ff00';
+                Keys[i].style.color = '#00ff00';
             } else {
-                (<HTMLDivElement>Keys[i]).removeAttribute('style');
+                Keys[i].removeAttribute('style');
             }
         }
     }
@@ -331,10 +331,10 @@ class VirtualKeyboard {
 
         // TODOX Can this be made to work?
         // We have touch events, unsubscribe to the click events
-        var Keys: NodeList = document.getElementsByClassName('fTelnetKeyboardKey');
+        var Keys: HTMLCollectionOf<HTMLElement> = document.getElementsByClassName('fTelnetKeyboardKey') as HTMLCollectionOf<HTMLElement>;
         for (var i: number = 0; i < Keys.length; i++) {
             if (Keys[i].removeEventListener) {  // all browsers except IE before version 9
-                var KeyCode: string | null = (<HTMLDivElement>Keys[i]).getAttribute('data-keycode');
+                var KeyCode: string | null = Keys[i].getAttribute('data-keycode');
                 if (KeyCode !== null) {
                     if (this._Keys[KeyCode][2] > 0) { // [2] is the CharCodeShifted, which only a non-special key has
                         // Regular character

@@ -23,7 +23,7 @@ class Ansi {
     public onesc5n: IEvent = new TypedEvent();
     public onesc6n: IEvent = new TypedEvent();
     public onesc255n: IEvent = new TypedEvent();
-    public onescQ: IMessageEvent = new TypedEvent();
+    public onescQ: IEvent = new TypedEvent();
     public onripdetect: IEvent = new TypedEvent();
     public onripdisable: IEvent = new TypedEvent();
     public onripenable: IEvent = new TypedEvent();

@@ -3,6 +3,5 @@ interface HTMLElement {
     msExitFullscreen: () => void;
     msFullscreenElement: () => void;
     msRequestFullscreen: () => void;
-    requestFullscreen: () => void;
     webkitRequestFullscreen: () => void;
 }

@@ -4,4 +4,6 @@ interface Document {
     msExitFullscreen: () => void;
     msFullscreenElement: () => void;
     msRequestFullscreen: () => void;
+    webkitExitFullscreen: () => void;
+    webkitFullscreenElement: () => void;
 }
