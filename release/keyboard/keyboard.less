@@ -1,0 +1,161 @@
+@KeySize: floor(@KeyboardWidth / 15); // 15 is a magic number that gets the tab width to be roughly 1.5 keys wide
+@KeyPaddingLeft: floor(@KeySize / 7); // Another magic number
+@KeyWidth: @KeySize - @KeyMargin;
+
+@HomeEndInsertDeleteWidth: @KeyWidth;
+@FunctionWidth: floor((@KeyboardWidth - @KeyWidth - (@HomeEndInsertDeleteWidth * 4) - (@KeyMargin * 16)) / 12);
+@FunctionHeight: floor(@KeyHeight * 0.75);
+@EscWidth: @KeyboardWidth - (@FunctionWidth * 12) - (@HomeEndInsertDeleteWidth * 4) - (@KeyMargin * 16);
+
+@BackspaceWidth: @KeyboardWidth - (@KeyWidth * 13) - (@KeyMargin * 13);
+
+@TabWidth: floor((@KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13)) / 2);
+@BackslashWidth: @KeyboardWidth - (@KeyWidth * 12) - (@KeyMargin * 13) - @TabWidth;
+
+@CapsLockWidth: floor((@KeyboardWidth - (@KeyWidth * 11) - (@KeyMargin * 12)) * 0.43); // CapsLock is 43% of the width of (CapsLock + Enter)
+@EnterWidth: @KeyboardWidth - (@KeyWidth * 11) - (@KeyMargin * 12) - @CapsLockWidth;
+
+@LeftShiftWidth: @KeyboardWidth - (@KeyWidth * 13) - (@KeyMargin * 13);
+
+@SpaceBarWidth: @KeyboardWidth - (@KeyWidth * 7) - (@KeyMargin * 7);
+
+@KeyboardHeight: @FunctionHeight + (@KeyHeight * 5) + (@KeyMargin * 5);
+
+.fTelnetKeyboardWrapper {
+    width: 100%;
+
+    .fTelnetKeyboard {
+        background-color: black;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        height: @KeyboardHeight;
+        width: @KeyboardWidth;
+        margin: auto;
+
+        * {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+        }
+
+        ::selection {
+            background-color: none;
+            color: inherit;
+        }
+
+        ::-moz-selection {
+            background-color: none;
+            color: inherit;
+        }
+
+        .fTelnetKeyboardRow {
+            > :first-child {
+                margin-left: 0 !important;
+            }
+
+            .fTelnetKeyboardKey {
+                background-color: #444;
+                border-radius: 2px;
+                cursor: pointer;
+                color: #eee;
+                font: normal @KeyFontSize sans-serif;
+                float: left;
+                height: @KeyHeight;
+                line-height: @KeyLineHeight;
+                margin: @KeyMargin 0 0 @KeyMargin;
+                padding: @KeyPaddingTop 0 0 @KeyPaddingLeft;
+                transition: background-color 0.2s ease;
+                width: @KeyWidth;
+                text-align: left;
+            }
+
+            .fTelnetKeyboardKey:hover {
+                background-color: #eee;
+                color: #333;
+                font-weight: bold;
+                z-index: 1000;
+            }
+
+            .fTelnetKeyboardKeyArrowDown {
+                background-image: url("img/down-key.png");
+                background-position: @ImagePositionLeft @ImagePositionTop;
+                background-repeat: no-repeat;
+            }
+
+            .fTelnetKeyboardKeyArrowLeft {
+                background-image: url("img/left-key.png");
+                background-position: @ImagePositionLeft @ImagePositionTop;
+                background-repeat: no-repeat;
+            }
+
+            .fTelnetKeyboardKeyArrowRight {
+                background-image: url("img/right-key.png");
+                background-position: @ImagePositionLeft @ImagePositionTop;
+                background-repeat: no-repeat;
+            }
+
+            .fTelnetKeyboardKeyArrowUp {
+                background-image: url("img/up-key.png");
+                background-position: @ImagePositionLeft @ImagePositionTop;
+                background-repeat: no-repeat;
+            }
+
+            .fTelnetKeyboardKeyBackslash {
+                width: @BackslashWidth;
+            }
+
+            .fTelnetKeyboardKeyBackspace {
+                background-image: url("img/backspace-key.png");
+                background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+                background-repeat: no-repeat;
+                width: @BackspaceWidth;
+            }
+
+            .fTelnetKeyboardKeyCapsLock {
+                width: @CapsLockWidth;
+            }
+
+            .fTelnetKeyboardKeyEnter {
+                background-image: url("img/enter-key.png");
+                background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+                background-repeat: no-repeat;
+                width: @EnterWidth;
+            }
+
+            .fTelnetKeyboardKeyShiftLeft {
+                background-image: url("img/shift-key.png");
+                background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+                background-repeat: no-repeat;
+                width: @LeftShiftWidth;
+            }
+
+            .fTelnetKeyboardKeySpacebar {
+                width: @SpaceBarWidth;
+            }
+
+            .fTelnetKeyboardKeyTab {
+                background-image: url("img/tab-key.png");
+                background-position: @KeyPaddingLeft ceil(@KeyHeight / 2);
+                background-repeat: no-repeat;
+                width: @TabWidth;
+            }
+        }
+
+        .fTelnetKeyboardRowFunction {
+            .fTelnetKeyboardKey {
+                height: @FunctionHeight;
+                margin-top: 0;
+                width: @FunctionWidth;
+            }
+
+            .fTelnetKeyboardKeyEscape {
+                width: @EscWidth;
+            }
+
+            .fTelnetKeyboardKeyHomeEndInsertDelete {
+                width: @HomeEndInsertDeleteWidth;
+            }
+        }
+    }
+}

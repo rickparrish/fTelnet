@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "jsx": "preserve",
+        "lib": [
+            "es5",
+            "dom"
+        ],
+        "module": "none",
+        "noEmitOnError": true,
+        "removeComments": true,
+        "rootDir": ".",
+        "sourceMap": true,
+        "target": "es5",
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": "../stage/",
+        "rootDir": ".",
+    },
+    "files": [],
+    "references": [
+        {"path": "./common"},
+        {"path": "./crt"},
+        {"path": "./connections"},
+        {"path": "./crtcontrols"},
+        {"path": "./filetransfer"},
+        {"path": "./graph"},
+        {"path": "./ftelnetclient"},
+    ]
+}

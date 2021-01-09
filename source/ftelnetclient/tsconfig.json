@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "outFile": "../../stage/ftelnetclient.js",
+    },
+    "extends": "../tsconfig-common.json",
+    "references": [
+        {"path": "../common"},
+        {"path": "../connections"},
+        {"path": "../crt"},
+        {"path": "../crtcontrols"},
+        {"path": "../filetransfer"},
+        {"path": "../graph"}
+    ]
+}

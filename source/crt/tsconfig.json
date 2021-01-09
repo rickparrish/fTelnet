@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "outFile": "../../stage/crt.js",
+    },
+    "extends": "../tsconfig-common.json",
+    "references": [
+        {"path": "../common"}
+    ]
+}

@@ -1,0 +1,363 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>fTelnet Documentation</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>fTelnet Documentation</h1>
+            <p class="lead">Everything you ever wanted to know about using fTelnet</p>
+        </div>
+
+        <h2 id="TOC">Table of Contents</h2>
+        <ul>
+            <li><a href="#Managed">Managed vs Unmanaged</a></li>
+            <li><a href="#Support">How to get support</a></li>
+            <li><a href="#Install">How to install</a></li>
+            <li><a href="#Use">How to use</a></li>
+            <li><a href="#Customize">How to customize</a></li>
+            <li><a href="#IE8">Internet Explorer 8 (and older) support</a></li>
+            <li><a href="#Problems">Common problems</a></li>
+            <li><a href="#Help">I need more help</a></li>
+        </ul>
+
+        <hr />
+
+        <h2 id="Managed">Managed vs Unmanaged</h2>
+        <div class="well">
+            <p>fTelnet comes in both Managed and Unmanaged versions, and I can't stress enough how much I recommend using the managed version.</p>
+            <p>Why do I recommend the managed version?  Because it's pretty much foolproof (no offense intended!), and doesn't require you to keep anything up to date, I do all that for you.</p>
+            <p>So if you want to stop reading now and go try the managed version instead, head on over to the <a href="http://embed.ftelnet.ca/wizard.html">Embed Wizard</a>.  Seriously, you'll be up and running in under 5 minutes.  It's awesome.</p>
+
+            <hr />
+
+            <p>I see you're still reading, so I guess you don't want to use the managed version...that sucks because I put a lot of effort into getting that up and running!</p>
+            <p>Anyway, before you 100% decide which version to run, check of these differences:</p>
+            <table class="table table-striped">
+                <tr>
+                    <th width="10%">&nbsp;</th>
+                    <th width="40%">Managed</th>
+                    <th width="40%">Unmanaged</th>
+                </tr>
+                <tr>
+                    <th>Installing</th>
+                    <td>Dead simple</td>
+                    <td>Lots of reading</td>
+                </tr>
+                <tr>
+                    <th>Customizing</th>
+                    <td>Limited, but easy to do</td>
+                    <td>Full, but even more reading</td>
+                </tr>
+                <tr>
+                    <th>Upgrading</th>
+                    <td>I keep everything up to date with the latest bugfixes and improvements</td>
+                    <td>You update as necessary.  And don't forget to RTFM to see what I broke between versions</td>
+                </tr>
+                <tr>
+                    <th>Support</th>
+                    <td>I'm there for you</td>
+                    <td>I'm there for you, but if it sounds like you didn't RTFM, or if you're in way over your head, my answer to your support request may be <strong>Use the Managed version!</strong></td>
+                </tr>
+                <tr>
+                    <th>Price</th>
+                    <td>Free, but the public proxies cost money to run so I'll only keep the ones that see a lot of use.  If I decide to deactivate your preferred proxy due to low usage, a donation will be required to keep it up and running</td>
+                    <td>Free</td>
+                </tr>
+            </table>
+
+            <hr />
+
+            <p>Here's the <a href="http://embed.ftelnet.ca/wizard.html">Embed Wizard</a> link again, just in case you changed your mind!</p>
+        </div>
+        <a href="#TOC">Back to top</a>
+        <hr />
+
+        <h2 id="Support">How to get support</h2>
+        <div class="well">
+            <p>Email is the only way to get ahold of me.  Usually I'm pretty good about answering quickly, but sometimes I need a break from the computer and it may take a day or two.</p>
+            <p>Don't forget to read this entire document and <a href="../demos/index.html">check out the demos</a> before contacting me.  I created the managed version to make things easy for you, so if you're deciding to use the unmanaged version that tells me you're looking for a challenge, and so you need to put some effort into said challenge before asking for help.</p>
+            <p>If you're truly stuck, <a href="https://www.ftelnet.ca/contact">click here for my contact form</a>.</p>
+        </div>
+        <a href="#TOC">Back to top</a>
+        <hr />
+
+        <h2 id="Install">How to install</h2>
+        <div class="well">
+            <p>Installing is pretty simple.  If you're reading this that means you've already downloaded and extracted the archive, so just put all these files into an fTelnet directory on your webserver and you're good to go.</p>
+        </div>
+        <a href="#TOC">Back to top</a>
+        <hr />
+
+        <h2 id="Use">How to use</h2>
+        <div class="well">
+            <!--TODOX This will have to be updated-->
+            <p>Using fTelnet is almost as easy as installing it was.  First you need to include the correct files.  Assuming you have an index.html in your document root, and fTelnet in a subdirectory called fTelnet, you can do that by putting this in your &lt;body> section where you want the client to appear:</p>
+            <code>
+                &lt;div id="fTelnetContainer">&lt;/div><br />
+                &lt;!-- Javascript used to power fTelnet --><br />
+                &lt;script src="fTelnet/fTelnet.min.js" id="fTelnetScript">&lt;/script><br />
+                &lt;script><br />
+                &nbsp; &nbsp; fTelnet.Init();
+                &lt;/script><br />
+            </code>
+            <p>That should now get you up and running.  Want a more complete example?  <a href="../demos/index.html">Check out the demos</a></p>
+        </div>
+        <a href="#TOC">Back to top</a>
+        <hr />
+
+        <h2 id="Customize">How to customize</h2>
+        <div class="well">
+            <p>Ahh, now we get to the meat of the document.  You've installed fTelnet, you've got it up and running, and now you want to customize it (what, you mean you DIDN'T want it to just connect to my server?!?)</p>
+            <p>So here's a complete (at the time of this writing, hopefully I'll remember to keep it up to date in the future!) list of variables that you can customize.  You should assign values to these variables right before you call fTelnet.Init().  You should be able to assign them after you call fTelnet.Init(), but some of them may cause flicker (ie font or screen size changes), so best to do it before.</p>
+            <table class="table table-striped">
+                <tr>
+                    <th>Variable</th>
+                    <th>Type</th>
+                    <th>Default</th>
+                    <th>Notes</th>
+                </tr>
+                <tr>
+                    <td>BareLFtoCRLF</td>
+                    <td>boolean</td>
+                    <td>false</td>
+                    <td>
+                        <p><strong>true: </strong> a BARE LINE FEED (one that is not preceded by a CARRIAGE RETURN) from the server will be treated as a CARRIAGE RETURN + LINE FEED pair</p>
+                        <p><strong>false: </strong> no translation of LINE FEED occurs (BARE or not)</p>
+                        <p>Useful for servers that break the telnet spec and send "\n" instead of "\r\n" to end a line</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>BitsPerSecond</td>
+                    <td>number</td>
+                    <td>57600</td>
+                    <td>
+                        Lets you emulate a given connection speed.  I don't recommend you use a value higher than this as it causes problems with painting (ie entire screens get drawn at once after a small but noticeable delay, rather than a couple lines at a time)
+                    </td>
+                </tr>
+                <tr>
+                    <td>ConnectionType</td>
+                    <td>string</td>
+                    <td>telnet</td>
+                    <td>
+                        <p><strong>rlogin: </strong> You're going to be making an rlogin connection (see other RLogin* settings below)</p>
+                        <p><strong>tcp: </strong> You're going to be making a raw tcp connection (no protocol will be used)</p>
+                        <p><strong>telnet: </strong> You're going to be making a telnet connection</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Emulation</td>
+                    <td>string</td>
+                    <td>ansi-bbs</td>
+                    <td>
+                        <p><strong>ansi-bbs: </strong> The default, and probably only value you'll ever want to use</p>
+                        <p><strong>RIP: </strong> Enable RIPscript mode.  Still very experimental, I wouldn't use this in production</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Enter</td>
+                    <td>string</td>
+                    <td>\r</td>
+                    <td>The character(s) that get sent when the user hits the Enter key.  Most BBSes expect a CARRIAGE RETURN only, but if your server follows the telnet spec and wants both CARRIAGE RETURN + LINE FEED, then change this to \r\n</td>
+                </tr>
+                <tr>
+                    <td>Font</td>
+                    <td>string</td>
+                    <td>CP437</td>
+                    <td>The character set to use.  TODO need to add a popup that lists the available options</td>
+                </tr>
+                <tr>
+                    <td>ForceWss</td>
+                    <td>boolean</td>
+                    <td>false</td>
+                    <td>
+                        <p><strong>true: </strong> Always use the secure wss:// protocol for connecting to the server</p>
+                        <p><strong>false: </strong> Use the secure wss:// protocol for pages served via https://, and normal ws:// protocol for pages served via http://</p>
+                        <p>If your server supports wss://, then it makes sense to change this to true</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Hostname</td>
+                    <td>string</td>
+                    <td>bbs.ftelnet.ca</td>
+                    <td>The hostname (or ip address) of the server you want to connect to</td>
+                </tr>
+                <tr>
+                    <td>LocalEcho</td>
+                    <td>boolean</td>
+                    <td>false</td>
+                    <td>
+                        <p><strong>true: </strong> User input is echo'd to the screen</p>
+                        <p><strong>false: </strong> User input is not echo'd to the screen</p>
+                        <p>Most BBSes handle echoing input back to the user, which is why the default is false</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Port</td>
+                    <td>number</td>
+                    <td>1123</td>
+                    <td>
+                        <p>If the server you are connecting to <strong>DOES SPEAK</strong> WebSocket, then you want to specify the port of the server here.  I've arbitrarily chosen 1123 as the default WebSocket port in the server software I wrote because it (A) is > 1024, (B) has <strong>23</strong> in it, and (C) is the start of the <a href="http://en.wikipedia.org/wiki/Fibonacci_number" target="_blank">fibonacci sequence</a></p>
+                        <p>If the server you are connecting to <strong>DOES NOT SPEAK</strong> WebSocket, then you want to specify the port of the telnet server you'll be proxied to.  This is usually going to be 23</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>ProxyHostname</td>
+                    <td>string</td>
+                    <td><em>blank</em></td>
+                    <td>
+                        <p>If the server you are connecting to <strong>DOES SPEAK</strong> WebSocket, leave this alone</p>
+                        <p>If the server you are connecting to <strong>DOES NOT SPEAK</strong> WebSocket, then you want to specify the hostname (or ip address) of the WebSocket-to-telnet proxy that you'll be connecting to</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>ProxyPort</td>
+                    <td>number</td>
+                    <td>1123</td>
+                    <td>
+                        <p>If the server you are connecting to <strong>DOES SPEAK</strong> WebSocket, leave this alone</p>
+                        <p>If the server you are connecting to <strong>DOES NOT SPEAK</strong> WebSocket, then you want to specify the port of the WebSocket-to-telnet proxy that you'll be connecting to</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>ProxyPortSecure</td>
+                    <td>number</td>
+                    <td>11235</td>
+                    <td>
+                        <p>If the server you are connecting to <strong>DOES SPEAK</strong> WebSocket, leave this alone</p>
+                        <p>If the server you are connecting to <strong>DOES NOT SPEAK</strong> WebSocket, then you want to specify the secure port of the WebSocket-to-telnet proxy that you'll be connecting to.  Some server software listen for wss:// connections on a different port than ws:// connections, hence the two port numbers.  If your proxy listens on the same port for both types, then you can specify the same ports for both settings.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>RLoginClientUsername</td>
+                    <td>string</td>
+                    <td><i>blank</i></td>
+                    <td>
+                        <p>The string to send for the client-user-name portion of the connection establishment packet</p>
+                        <p>If using Synchronet's auto login feature, this should be your password</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>RLoginServerUsername</td>
+                    <td>string</td>
+                    <td><i>blank</i></td>
+                    <td>
+                        <p>The string to send for the server-user-name portion of the connection establishment packet</p>
+                        <p>If using Synchronet's auto login feature, this should be your username</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>RLoginTerminalType</td>
+                    <td>string</td>
+                    <td><i>blank</i></td>
+                    <td>
+                        <p>The string to send for the terminal-type/speed portion of the connection establishment packet</p>
+                        <p>If you leave this blank, the default of ansi-bbs/BitsPerSecond (ie ansi-bbs/57600) will be used</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>ScreenColumns</td>
+                    <td>number</td>
+                    <td>80</td>
+                    <td>The number of columns making up the client area</td>
+                </tr>
+                <tr>
+                    <td>ScreenRows</td>
+                    <td>number</td>
+                    <td>25</td>
+                    <td>The number of rows making up the client area</td>
+                </tr>
+                <tr>
+                    <td>SplashScreen</td>
+                    <td>string</td>
+                    <td><em>base64 data</em></td>
+                    <td>A base64 encoded string containing the ANSI screen that will be displayed to the user after the client initializes</td>
+                </tr>
+                <tr>
+                    <td>VirtualKeyboardVibrateDuration</td>
+                    <td>number</td>
+                    <td>25</td>
+                    <td>The number of milliseconds to vibrate for when a virtual keyboard key is pressed.  A value of 0 will disable the vibration feature</td>
+                </tr>
+                <tr>
+                    <td>VirtualKeyboardVisible</td>
+                    <td>boolean</td>
+                    <td>true</td>
+                    <td>
+                        <p><strong>true: </strong> The virtual keyboard is visible</p>
+                        <p><strong>false: </strong> The virtual keyboard is hidden</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>WebSocketUrlPath</td>
+                    <td>string</td>
+                    <td><em>blank</em></td>
+                    <td>
+                        If you are using a proxy, this setting does nothing.  If you are not using a proxy, this is the path to append to the WebSocket Url.<br />
+                        For example if your hostname is bbs.ftelnet.ca and port is 80, fTelnet will connect to ws://bbs.ftelnet.ca:80.<br />
+                        If what you really need is ws://bbs.ftelnet.ca:80/plus/some/path, then you want to set WebSocketUrlPath to '/plus/some/path'.<br />
+                        If you're confused by this setting, don't worry, 99.9% of people won't need it and can leave it blank.</td>
+                </tr>
+            </table>
+
+            <p>Additionally, there is that fTelnet.css that you can customize to control the appearance of the buttons / statusbar / etc.</p>
+        </div>
+        <a href="#TOC">Back to top</a>
+        <hr />
+
+        <h2 id="IE8">Internet Explorer 8 (and older) Support</h2>
+        <div class="well">
+            <p>Internet Explorer 8 (and older) do not support the Canvas element, and while there are polyfills, none of them have support for the features fTelnet needs.  So unfortunately IE8 (and older) will never be supported.</p>
+        </div>
+        <hr />
+
+        <h2 id="Problems">Common Problems</h2>
+        <div class="well">
+            <p>There's a few things that are easy to miss that make a big difference between fTelnet working and not working.  So a few of them are:</p>
+
+            <h3>I don't see the client anywhere</h3>
+            <blockquote>Did you call <strong>fTelnet.Init();</strong> at the bottom of your page/in an on document ready event?</blockquote>
+
+            <!--TODOX-->
+            <h3>I get a popup error that says "fTelnet Error: Element with id="fTelnetContainer" was not found"</h3>
+            <blockquote>You need a placeholder element (usually a div) with <strong>id="fTelnetContainer"</strong> on your page somewhere.  When you call fTelnet.Init(), it'll put the fTelnet client into that placeholder element.</blockquote>
+
+            <h3>The button bar links/status bar look plain</h3>
+            <blockquote>Did you add a reference to <strong>ftelnet.css</strong>?</blockquote>
+
+            <h3>The virtual keyboard looks ugly</h3>
+            <blockquote>Did you add the placholder stylesheet element with the <strong>id="fTelnetKeyboardCss"</strong>?  And also use <strong>id="fTelnetScript"</strong> when referencing the <strong>ftelnet.min.js</strong> script?</blockquote>
+
+            <h3>I get an error/don't see anything with Internet Explorer 8 and older</h3>
+            <blockquote>Did you add the <strong>&lt;!-- Stop IE8 and below from complaining about Object.defineProperty --></strong> code to your page?  That fixes the error.  It still doesn't fix the client though, IE8 and older don't support Canvas, so all you'll see is "fTelnet Error: Internet Explorer < 9 is not supported."</blockquote>
+
+            <h3>Uploading and downloading don't work</h3>
+            <blockquote>Those features work for me in all the desktop browsers (well not IE9, but it doesn't use real WebSockets), so if you're using a desktop browser get ahold of me and let me know what browser+version.  I haven't had as much luck with the mobile browsers though, so don't bother reporting problems there because there's probably not much I can do.</blockquote>
+        </div>
+        <a href="#TOC">Back to top</a>
+        <hr />
+
+        <h2 id="Help">I need more help</h2>
+        <div class="well">
+            <p>First, re-read this document</p>
+            <p>Second, <a href="../demos/index.html">check out the demos</a></p>
+            <p>Third, consider using the <a href="http://embed.ftelnet.ca/wizard.html">managed version</a></p>
+            <p>And if after all that you still need more help, then <a href="#Support">see the support section above</a></p>
+        </div>
+        <a href="#TOC">Back to top</a>
+        <hr />
+
+        <p class="footer"><a href="https://www.ftelnet.ca" target="_blank">fTelnet</a> is copyright &copy; <a href="https://www.rickparrish.ca" target="_blank">Rick Parrish</a> of <a href="https://www.randm.ca" target="_blank">R&amp;M Software</a></p>
+    </div>
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "outFile": "../../stage/filetransfer.js",
+    },
+    "extends": "../tsconfig-common.json",
+    "references": [
+        {"path": "../common"},
+        {"path": "../connections"},
+        {"path": "../crt"},
+        {"path": "../crtcontrols"}
+    ]
+}

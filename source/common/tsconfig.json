@@ -1,0 +1,6 @@
+{
+    "compilerOptions": {
+        "outFile": "../../stage/common.js",
+    },
+    "extends": "../tsconfig-common.json"
+}

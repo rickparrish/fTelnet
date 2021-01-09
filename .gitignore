@@ -1,20 +1,5 @@
-debug/
-
-release/ftelnet.combined.js
-release/keyboard/*.css.map
-
-packages/
-
-# User-specific files
-*.suo
-*.user
-*.sln.docstates
-
-# Build results
-[Bb]in/
-[Oo]bj/
-
-.vs/
+node_modules/
+stage/
 
 # =========================
 # Windows detritus

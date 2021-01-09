@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "outFile": "../../stage/connections.js",
+    },
+    "extends": "../tsconfig-common.json",
+    "references": [
+        {"path": "../common"},
+        {"path": "../crt"}
+    ]
+}
