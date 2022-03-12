@@ -1,7 +1,13 @@
 {
+  "name": "fTelnet",
+  "version": "1.0.0",
+  "description": "The foundation of an Iniquity bbs application.",
+  "author": "ispyhumanfly <ispyhumanfly@gmail.com>",
+  "homepage": "http://iniquitybbs.com",
+  "license": "MIT",
+  "private": false,
   "requires": true,
   "lockfileVersion": 1,
-  "dependencies": {},
   "devDependencies": {
     "async": "^3.2.0",
     "jsmin": "^1.0.1",
