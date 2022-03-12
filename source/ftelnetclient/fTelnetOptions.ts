@@ -44,4 +44,5 @@ class fTelnetOptions {
     public VirtualKeyboardVibrateDuration: number = 25;
     public VirtualKeyboardVisible: boolean = DetectMobileBrowser.IsMobile;
     public WebSocketUrlPath: string = '';
+    public StatusBarColor: string = 'blue'
 }

@@ -653,11 +653,11 @@ class fTelnetClient {
 
         if (this._Options.ProxyHostname === '') {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor
             this._ClientContainer.style.opacity = '1.0';
         } else {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor
             this._ClientContainer.style.opacity = '1.0';
         }
 
