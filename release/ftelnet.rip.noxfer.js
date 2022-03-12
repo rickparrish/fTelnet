@@ -921,7 +921,7 @@ var Ansi = (function () {
                 x = this.GetNextParam(0);
                 y = this.GetNextParam(0);
                 z = this.GetNextParam(0);
-                this.onescQ.trigger(x.toString(10));
+                this.onescQ.trigger('CP' + x.toString(10) + '_' + y.toString(10) + 'x' + z.toString(10));
                 break;
             case 'r':
                 if (this._AnsiIntermediates.length === 0) {
