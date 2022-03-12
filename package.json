@@ -1,5 +1,5 @@
 {
-  "name": "@iniquitybbs/fTelnet",
+  "name": "fTelnet",
   "version": "1.0.0",
   "description": "The foundation of an Iniquity bbs application.",
   "author": "ispyhumanfly <ispyhumanfly@gmail.com>",
@@ -9,7 +9,7 @@
   "requires": true,
   "scripts": {
     "build": "npx tsc --build source && node postbuild.js",
-    "start": "npx webtelnet 8888 23 -h d1st.prg -c 437 -w ./release/"
+    "start": "npx webtelnet 8888 23 -h localhost -c 437 -w ./release/"
   },
   "lockfileVersion": 1,
   "devDependencies": {
