@@ -4,17 +4,22 @@
     <head>
         <meta charset='utf-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <title>iniquitybbs.com</title>
+        <title>fTelnet</title>
         <style>
             html, body { margin: 0; height: 100%; }
-            html, body { overflow: hidden;}
+            html, body { overflow: hidden; }
+            body {
+                background-color: black;
+                display: none;
+            }
             
         </style>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script>
+           
+            // TASK doing this is a neet effect, but, I noticed the window is sized improperly upon initial render. Any ideas?
             $(document).ready(function() {
-                //$("iframe").hide()
                 $("body").each(function() {
                     $(this).fadeIn(10000);
                 });
@@ -22,7 +27,7 @@
         </script>
     </head>
 
-    <body style="background-color: black;" scroll="no">
+    <body scroll="no">
 
         <div id="fTelnetContainer" class="fTelnetContainer"></div>
         <script id="fTelnetScript">
@@ -46,6 +51,9 @@
             Options.SendLocation = true;
             Options.ProxyHostname = "localhost"
             Options.StatusBarColor = "black"
+            Options.DisableStatusBar = true
+            Options.DisableMenu = true
+            Options.DisableFocusBar = true
             var fTelnet = new fTelnetClient('fTelnetContainer', Options);
             fTelnet.Connect()
         </script>
