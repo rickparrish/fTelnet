@@ -1,26 +1,52 @@
 ﻿<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>Super Simple Sample</title>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-</head>
-<body>
-    <h1 style="text-align: center">Super Simple Sample</h1>
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <title>iniquitybbs.com</title>
+        <style>
+            html, body { margin: 0; height: 100%; }
+            html, body { overflow: hidden;}
+            
+        </style>
 
-    <p>This is a super simple sample of how to use fTelnet.  For more information, <a href="docs/index.html">see the docs</a>.</p>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                //$("iframe").hide()
+                $("body").each(function() {
+                    $(this).fadeIn(10000);
+                });
+            });
+        </script>
+    </head>
 
-    <div id="fTelnetContainer"></div>
-    <script src="ftelnet.norip.noxfer.min.js" id="fTelnetScript"></script>
-    <script>
-        var Options = new fTelnetOptions();
-        Options.Hostname = "bbs.ftelnet.ca";
-        Options.Port = 23;
-        Options.ProxyHostname = "proxy-us-ga.ftelnet.ca";
-        
-        var Client = new fTelnetClient('fTelnetContainer', Options);
-    </script>
-</body>
+    <body style="background-color: black; display: none;" scroll="no">
+
+        <div id="fTelnetContainer" class="fTelnetContainer"></div>
+        <script id="fTelnetScript">
+            document.write('<script src="ftelnet.js?v=' + (new Date()).getTime() + '"><\/script>');
+        </script>
+        <script>
+            var Options = new fTelnetOptions();
+            Options.BareLFtoCRLF = false;
+            Options.BitsPerSecond = 57600;
+            Options.ConnectionType = 'telnet';
+            Options.Emulation = 'ansi-bbs';
+            Options.Enter = '\r';
+            Options.Font = 'CP437';
+            Options.ForceWss = false;
+            Options.Hostname = 'localhost';
+            Options.LocalEcho = false;
+            Options.NegotiateLocalEcho = true;
+            Options.Port = 23;
+            Options.ScreenColumns = 132;
+            Options.ScreenRows = 37;
+            Options.SendLocation = true;
+            Options.ProxyHostname = "localhost"
+            var fTelnet = new fTelnetClient('fTelnetContainer', Options);
+            fTelnet.Connect()
+        </script>
+
+    </body>
 </html>
