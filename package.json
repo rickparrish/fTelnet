@@ -5,11 +5,11 @@
   "author": "ispyhumanfly <ispyhumanfly@gmail.com>",
   "homepage": "http://iniquitybbs.com",
   "license": "MIT",
-  "private": false,
+  "private": true,
   "requires": true,
   "scripts": {
     "build": "npx tsc --build source && node postbuild.js",
-    "start": "npx webtelnet 8888 23 -h localhost -c 437 -w ./release/"
+    "start": "npx webtelnet 8888 23 -h d1st.prg -c 437 -w ./release/"
   },
   "lockfileVersion": 1,
   "devDependencies": {
@@ -17,5 +17,8 @@
     "jsmin": "^1.0.1",
     "typescript": "^4.1.3",
     "webtelnet": "^1.1.0"
+  },
+  "bin": {
+    "fTelnet": "./node_modules/.bin/webtelnet"
   }
 }

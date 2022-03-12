@@ -10160,12 +10160,12 @@ var fTelnetClient = (function () {
         this._Crt.ClrScr();
         if (this._Options.ProxyHostname === '') {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor;
             this._ClientContainer.style.opacity = '1.0';
         }
         else {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor;
             this._ClientContainer.style.opacity = '1.0';
         }
         if (this._Options.ConnectionType === 'rlogin') {
@@ -10438,6 +10438,7 @@ var fTelnetOptions = (function () {
         this.VirtualKeyboardVibrateDuration = 25;
         this.VirtualKeyboardVisible = DetectMobileBrowser.IsMobile;
         this.WebSocketUrlPath = '';
+        this.StatusBarColor = 'blue';
     }
     return fTelnetOptions;
 }());
