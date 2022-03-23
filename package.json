@@ -1,10 +1,10 @@
 {
-  "name": "fTelnet",
+  "name": "@iniquitybbs/fTelnet",
   "version": "1.0.0",
   "description": "The foundation of an Iniquity bbs application.",
   "author": "ispyhumanfly <ispyhumanfly@gmail.com>",
   "homepage": "http://iniquitybbs.com",
-  "license": "MIT",
+  "license": "GNU",
   "private": true,
   "requires": true,
   "scripts": {

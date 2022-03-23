@@ -4,7 +4,7 @@
     <head>
         <meta charset='utf-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <title>fTelnet</title>
+        <title>@iniquitybbs/fTelnet</title>
         <style>
             html, body { margin: 0; height: 100%; }
             html, body { overflow: hidden; }
@@ -15,6 +15,7 @@
             
         </style>
 
+        <!--- Going to switch to Vue3 -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script>
            
@@ -33,7 +34,8 @@
         <script id="fTelnetScript">
             document.write('<script src="ftelnet.norip.xfer.min.js?v=' + (new Date()).getTime() + '"><\/script>');
         </script>
-        <script>
+        <script> 
+
             var Options = new fTelnetOptions();
             Options.BareLFtoCRLF = false;
             Options.BitsPerSecond = 57600;
@@ -49,7 +51,7 @@
             Options.ScreenColumns = 132;
             Options.ScreenRows = 37;
             Options.SendLocation = true;
-            Options.ProxyHostname = "localhost"
+            Options.ProxyHostname = 'localhost';
             Options.StatusBarColor = "black"
             Options.DisableStatusBar = true
             Options.DisableMenu = true
