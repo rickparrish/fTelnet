@@ -1336,7 +1336,7 @@ var Ansi = (function () {
                 x = this.GetNextParam(0);
                 y = this.GetNextParam(0);
                 z = this.GetNextParam(0);
-                this.onescQ.trigger(x.toString(10));
+                this.onescQ.trigger('CP' + x.toString(10) + '_' + y.toString(10) + 'x' + z.toString(10));
                 break;
             case 'r':
                 if (this._AnsiIntermediates.length === 0) {
@@ -9720,7 +9720,8 @@ var fTelnetClient = (function () {
         this._FocusWarningBar.className = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO ENABLE KEYBOARD INPUT ***';
         this._FocusWarningBar.style.display = 'none';
-        this._fTelnetContainer.appendChild(this._FocusWarningBar);
+        if (!this._Options.DisableFocusBar)
+            this._fTelnetContainer.appendChild(this._FocusWarningBar);
         this._ScrollbackBar = document.createElement('div');
         this._ScrollbackBar.className = 'fTelnetScrollback';
         if (this._UseModernScrollback) {
@@ -9760,13 +9761,15 @@ var fTelnetClient = (function () {
         this._fTelnetContainer.appendChild(this._ScrollbackBar);
         this._StatusBar = document.createElement('div');
         this._StatusBar.className = 'fTelnetStatusBar';
-        this._fTelnetContainer.appendChild(this._StatusBar);
+        if (!this._Options.DisableStatusBar)
+            this._fTelnetContainer.appendChild(this._StatusBar);
         this._MenuButton = document.createElement('a');
         this._MenuButton.className = 'fTelnetMenuButton';
         this._MenuButton.href = '#';
         this._MenuButton.innerHTML = 'Menu';
         this._MenuButton.addEventListener('click', function (e) { _this.OnMenuButtonClick(); e.preventDefault(); return false; }, false);
-        this._StatusBar.appendChild(this._MenuButton);
+        if (!this._Options.DisableMenu)
+            this._StatusBar.appendChild(this._MenuButton);
         this._ConnectButton = document.createElement('a');
         this._ConnectButton.className = 'fTelnetConnectButton';
         this._ConnectButton.href = '#';
@@ -9962,14 +9965,14 @@ var fTelnetClient = (function () {
         if (this._Options.ProxyHostname === '') {
             this._ConnectButton.style.display = 'none';
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Options.Hostname + ':' + this._Options.Port;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor;
             this._ClientContainer.style.opacity = '1.0';
             this._Connection.connect(this._Options.Hostname, this._Options.Port, this._Options.WebSocketUrlPath, this._Options.ForceWss);
         }
         else {
             this._ConnectButton.style.display = 'none';
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor;
             this._ClientContainer.style.opacity = '1.0';
             this._Connection.connect(this._Options.Hostname, this._Options.Port, '', this._Options.ForceWss, this._Options.ProxyHostname, this._Options.ProxyPort, this._Options.ProxyPortSecure);
         }
@@ -10160,12 +10163,12 @@ var fTelnetClient = (function () {
         this._Crt.ClrScr();
         if (this._Options.ProxyHostname === '') {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor;
             this._ClientContainer.style.opacity = '1.0';
         }
         else {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor;
             this._ClientContainer.style.opacity = '1.0';
         }
         if (this._Options.ConnectionType === 'rlogin') {
@@ -10438,6 +10441,10 @@ var fTelnetOptions = (function () {
         this.VirtualKeyboardVibrateDuration = 25;
         this.VirtualKeyboardVisible = DetectMobileBrowser.IsMobile;
         this.WebSocketUrlPath = '';
+        this.StatusBarColor = 'blue';
+        this.DisableStatusBar = false;
+        this.DisableFocusBar = false;
+        this.DisableMenu = false;
     }
     return fTelnetOptions;
 }());

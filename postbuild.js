@@ -70,25 +70,25 @@ function minifyFile(filename) {
 }
 
 Promise.all([
-	fixEnumerable('stage\\common.js'),
-	fixEnumerable('stage\\connections.js'),
-	fixEnumerable('stage\\crt.js'),
-	fixEnumerable('stage\\crtcontrols.js'),
-	fixEnumerable('stage\\filetransfer.js'),
-	fixEnumerable('stage\\ftelnetclient.js'),
-	fixEnumerable('stage\\graph.js')
+	fixEnumerable('stage/common.js'),
+	fixEnumerable('stage/connections.js'),
+	fixEnumerable('stage/crt.js'),
+	fixEnumerable('stage/crtcontrols.js'),
+	fixEnumerable('stage/filetransfer.js'),
+	fixEnumerable('stage/ftelnetclient.js'),
+	fixEnumerable('stage/graph.js')
 ]).then(function() {
 	Promise.all([
-		combineFiles(['stage\\common.js', 'stage\\crt.js', 'stage\\connections.js', 'stage\\ftelnetclient.js'], 'release\\ftelnet.norip.noxfer.js'),
-		combineFiles(['include\\blob.js', 'include\\filesaver.js', 'stage\\common.js', 'stage\\crt.js', 'stage\\connections.js', 'stage\\crtcontrols.js', 'stage\\filetransfer.js', 'stage\\ftelnetclient.js'], 'release\\ftelnet.norip.xfer.js'),
-		combineFiles(['stage\\common.js', 'stage\\crt.js', 'stage\\connections.js', 'stage\\graph.js', 'stage\\ftelnetclient.js'], 'release\\ftelnet.rip.noxfer.js'),
-		combineFiles(['include\\blob.js', 'include\\filesaver.js', 'stage\\common.js', 'stage\\crt.js', 'stage\\connections.js', 'stage\\crtcontrols.js', 'stage\\filetransfer.js', 'stage\\graph.js', 'stage\\ftelnetclient.js'], 'release\\ftelnet.rip.xfer.js')
+		combineFiles(['stage/common.js', 'stage/crt.js', 'stage/connections.js', 'stage/ftelnetclient.js'], 'release/ftelnet.norip.noxfer.js'),
+		combineFiles(['include/blob.js', 'include/filesaver.js', 'stage/common.js', 'stage/crt.js', 'stage/connections.js', 'stage/crtcontrols.js', 'stage/filetransfer.js', 'stage/ftelnetclient.js'], 'release/ftelnet.norip.xfer.js'),
+		combineFiles(['stage/common.js', 'stage/crt.js', 'stage/connections.js', 'stage/graph.js', 'stage/ftelnetclient.js'], 'release/ftelnet.rip.noxfer.js'),
+		combineFiles(['include/blob.js', 'include/filesaver.js', 'stage/common.js', 'stage/crt.js', 'stage/connections.js', 'stage/crtcontrols.js', 'stage/filetransfer.js', 'stage/graph.js', 'stage/ftelnetclient.js'], 'release/ftelnet.rip.xfer.js')
 	]).then(function() {
 		Promise.all([
-			minifyFile('release\\ftelnet.norip.noxfer.js'),
-			minifyFile('release\\ftelnet.norip.xfer.js'),
-			minifyFile('release\\ftelnet.rip.noxfer.js'),
-			minifyFile('release\\ftelnet.rip.xfer.js')
+			minifyFile('release/ftelnet.norip.noxfer.js'),
+			minifyFile('release/ftelnet.norip.xfer.js'),
+			minifyFile('release/ftelnet.rip.noxfer.js'),
+			minifyFile('release/ftelnet.rip.xfer.js')
 		]);
 	});
 });

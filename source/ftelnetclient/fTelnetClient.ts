@@ -187,7 +187,7 @@ class fTelnetClient {
         this._FocusWarningBar.className = 'fTelnetFocusWarning';
         this._FocusWarningBar.innerHTML = '*** CLICK HERE TO ENABLE KEYBOARD INPUT ***';
         this._FocusWarningBar.style.display = 'none';
-        this._fTelnetContainer.appendChild(this._FocusWarningBar);
+        if (!this._Options.DisableFocusBar) this._fTelnetContainer.appendChild(this._FocusWarningBar);
 
         // Create the scrollback bar
         this._ScrollbackBar = document.createElement('div');
@@ -236,7 +236,7 @@ class fTelnetClient {
         // Create the status bar
         this._StatusBar = document.createElement('div');
         this._StatusBar.className = 'fTelnetStatusBar';
-        this._fTelnetContainer.appendChild(this._StatusBar);
+        if (!this._Options.DisableStatusBar) this._fTelnetContainer.appendChild(this._StatusBar);
 
         // Create the statusbar menu button
         this._MenuButton = document.createElement('a');
@@ -244,7 +244,7 @@ class fTelnetClient {
         this._MenuButton.href = '#';
         this._MenuButton.innerHTML = 'Menu';
         this._MenuButton.addEventListener('click', (e: Event): boolean => { this.OnMenuButtonClick(); e.preventDefault(); return false; }, false);
-        this._StatusBar.appendChild(this._MenuButton);
+        if (!this._Options.DisableMenu) this._StatusBar.appendChild(this._MenuButton);
 
         // Create the statusbar connect button
         this._ConnectButton = document.createElement('a');
@@ -475,13 +475,13 @@ class fTelnetClient {
         if (this._Options.ProxyHostname === '') {
             this._ConnectButton.style.display = 'none';
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Options.Hostname + ':' + this._Options.Port;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor
             this._ClientContainer.style.opacity = '1.0';
             this._Connection.connect(this._Options.Hostname, this._Options.Port, this._Options.WebSocketUrlPath, this._Options.ForceWss);
         } else {
             this._ConnectButton.style.display = 'none';
             this._StatusBarLabel.innerHTML = 'Connecting to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor
             this._ClientContainer.style.opacity = '1.0';
             this._Connection.connect(this._Options.Hostname, this._Options.Port, '', this._Options.ForceWss, this._Options.ProxyHostname, this._Options.ProxyPort, this._Options.ProxyPortSecure);
         }
@@ -653,11 +653,11 @@ class fTelnetClient {
 
         if (this._Options.ProxyHostname === '') {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor
             this._ClientContainer.style.opacity = '1.0';
         } else {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port + ' via ' + this._Options.ProxyHostname;
-            this._StatusBar.style.backgroundColor = 'blue';
+            this._StatusBar.style.backgroundColor = this._Options.StatusBarColor
             this._ClientContainer.style.opacity = '1.0';
         }
 
