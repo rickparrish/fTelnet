@@ -9610,6 +9610,7 @@ var fTelnetClient = (function () {
         this.ondata = new TypedEvent();
         this._HasFocus = true;
         this._LastTimer = 0;
+        this._LoadingProxySettings = 0;
         this._UseModernScrollback = false;
         if (typeof options === 'undefined') {
             var Message = 'fTelnet Error: The options parameter is required (pass in an fTelnetOptions object)';
@@ -9625,6 +9626,7 @@ var fTelnetClient = (function () {
             else {
                 this._Options.Emulation = 'ansi-bbs';
             }
+            this.LoadProxySettings();
         }
         if (typeof containerId === 'string') {
             var Container = document.getElementById(containerId);
@@ -9927,6 +9929,12 @@ var fTelnetClient = (function () {
     };
     fTelnetClient.prototype.Connect = function () {
         var _this = this;
+        if (this._LoadingProxySettings > 0) {
+            console.log('waiting for proxy-servers.json');
+            setTimeout(function () { _this.Connect(); }, 100);
+            this._LoadingProxySettings -= 1;
+            return;
+        }
         if (typeof this._MenuButtons !== 'undefined') {
             this._MenuButtons.style.display = 'none';
         }
@@ -10091,6 +10099,57 @@ var fTelnetClient = (function () {
             else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
             }
+        }
+    };
+    fTelnetClient.prototype.LoadProxySettings = function () {
+        var _this = this;
+        if (this._Options.ProxyHostname === '') {
+            return;
+        }
+        if (this._Options.ProxyHostname.toLowerCase().indexOf('.ftelnet.ca') === -1) {
+            return;
+        }
+        this._LoadingProxySettings = 10;
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('get', '//embed-v2.ftelnet.ca/proxy-servers.json', true);
+            xhr.onload = function () {
+                var status = xhr.status;
+                if (status === 200) {
+                    var proxies = JSON.parse(xhr.responseText);
+                    var proxy = proxies[_this._Options.ProxyHostname.toLowerCase()];
+                    if ((proxy != null) && (proxy.CNAME != null)) {
+                        proxy = proxies[proxy.CNAME];
+                    }
+                    if (proxy != null) {
+                        if (proxy.Hostname !== _this._Options.ProxyHostname) {
+                            console.log('Overriding ProxyHostname to ' + proxy.Hostname + ' (from ' + _this._Options.ProxyHostname + ')');
+                            _this._Options.ProxyHostname = proxy.Hostname;
+                        }
+                        if (proxy.WsPort !== _this._Options.ProxyPort) {
+                            console.log('Overriding ProxyPort to ' + proxy.WsPort + ' (from ' + _this._Options.ProxyPort + ')');
+                            _this._Options.ProxyPort = proxy.WsPort;
+                        }
+                        if (proxy.WssPort !== _this._Options.ProxyPortSecure) {
+                            console.log('Overriding ProxyPortSecure to ' + proxy.WssPort + ' (from ' + _this._Options.ProxyPortSecure + ')');
+                            _this._Options.ProxyPortSecure = proxy.WssPort;
+                        }
+                    }
+                }
+                else {
+                    console.log('failed to get proxy-servers.json, status=' + status);
+                }
+                _this._LoadingProxySettings = 0;
+            };
+            xhr.onerror = function () {
+                console.log('failed to get proxy-servers.json');
+                _this._LoadingProxySettings = 0;
+            };
+            xhr.send();
+        }
+        catch (e) {
+            console.log('failed to get proxy-servers.json: ' + e);
+            this._LoadingProxySettings = 0;
         }
     };
     fTelnetClient.prototype.OnAnsiESC0c = function () {

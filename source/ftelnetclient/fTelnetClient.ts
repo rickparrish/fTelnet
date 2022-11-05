@@ -33,6 +33,7 @@ class fTelnetClient {
     private _HasFocus: boolean = true;
     private _InitMessageBar: HTMLDivElement;
     private _LastTimer: number = 0;
+    private _LoadingProxySettings: number = 0;
     private _MenuButton: HTMLAnchorElement;
     private _MenuButtons: HTMLDivElement;
     private _RIP: RIP;
@@ -70,6 +71,9 @@ class fTelnetClient {
                 // Force ansi-bbs if they didn't ask for RIP (or if RIP is not enabled in this build)
                 this._Options.Emulation = 'ansi-bbs';
             }
+
+            // Load proxy server settings and correct hostname/port if necessary
+            this.LoadProxySettings();
         }
 
         // Ensure we have our container
@@ -436,6 +440,15 @@ class fTelnetClient {
     }
 
     public Connect(): void {
+        // Check if we're still trying to load the proxy settings.  We'll wait for up to 1 second (because _LoadingProxySettings is set to 10 when loading the file).
+        // This is mostly for auto-connect scenarios, in non-auto-connect scenarios the file should have been loaded long before the user clicks Connect.
+        if (this._LoadingProxySettings > 0) {
+            console.log('waiting for proxy-servers.json');
+            setTimeout((): void => { this.Connect(); }, 100);
+            this._LoadingProxySettings -= 1;
+            return;
+        }
+
         // Hide the menu buttons (in case we clicked the Connect menu button)
         if (typeof this._MenuButtons !== 'undefined') { this._MenuButtons.style.display = 'none'; }
 
@@ -590,6 +603,73 @@ class fTelnetClient {
             } else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
             }
+        }
+    }
+
+    private LoadProxySettings(): void {
+        // Abort if we're not using a proxy
+        if (this._Options.ProxyHostname === '') {
+            return;
+        }
+
+        // Abort if we're not using an fTelnet public proxy
+        if (this._Options.ProxyHostname.toLowerCase().indexOf('.ftelnet.ca') === -1) {
+            return;
+        }
+
+        // Set a retry counter that Connect() can use to see if it's safe to connect yet
+        // This is so if someone has auto-connect enabled, they'll wait up to 1 second for this file to load
+        this._LoadingProxySettings = 10;
+
+        try {
+            var xhr: XMLHttpRequest = new XMLHttpRequest();
+            xhr.open('get', '//embed-v2.ftelnet.ca/proxy-servers.json', true);
+            xhr.onload = (): void => {
+                var status: number = xhr.status;
+                if (status === 200) {
+                    // Find the proxy in the list of proxies
+                    var proxies = JSON.parse(xhr.responseText);
+                    var proxy = proxies[this._Options.ProxyHostname.toLowerCase()];
+                    
+                    // Handle CNAME redirects for retired proxies
+                    if ((proxy != null) && (proxy.CNAME != null)) {
+                        proxy = proxies[proxy.CNAME];
+                    }
+
+                    // If we found a match, check if options need to be overridden
+                    if (proxy != null) {
+                        // Check hostname
+                        if (proxy.Hostname !== this._Options.ProxyHostname) {
+                            console.log('Overriding ProxyHostname to ' + proxy.Hostname + ' (from ' + this._Options.ProxyHostname + ')');
+                            this._Options.ProxyHostname = proxy.Hostname;
+                        }
+
+                        // Check ws port
+                        if (proxy.WsPort !== this._Options.ProxyPort) {
+                            console.log('Overriding ProxyPort to ' + proxy.WsPort + ' (from ' + this._Options.ProxyPort + ')');
+                            this._Options.ProxyPort = proxy.WsPort;
+                        }
+
+                        // Check wss port
+                        if (proxy.WssPort !== this._Options.ProxyPortSecure) {
+                            console.log('Overriding ProxyPortSecure to ' + proxy.WssPort + ' (from ' + this._Options.ProxyPortSecure + ')');
+                            this._Options.ProxyPortSecure = proxy.WssPort;
+                        }
+                    }
+                } else {
+                    console.log('failed to get proxy-servers.json, status=' + status);
+                }
+
+                this._LoadingProxySettings = 0;
+            };
+            xhr.onerror = (): void => {
+                console.log('failed to get proxy-servers.json');
+                this._LoadingProxySettings = 0;
+            };
+            xhr.send();
+        } catch (e) {
+            console.log('failed to get proxy-servers.json: ' + e);
+            this._LoadingProxySettings = 0;
         }
     }
 
