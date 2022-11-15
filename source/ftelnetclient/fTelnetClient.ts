@@ -144,6 +144,7 @@ class fTelnetClient {
 
         this._Crt.onfontchange.on((): void => { this.OnCrtScreenSizeChanged(); });
         this._Crt.onkeypressed.on((): void => { this.OnCrtKeyPressed(); });
+        this._Crt.onmousereport.on((position: string): void => { this.OnCrtMouseReport(position); });
         this._Crt.onscreensizechange.on((): void => { this.OnCrtScreenSizeChanged(); });
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
         this._Crt.LocalEcho = this._Options.LocalEcho;
@@ -837,7 +838,12 @@ class fTelnetClient {
                 }
             }
         }
+    }
 
+    private OnCrtMouseReport(position: string): void {
+        if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {
+            this._Connection.writeString(position);
+        }
     }
 
     private OnCrtScreenSizeChanged(): void {

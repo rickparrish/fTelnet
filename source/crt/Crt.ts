@@ -26,6 +26,7 @@ class Crt {
     // Events
     public onfontchange: IEvent = new TypedEvent();
     public onkeypressed: IEvent = new TypedEvent();
+    public onmousereport: IEvent = new TypedEvent();
     public onscreensizechange: IEvent = new TypedEvent();
 
     /*  Color Constants
@@ -89,6 +90,8 @@ class Crt {
     private _LocalEcho: boolean = false;
     private _MouseDownPoint: Point;
     private _MouseMovePoint: Point;
+    private _ReportMouse: boolean;
+    private _ReportMouseSgr: boolean;
     private _ScreenSize: Point = new Point(80, 25);
     private _Scrollback: CharInfo[][];
     private _ScrollbackPosition: number = -1;
@@ -132,6 +135,7 @@ class Crt {
 
         // Handle events for copy/paste
         if (!DetectMobileBrowser.IsMobile) {
+            this._Canvas.addEventListener('contextmenu', (e: Event): boolean => { e.preventDefault(); return false; }, false);
             this._Canvas.addEventListener('mousedown', (me: MouseEvent): void => { this.OnMouseDown(me); }, false);
             this._Canvas.addEventListener('mousemove', (me: MouseEvent): void => { this.OnMouseMove(me); }, false);
             this._Canvas.addEventListener('mouseup', (me: MouseEvent): void => { this.OnMouseUp(me); }, false);
@@ -958,6 +962,14 @@ class Crt {
             this._MouseDownPoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
         }
         this._MouseMovePoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+
+        if (this._ReportMouse) {
+            if (this._ReportMouseSgr) {
+                this.onmousereport.trigger('\x1B[<' + me.button.toString() + ';' + this._MouseDownPoint.x.toString() + ';' + this._MouseDownPoint.y.toString() + 'M');
+            } else {
+                this.onmousereport.trigger('\x1B[M ' + me.button.toString() + '!' + (this._MouseDownPoint.x - 1).toString() + '!' + (this._MouseDownPoint.y - 1).toString());
+            }
+        }
     }
 
     private OnMouseMove(me: MouseEvent): void {
@@ -1107,6 +1119,15 @@ class Crt {
         // Reset variables
         delete this._MouseDownPoint;
         delete this._MouseMovePoint;
+
+        if (this._ReportMouse) {
+            if (this._ReportMouseSgr) {
+                this.onmousereport.trigger('\x1B[<' + me.button.toString() + ';' + UpPoint.x.toString() + ';' + UpPoint.y.toString() + 'm');
+            } else {
+                // SyncTerm source uses button=3 for mouse up
+                this.onmousereport.trigger('\x1B[M 3!' + (UpPoint.x - 1).toString() + '!' + (UpPoint.y - 1).toString());
+            }
+        }
     }
 
     private OnMouseUpForWindow(me: MouseEvent): void {
@@ -1197,6 +1218,22 @@ class Crt {
             }
             return KPE;
         }
+    }
+
+    public get ReportMouse(): boolean {
+        return this._ReportMouse;
+    }
+
+    public set ReportMouse(value: boolean) {
+        this._ReportMouse = value;
+    }
+
+    public get ReportMouseSgr(): boolean {
+        return this._ReportMouseSgr;
+    }
+
+    public set ReportMouseSgr(value: boolean) {
+        this._ReportMouseSgr = value;
     }
 
     public ResetBenchmarks(): void {

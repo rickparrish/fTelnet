@@ -1051,6 +1051,8 @@ var Ansi = (function () {
                     case '?7':
                         console.log('Unhandled ESC sequence: Enable auto wrap');
                         break;
+                    case '?9':
+                        this._Crt.ReportMouse = true;
                     case '?25':
                         this._Crt.ShowCursor();
                         break;
@@ -1062,6 +1064,12 @@ var Ansi = (function () {
                         break;
                     case '?33':
                         console.log('Unhandled ESC sequence: Blink to Bright Intensity Background');
+                        break;
+                    case '?1000':
+                        this._Crt.ReportMouse = true;
+                        break;
+                    case '?1006':
+                        this._Crt.ReportMouseSgr = true;
                         break;
                     default:
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -1115,6 +1123,8 @@ var Ansi = (function () {
                     case '?7':
                         console.log('Unhandled ESC sequence: Disable auto wrap');
                         break;
+                    case '?9':
+                        this._Crt.ReportMouse = false;
                     case '?25':
                         this._Crt.HideCursor();
                         break;
@@ -1126,6 +1136,12 @@ var Ansi = (function () {
                         break;
                     case '?33':
                         console.log('Unhandled ESC sequence: Blink Normal');
+                        break;
+                    case '?1000':
+                        this._Crt.ReportMouse = false;
+                        break;
+                    case '?1006':
+                        this._Crt.ReportMouseSgr = false;
                         break;
                     default:
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -1336,7 +1352,7 @@ var Ansi = (function () {
                 x = this.GetNextParam(0);
                 y = this.GetNextParam(0);
                 z = this.GetNextParam(0);
-                this.onescQ.trigger(x.toString(10));
+                this.onescQ.trigger('CP' + x.toString(10) + '_' + y.toString(10) + 'x' + z.toString(10));
                 break;
             case 'r':
                 if (this._AnsiIntermediates.length === 0) {
@@ -1598,6 +1614,7 @@ var Crt = (function () {
         var _this = this;
         this.onfontchange = new TypedEvent();
         this.onkeypressed = new TypedEvent();
+        this.onmousereport = new TypedEvent();
         this.onscreensizechange = new TypedEvent();
         this._AllowDynamicFontResize = true;
         this._Atari = false;
@@ -1638,6 +1655,7 @@ var Crt = (function () {
             }
         }
         if (!DetectMobileBrowser.IsMobile) {
+            this._Canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); return false; }, false);
             this._Canvas.addEventListener('mousedown', function (me) { _this.OnMouseDown(me); }, false);
             this._Canvas.addEventListener('mousemove', function (me) { _this.OnMouseMove(me); }, false);
             this._Canvas.addEventListener('mouseup', function (me) { _this.OnMouseUp(me); }, false);
@@ -2354,6 +2372,14 @@ var Crt = (function () {
             this._MouseDownPoint = this.MousePositionToScreenPosition(me.clientX - CanvasOffset.x, me.clientY - CanvasOffset.y);
         }
         this._MouseMovePoint = new Point(this._MouseDownPoint.x, this._MouseDownPoint.y);
+        if (this._ReportMouse) {
+            if (this._ReportMouseSgr) {
+                this.onmousereport.trigger('\x1B[<' + me.button.toString() + ';' + this._MouseDownPoint.x.toString() + ';' + this._MouseDownPoint.y.toString() + 'M');
+            }
+            else {
+                this.onmousereport.trigger('\x1B[M ' + me.button.toString() + '!' + (this._MouseDownPoint.x - 1).toString() + '!' + (this._MouseDownPoint.y - 1).toString());
+            }
+        }
     };
     Crt.prototype.OnMouseMove = function (me) {
         if (typeof this._MouseDownPoint === 'undefined') {
@@ -2463,6 +2489,14 @@ var Crt = (function () {
         }
         delete this._MouseDownPoint;
         delete this._MouseMovePoint;
+        if (this._ReportMouse) {
+            if (this._ReportMouseSgr) {
+                this.onmousereport.trigger('\x1B[<' + me.button.toString() + ';' + UpPoint.x.toString() + ';' + UpPoint.y.toString() + 'm');
+            }
+            else {
+                this.onmousereport.trigger('\x1B[M 3!' + (UpPoint.x - 1).toString() + '!' + (UpPoint.y - 1).toString());
+            }
+        }
     };
     Crt.prototype.OnMouseUpForWindow = function (me) {
         me = me;
@@ -2529,6 +2563,26 @@ var Crt = (function () {
             return KPE;
         }
     };
+    Object.defineProperty(Crt.prototype, "ReportMouse", {
+        get: function () {
+            return this._ReportMouse;
+        },
+        set: function (value) {
+            this._ReportMouse = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Crt.prototype, "ReportMouseSgr", {
+        get: function () {
+            return this._ReportMouseSgr;
+        },
+        set: function (value) {
+            this._ReportMouseSgr = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Crt.prototype.ResetBenchmarks = function () {
         Benchmarks.Reset();
     };
@@ -6345,6 +6399,7 @@ var fTelnetClient = (function () {
         this._InitMessageBar.style.display = 'none';
         this._Crt.onfontchange.on(function () { _this.OnCrtScreenSizeChanged(); });
         this._Crt.onkeypressed.on(function () { _this.OnCrtKeyPressed(); });
+        this._Crt.onmousereport.on(function (position) { _this.OnCrtMouseReport(position); });
         this._Crt.onscreensizechange.on(function () { _this.OnCrtScreenSizeChanged(); });
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
         this._Crt.LocalEcho = this._Options.LocalEcho;
@@ -6973,6 +7028,11 @@ var fTelnetClient = (function () {
                     }
                 }
             }
+        }
+    };
+    fTelnetClient.prototype.OnCrtMouseReport = function (position) {
+        if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {
+            this._Connection.writeString(position);
         }
     };
     fTelnetClient.prototype.OnCrtScreenSizeChanged = function () {

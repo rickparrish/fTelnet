@@ -297,6 +297,13 @@ class Ansi {
                                     SOURCE: Digital VT102 User Guide */
                         console.log('Unhandled ESC sequence: Enable auto wrap');
                         break;
+                    case '?9': /* CSI ? 9 h
+                                    X10 compatible mouse reporting
+                                    Mouse button presses will send a CSI M <button> <x> <y>
+                                    Where <button> is ' ' + button number (0-based)
+                                    <x> and <y> are '!' + position (0-based)
+                                    SOURCE: xterm */
+                        this._Crt.ReportMouse = true;
                     case '?25': /* CSI ? 25 h
 	                                NON-STANDARD EXTENSION
 	                                Display the cursor
@@ -322,6 +329,27 @@ class Ansi {
 	                                With this mode set, the blink (5,6) graphic renditions cause the
 	                                background colour to be high intensity rather than causing blink */
                         console.log('Unhandled ESC sequence: Blink to Bright Intensity Background');
+                        break;
+                    case '?1000': /* CSI ? 1000 h
+                                    Normal tracking mode mouse reporting
+                                    Mouse button presses will send a CSI M <button> <x> <y>
+                                    Where <button> is ' ' + button number (0-based)
+                                    Mouse button releases will use a button number of 4
+                                    <x> and <y> are '!' + position (0-based)
+                                    SOURCE: xterm */
+                        this._Crt.ReportMouse = true;
+                        break;
+                    case '?1006': /* CSI ? 1006 h
+                                    SGR encoded extended coordinates
+                                    Instead of the CSI M method, the format of mouse reporting
+                                    is change to CSI < Pb ; Px ; Py M for presses and
+                                    CSI < Pb ; Px ; Py m for releases.
+                                    Instead of CSI M
+                                    Px and Py are one-based.
+                                    Pb remains the same (32 added for movement)
+                                    Button 3 is not used for release (separate code)
+                                    SOURCE: xterm */
+                        this._Crt.ReportMouseSgr = true;
                         break;
                     default:
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -398,6 +426,9 @@ class Ansi {
                                     SOURCE: Digital VT102 User Guide */
                         console.log('Unhandled ESC sequence: Disable auto wrap');
                         break;
+                    case '?9': /* CSI ? 9 l
+                                    Disable X10 compatible mouse reporting */
+                        this._Crt.ReportMouse = false;
                     case '?25': /* CSI ? 25 l
 	                                NON-STANDARD EXTENSION
 	                                Hide the cursor
@@ -421,6 +452,16 @@ class Ansi {
 	                                Blink Normal
 	                                Reverses CSI ? 33 h */
                         console.log('Unhandled ESC sequence: Blink Normal');
+                        break;
+                    case '?1000': /* CSI ? 1000 l
+                                    Disable Normal tracking mode mouse reporting
+	                                SOURCE: xterm */
+                        this._Crt.ReportMouse = false;
+                        break;
+                    case '?1006': /* CSI ? 1006 l
+                                    Disable SGR encoded extended coordinates
+                                    SOURCE: xterm */
+                        this._Crt.ReportMouseSgr = false;
                         break;
                     default:
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
