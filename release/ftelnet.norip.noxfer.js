@@ -2153,6 +2153,7 @@ var Crt = (function () {
             return this._ReportMouse;
         },
         set: function (value) {
+            this._Canvas.style.cursor = value ? 'pointer' : 'text';
             this._ReportMouse = value;
         },
         enumerable: true,

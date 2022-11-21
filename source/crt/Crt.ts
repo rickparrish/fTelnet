@@ -1225,6 +1225,7 @@ class Crt {
     }
 
     public set ReportMouse(value: boolean) {
+        this._Canvas.style.cursor = value ? 'pointer' : 'text';
         this._ReportMouse = value;
     }
 

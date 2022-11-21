@@ -36,6 +36,7 @@
 }
 
 .fTelnetCrtCanvas {
+    cursor: text;
     display: block;
     margin: auto;
 }
