@@ -4803,7 +4803,7 @@ var fTelnetClient = (function () {
         this._MenuButton.className = 'fTelnetMenuButton';
         this._MenuButton.href = '#';
         this._MenuButton.innerHTML = 'Menu';
-        this._MenuButton.addEventListener('click', function (e) { _this.OnMenuButtonClick(); e.preventDefault(); return false; }, false);
+        this._MenuButton.addEventListener('click', function (e) { _this.OnMenuButtonClick(e); e.preventDefault(); return false; }, false);
         this._StatusBar.appendChild(this._MenuButton);
         this._ConnectButton = document.createElement('a');
         this._ConnectButton.className = 'fTelnetConnectButton';
@@ -4900,10 +4900,44 @@ var fTelnetClient = (function () {
             MenuButtonsRow5.appendChild(MenuButtonsRow5Cell1);
             MenuButtonsTable.appendChild(MenuButtonsRow5);
         }
+        var SupportedScreenSizes = ['80x25', '80x28', '80x30', '80x43', '80x50', '80x60', '132x37', '132x52', '132x25', '132x28', '132x30', '132x34', '132x43', '132x50', '132x60'];
+        var CurrentScreenSize = this._Options.ScreenColumns.toString() + 'x' + this._Options.ScreenRows.toString();
+        if (SupportedScreenSizes.indexOf(CurrentScreenSize) === -1) {
+            SupportedScreenSizes.unshift(CurrentScreenSize);
+        }
+        var MenuButtonsRow6 = document.createElement('tr');
+        var MenuButtonsRow6Cell1 = document.createElement('td');
+        MenuButtonsRow6Cell1.colSpan = 2;
+        var MenuButtonsScreenSize = document.createElement('select');
+        for (var i = 0; i < SupportedScreenSizes.length; i++) {
+            var ColumnsRows = SupportedScreenSizes[i].split('x');
+            var option = document.createElement('option');
+            option.text = ColumnsRows[0] + ' columns x ' + ColumnsRows[1] + ' rows';
+            if (SupportedScreenSizes[i] === '132x37') {
+                option.text += ' (16:9)';
+            }
+            else if (SupportedScreenSizes[i] === '132x52') {
+                option.text += ' (5:4)';
+            }
+            option.value = SupportedScreenSizes[i];
+            if (SupportedScreenSizes[i] === CurrentScreenSize) {
+                option.selected = true;
+            }
+            MenuButtonsScreenSize.appendChild(option);
+        }
+        MenuButtonsScreenSize.addEventListener('change', function (e) {
+            var ColumnsRows = e.target.value.split('x');
+            _this._Crt.SetScreenSize(parseInt(ColumnsRows[0], 10), parseInt(ColumnsRows[1], 10));
+            _this._Crt.SetFont(_this._Crt.Font.Name);
+            _this.OnMenuButtonClick(null);
+        });
+        MenuButtonsRow6Cell1.appendChild(MenuButtonsScreenSize);
+        MenuButtonsRow6.appendChild(MenuButtonsRow6Cell1);
+        MenuButtonsTable.appendChild(MenuButtonsRow6);
         this._MenuButtons.appendChild(MenuButtonsTable);
         this._MenuButtons.style.display = 'none';
-        this._MenuButtons.style.zIndex = '150';
-        this._fTelnetContainer.appendChild(this._MenuButtons);
+        this._MenuButtons.style.zIndex = '1500';
+        document.body.appendChild(this._MenuButtons);
         this._VirtualKeyboard = new VirtualKeyboard(this._Crt, this._fTelnetContainer);
         this._VirtualKeyboard.VibrateDurationInMilliseconds = this._Options.VirtualKeyboardVibrateDuration;
         this._VirtualKeyboard.Visible = this._Options.VirtualKeyboardVisible;
@@ -5302,7 +5336,7 @@ var fTelnetClient = (function () {
                 }
                 if (this._Connection.bytesAvailable > 0) {
                     clearTimeout(this._DataTimer);
-                    this._DataTimer = setTimeout(function () { _this.OnConnectionData(); }, 50);
+                    this._DataTimer = setTimeout(function () { _this.OnConnectionData(); }, 0);
                 }
             }
         }
@@ -5396,10 +5430,12 @@ var fTelnetClient = (function () {
         var _this = this;
         this._Timer = setInterval(function () { _this.OnTimer(); }, 250);
     };
-    fTelnetClient.prototype.OnMenuButtonClick = function () {
+    fTelnetClient.prototype.OnMenuButtonClick = function (e) {
         this._MenuButtons.style.display = (this._MenuButtons.style.display === 'none') ? 'block' : 'none';
-        this._MenuButtons.style.left = Offset.getOffset(this._MenuButton).x + this._MenuButton.clientWidth + 'px';
-        this._MenuButtons.style.top = Offset.getOffset(this._MenuButton).y - this._MenuButtons.clientHeight + 'px';
+        if (e !== null) {
+            this._MenuButtons.style.left = e.pageX + 'px';
+            this._MenuButtons.style.top = (e.pageY - this._MenuButtons.clientHeight) + 'px';
+        }
     };
     fTelnetClient.prototype.OnTimer = function () {
         if ((typeof this._Connection !== 'undefined') && (this._Connection.connected)) {

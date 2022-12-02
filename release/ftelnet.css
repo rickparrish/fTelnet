@@ -74,6 +74,7 @@
 }
 
     .fTelnetMenuButtons a {
+        background-color: white;
         border: 1px solid black;
         border-radius: 5px;
         color: black;
@@ -82,6 +83,24 @@
         padding: 8px 12px;
         text-align: center;
         text-decoration: none;
+    }
+
+    .fTelnetMenuButtons select {
+        border: 1px solid black;
+        border-radius: 5px;
+        color: black;
+        display: block;
+        font: 14px Arial, Helvetica, sans-serif;
+        padding: 8px 12px;
+        width: 100%;
+    }
+
+    .fTelnetMenuButtons table {
+        background-color: white;
+    }
+
+    .fTelnetMenuButtons td {
+        padding: 2px;
     }
 
 .fTelnetScrollback {

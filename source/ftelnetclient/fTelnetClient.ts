@@ -248,7 +248,7 @@ class fTelnetClient {
         this._MenuButton.className = 'fTelnetMenuButton';
         this._MenuButton.href = '#';
         this._MenuButton.innerHTML = 'Menu';
-        this._MenuButton.addEventListener('click', (e: Event): boolean => { this.OnMenuButtonClick(); e.preventDefault(); return false; }, false);
+        this._MenuButton.addEventListener('click', (e: MouseEvent): boolean => { this.OnMenuButtonClick(e); e.preventDefault(); return false; }, false);
         this._StatusBar.appendChild(this._MenuButton);
 
         // Create the statusbar connect button
@@ -357,10 +357,46 @@ class fTelnetClient {
             MenuButtonsTable.appendChild(MenuButtonsRow5);
         }
 
+        // Add dropdown with alternate screen sizes (list of options comes from SyncTerm)
+        var SupportedScreenSizes = [ '80x25', '80x28', '80x30', '80x43', '80x50', '80x60', '132x37', '132x52', '132x25', '132x28', '132x30', '132x34', '132x43', '132x50', '132x60' ];
+        var CurrentScreenSize = this._Options.ScreenColumns.toString() + 'x' + this._Options.ScreenRows.toString();
+        if (SupportedScreenSizes.indexOf(CurrentScreenSize) === -1) {
+            SupportedScreenSizes.unshift(CurrentScreenSize);
+        }
+        var MenuButtonsRow6: HTMLTableRowElement = document.createElement('tr');
+        var MenuButtonsRow6Cell1: HTMLTableCellElement = document.createElement('td');
+        MenuButtonsRow6Cell1.colSpan = 2;
+        var MenuButtonsScreenSize: HTMLSelectElement = document.createElement('select');
+        for (var i = 0; i < SupportedScreenSizes.length; i++) {
+            var ColumnsRows = SupportedScreenSizes[i].split('x');
+            var option: HTMLOptionElement = document.createElement('option');
+            option.text = ColumnsRows[0] + ' columns x ' + ColumnsRows[1] + ' rows';
+            if (SupportedScreenSizes[i] === '132x37') {
+                option.text += ' (16:9)';
+            } else if (SupportedScreenSizes[i] === '132x52') {
+                option.text += ' (5:4)';
+            }
+            option.value = SupportedScreenSizes[i];
+            if (SupportedScreenSizes[i] === CurrentScreenSize) {
+                option.selected = true;
+            }
+            MenuButtonsScreenSize.appendChild(option);
+        }
+        MenuButtonsScreenSize.addEventListener('change', (e: Event): void => { 
+            // Set screen size, call SetFont to resize the new canvas, and close the popup menu
+            var ColumnsRows = (e.target as HTMLSelectElement).value.split('x'); 
+            this._Crt.SetScreenSize(parseInt(ColumnsRows[0], 10), parseInt(ColumnsRows[1], 10)); 
+            this._Crt.SetFont(this._Crt.Font.Name); 
+            this.OnMenuButtonClick(null); 
+        });
+        MenuButtonsRow6Cell1.appendChild(MenuButtonsScreenSize);
+        MenuButtonsRow6.appendChild(MenuButtonsRow6Cell1);
+        MenuButtonsTable.appendChild(MenuButtonsRow6);
+
         this._MenuButtons.appendChild(MenuButtonsTable);
         this._MenuButtons.style.display = 'none';
-        this._MenuButtons.style.zIndex = '150';  // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
-        this._fTelnetContainer.appendChild(this._MenuButtons);
+        this._MenuButtons.style.zIndex = '1500';  // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
+        document.body.appendChild(this._MenuButtons);
 
         // Create the virtual keyboard
         this._VirtualKeyboard = new VirtualKeyboard(this._Crt, this._fTelnetContainer);
@@ -784,7 +820,7 @@ class fTelnetClient {
                 if (this._Connection.bytesAvailable > 0) {
                     // Restart timer to handle the end of the screen
                     clearTimeout(this._DataTimer);
-                    this._DataTimer = setTimeout((): void => { this.OnConnectionData(); }, 50);
+                    this._DataTimer = setTimeout((): void => { this.OnConnectionData(); }, 0);
                 }
             }
         }
@@ -891,10 +927,12 @@ class fTelnetClient {
         this._Timer = setInterval((): void => { this.OnTimer(); }, 250);
     }
 
-    private OnMenuButtonClick(): void {
+    private OnMenuButtonClick(e: MouseEvent): void {
         this._MenuButtons.style.display = (this._MenuButtons.style.display === 'none') ? 'block' : 'none';
-        this._MenuButtons.style.left = Offset.getOffset(this._MenuButton).x + this._MenuButton.clientWidth + 'px';
-        this._MenuButtons.style.top = Offset.getOffset(this._MenuButton).y - this._MenuButtons.clientHeight + 'px';
+        if (e !== null) {
+            this._MenuButtons.style.left = e.pageX + 'px';
+            this._MenuButtons.style.top = (e.pageY - this._MenuButtons.clientHeight) + 'px';
+        }
     }
 
     private OnTimer(): void {
