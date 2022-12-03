@@ -62,6 +62,23 @@ class fTelnetClient {
         } else {
             this._Options = options;
 
+            // Restore user's preferred screen size, if they have one
+            try {
+                var storedColumns: string = window.localStorage.getItem('ScreenColumns');
+                var storedRows: string = window.localStorage.getItem('ScreenRows');
+                if ((storedColumns !== null) && (storedRows !== null)) {
+                    var intColumns: number = parseInt(storedColumns, 10);
+                    var intRows: number = parseInt(storedRows, 10);
+
+                    if ((intColumns >= 80) && (intColumns <= 132) && (intRows >= 25) && (intRows <= 60)) {
+                        this._Options.ScreenColumns = intColumns;
+                        this._Options.ScreenRows = intRows;
+                    }
+                }
+            } catch (e) {
+                // Ignore, just means browser doesn't support localStorage
+            }
+
             // Handle options that need to do something pre-init
             if ((this._Options.Emulation === 'RIP') && (typeof RIP !== 'undefined')) {
                 // RIP needs to force a specific font and screen size
@@ -149,8 +166,8 @@ class fTelnetClient {
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
         this._Crt.LocalEcho = this._Options.LocalEcho;
         this._Crt.SkipRedrawWhenSameFontSize = this._Options.SkipRedrawWhenSameFontSize;
-        this._Crt.SetFont(this._Options.Font);
         this._Crt.SetScreenSize(this._Options.ScreenColumns, this._Options.ScreenRows);
+        this._Crt.SetFont(this._Options.Font);
 
         // Create the ansi cursor position handler
         this._Ansi = new Ansi(this._Crt);
@@ -388,6 +405,14 @@ class fTelnetClient {
             this._Crt.SetScreenSize(parseInt(ColumnsRows[0], 10), parseInt(ColumnsRows[1], 10)); 
             this._Crt.SetFont(this._Crt.Font.Name); 
             this.OnMenuButtonClick(null); 
+
+            // Also store preference for next visit
+            try {
+                window.localStorage.setItem('ScreenColumns', ColumnsRows[0]);
+                window.localStorage.setItem('ScreenRows', ColumnsRows[1]);
+            } catch (e) {
+                // Ignore, just means browser doesn't support localStorage
+            }
         });
         MenuButtonsRow6Cell1.appendChild(MenuButtonsScreenSize);
         MenuButtonsRow6.appendChild(MenuButtonsRow6Cell1);

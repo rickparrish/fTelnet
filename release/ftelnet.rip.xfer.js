@@ -9674,6 +9674,20 @@ var fTelnetClient = (function () {
         }
         else {
             this._Options = options;
+            try {
+                var storedColumns = window.localStorage.getItem('ScreenColumns');
+                var storedRows = window.localStorage.getItem('ScreenRows');
+                if ((storedColumns !== null) && (storedRows !== null)) {
+                    var intColumns = parseInt(storedColumns, 10);
+                    var intRows = parseInt(storedRows, 10);
+                    if ((intColumns >= 80) && (intColumns <= 132) && (intRows >= 25) && (intRows <= 60)) {
+                        this._Options.ScreenColumns = intColumns;
+                        this._Options.ScreenRows = intRows;
+                    }
+                }
+            }
+            catch (e) {
+            }
             if ((this._Options.Emulation === 'RIP') && (typeof RIP !== 'undefined')) {
                 this._Options.Font = 'RIP_8x8';
                 this._Options.ScreenRows = 43;
@@ -9744,8 +9758,8 @@ var fTelnetClient = (function () {
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
         this._Crt.LocalEcho = this._Options.LocalEcho;
         this._Crt.SkipRedrawWhenSameFontSize = this._Options.SkipRedrawWhenSameFontSize;
-        this._Crt.SetFont(this._Options.Font);
         this._Crt.SetScreenSize(this._Options.ScreenColumns, this._Options.ScreenRows);
+        this._Crt.SetFont(this._Options.Font);
         this._Ansi = new Ansi(this._Crt);
         this._Ansi.onesc0c.on(function () { _this.OnAnsiESC0c(); });
         this._Ansi.onesc5n.on(function () { _this.OnAnsiESC5n(); });
@@ -9950,6 +9964,12 @@ var fTelnetClient = (function () {
             _this._Crt.SetScreenSize(parseInt(ColumnsRows[0], 10), parseInt(ColumnsRows[1], 10));
             _this._Crt.SetFont(_this._Crt.Font.Name);
             _this.OnMenuButtonClick(null);
+            try {
+                window.localStorage.setItem('ScreenColumns', ColumnsRows[0]);
+                window.localStorage.setItem('ScreenRows', ColumnsRows[1]);
+            }
+            catch (e) {
+            }
         });
         MenuButtonsRow6Cell1.appendChild(MenuButtonsScreenSize);
         MenuButtonsRow6.appendChild(MenuButtonsRow6Cell1);
