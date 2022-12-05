@@ -430,7 +430,13 @@ class Crt {
         this._InScrollback = false;
     }
 
-    public FastWrite(text: string, x: number, y: number, charInfo: CharInfo, updateBuffer?: boolean): void {
+    // This is the original version of FastWrite, which calls getImageData and putImageData
+    // for each unique character+attribute combo, which is super slow in Firefox for some reason
+    // (Outputting ~57,000 unique combos takes ~1 second in Chrome and ~12 seconds in Firefox)
+    // A modified version that calls getImageData once per attribute instead of character+attribute
+    // was much faster, but an alternate version using drawImage instead was even faster, so that
+    // version of FastWrite is available below
+    public FastWriteGetChar(text: string, x: number, y: number, charInfo: CharInfo, updateBuffer?: boolean): void {
         /// <summary>
         /// Writes a string of text at the desired X/Y coordinate with the given text attribute.
         /// 
@@ -493,6 +499,67 @@ class Crt {
                 }
                 //this._BenchUpdateBuffer.Stop();
                 BUpdateBuffer.Stop();
+
+                if (x + i >= this._ScreenSize.x) { break; }
+            }
+        }
+    }
+
+    // This is the updated version of FastWrite, which calls getImageData once for each attribute
+    // instead of character+attribute, and also uses drawImage instead of putImage, which is
+    // ~2.5x faster in Chrome and ~30x faster in Firefox.  
+    // (Outputting ~57,000 unique combos takes ~400 milliseconds in Chrome and Firefox)
+    // The original version of FastWrite is available above as FastWriteGetChar
+    public FastWrite/*GetChars*/(text: string, x: number, y: number, charInfo: CharInfo, updateBuffer?: boolean): void {
+        /// <summary>
+        /// Writes a string of text at the desired X/Y coordinate with the given text attribute.
+        /// 
+        /// FastWrite is not window-relative, and it does not wrap text that goes beyond the right edge of the screen.
+        /// </summary>
+        /// <param name='AText' type='String'>The text to write</param>
+        /// <param name='AX' type='Number' integer='true'>The 1-based column to start the text</param>
+        /// <param name='AY' type='Number' integer='true'>The 1-based row to start the text</param>
+        /// <param name='ACharInfo' type='CharInfo'>The text attribute to colour the text</param>
+        /// <param name='AUpdateBuffer' type='Boolean' optional='true'>Whether to update the internal buffer or not 
+        ///   (default is true)< / param>
+        if (typeof updateBuffer === 'undefined') { updateBuffer = true; }
+
+        if ((x <= this._ScreenSize.x) && (y <= this._ScreenSize.y)) {
+            var Chars: string[] = [];
+            var CharCodes: number[] = [];
+            var TextLength;
+
+            if (typeof text === 'undefined') {
+                TextLength = 1;
+                Chars.push(' ');
+                CharCodes.push(this._Transparent ? CrtFont.TRANSPARENT_CHARCODE : 32);
+            } else {
+                TextLength = text.length;
+                for (var i: number = 0; i < TextLength; i++) {
+                    Chars.push(text.charAt(i));
+                    CharCodes.push(text.charCodeAt(i));
+                }
+            }
+
+            var CharMap: HTMLCanvasElement | undefined = this._Font.GetChars(charInfo);
+            for (var i: number = 0; i < TextLength; i++) {
+                if (typeof CharMap === 'undefined') {
+                    this._Buffer[y][x + i].NeedsRedraw = true;
+                } else {
+                    if (this._UseModernScrollback) {
+                        this._CanvasContext.drawImage(CharMap, CharCodes[i] * this._Font.Width, 0, this._Font.Width, this._Font.Height, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height, this._Font.Width, this._Font.Height);
+                    } else {
+                        if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
+                            this._CanvasContext.drawImage(CharMap, CharCodes[i] * this._Font.Width, 0, this._Font.Width, this._Font.Height, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height, this._Font.Width, this._Font.Height);
+                        }
+                    }
+                }
+
+                if (updateBuffer) {
+                    var CharToUpdate: CharInfo = this._Buffer[y][x + i];
+                    CharToUpdate.Set(charInfo);
+                    CharToUpdate.Ch = Chars[i];
+                }
 
                 if (x + i >= this._ScreenSize.x) { break; }
             }

@@ -52,6 +52,7 @@ class CrtFont {
     private _Canvas: HTMLCanvasElement;
     private _CanvasContext: CanvasRenderingContext2D;
     private _CharMap: ImageData[];
+    private _CharsMap: HTMLCanvasElement[];
     private _Loading: number;
     private _Name: string;
     private _NewName: string;
@@ -63,6 +64,7 @@ class CrtFont {
         // this._Canvas;
         // this._CanvasContext;
         this._CharMap = [];
+        this._CharsMap = [];
         this._Name = 'CP437';
         this._Loading = 0;
         this._NewName = 'CP437';
@@ -94,7 +96,7 @@ class CrtFont {
             return undefined;
         }
 
-        var CharMapKey: string = charCode + '-' + charInfo.Fore24 + '-' + charInfo.Back24 + '-' + charInfo.Reverse;
+        var CharMapKey: string = this._Name + '-' + this._Size.x + '-' + this._Size.y + '-' + charCode + '-' + charInfo.Fore24 + '-' + charInfo.Back24 + '-' + charInfo.Reverse;
 
         // Check if we have used this character before
         if (!this._CharMap[CharMapKey]) {
@@ -159,6 +161,76 @@ class CrtFont {
 
         // Return the character if we have it
         return this._CharMap[CharMapKey];
+    }
+
+    public GetChars(charInfo: CharInfo): HTMLCanvasElement | undefined {
+        if (this._Loading > 0) { return undefined; }
+        
+        var CharsMapKey: string = this._Name + '-' + this._Size.x + '-' + this._Size.y + '-' + charInfo.Fore24 + '-' + charInfo.Back24 + '-' + charInfo.Reverse;
+
+        // Check if we have used this character before
+        if (!this._CharsMap[CharsMapKey]) {
+            // Nope, so get character (in black and white)
+            var NewChars = this._CanvasContext.getImageData(0, 0, this._Canvas.width, this._Canvas.height);
+
+            // Now colour the character
+            var Back: number;
+            var Fore: number;
+            if (this._Name.indexOf('C64') === 0) {
+                Back = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0xF0) >> 4];
+                Fore = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0x0F)];
+            } else {
+                Back = charInfo.Back24;
+                Fore = charInfo.Fore24;
+            }
+
+            // Reverse if necessary
+            if (charInfo.Reverse) {
+                var Temp: number = Fore;
+                Fore = Back;
+                Back = Temp;
+            }
+
+            // Get the individual RGB colours
+            var BackR: number = Back >> 16;
+            var BackG: number = (Back >> 8) & 0xFF;
+            var BackB: number = Back & 0xFF;
+            var ForeR: number = Fore >> 16;
+            var ForeG: number = (Fore >> 8) & 0xFF;
+            var ForeB: number = Fore & 0xFF;
+
+            // Colour the pixels 1 at a time
+            var R: number = 0;
+            var G: number = 0;
+            var B: number = 0;
+            var NewCharDataLength = NewChars.data.length;
+            for (var i: number = 0; i < NewCharDataLength; i += 4) {
+                // Determine if it's back or fore colour to use for this pixel
+                if (NewChars.data[i] & 0x80) {
+                    R = ForeR;
+                    G = ForeG;
+                    B = ForeB;
+                } else {
+                    R = BackR;
+                    G = BackG;
+                    B = BackB;
+                }
+
+                NewChars.data[i] = R;
+                NewChars.data[i + 1] = G;
+                NewChars.data[i + 2] = B;
+            }
+
+            var NewCanvas: HTMLCanvasElement = document.createElement('canvas');
+            NewCanvas.width = NewChars.width;
+            NewCanvas.height = NewChars.height;
+            var NewContext: CanvasRenderingContext2D = NewCanvas.getContext('2d');
+            NewContext.putImageData(NewChars, 0, 0);
+            this._CharsMap[CharsMapKey] = NewCanvas;
+        }
+
+        // Return the character if we have it
+        return this._CharsMap[CharsMapKey];
     }
 
     public get Height(): number {
@@ -239,9 +311,6 @@ class CrtFont {
             this._Canvas.width = this._Png.width;
             this._Canvas.height = this._Png.height;
             this._CanvasContext.drawImage(this._Png, 0, 0);
-
-            // Reset CharMap
-            this._CharMap = [];
 
             // Raise change event
             this._Loading -= 1;
