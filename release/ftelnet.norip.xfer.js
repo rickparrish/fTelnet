@@ -1831,7 +1831,7 @@ var Crt = (function () {
         }
         this._InScrollback = false;
     };
-    Crt.prototype.FastWrite = function (text, x, y, charInfo, updateBuffer) {
+    Crt.prototype.FastWriteGetChar = function (text, x, y, charInfo, updateBuffer) {
         if (typeof updateBuffer === 'undefined') {
             updateBuffer = true;
         }
@@ -1877,6 +1877,52 @@ var Crt = (function () {
                     CharToUpdate.Ch = Chars[i];
                 }
                 BUpdateBuffer.Stop();
+                if (x + i >= this._ScreenSize.x) {
+                    break;
+                }
+            }
+        }
+    };
+    Crt.prototype.FastWrite = function (text, x, y, charInfo, updateBuffer) {
+        if (typeof updateBuffer === 'undefined') {
+            updateBuffer = true;
+        }
+        if ((x <= this._ScreenSize.x) && (y <= this._ScreenSize.y)) {
+            var Chars = [];
+            var CharCodes = [];
+            var TextLength;
+            if (typeof text === 'undefined') {
+                TextLength = 1;
+                Chars.push(' ');
+                CharCodes.push(this._Transparent ? CrtFont.TRANSPARENT_CHARCODE : 32);
+            }
+            else {
+                TextLength = text.length;
+                for (var i = 0; i < TextLength; i++) {
+                    Chars.push(text.charAt(i));
+                    CharCodes.push(text.charCodeAt(i));
+                }
+            }
+            var CharMap = this._Font.GetChars(charInfo);
+            for (var i = 0; i < TextLength; i++) {
+                if (typeof CharMap === 'undefined') {
+                    this._Buffer[y][x + i].NeedsRedraw = true;
+                }
+                else {
+                    if (this._UseModernScrollback) {
+                        this._CanvasContext.drawImage(CharMap, CharCodes[i] * this._Font.Width, 0, this._Font.Width, this._Font.Height, (x - 1 + i) * this._Font.Width, (y - 1 + this._ScrollbackSize) * this._Font.Height, this._Font.Width, this._Font.Height);
+                    }
+                    else {
+                        if ((!this._InScrollback) || (this._InScrollback && !updateBuffer)) {
+                            this._CanvasContext.drawImage(CharMap, CharCodes[i] * this._Font.Width, 0, this._Font.Width, this._Font.Height, (x - 1 + i) * this._Font.Width, (y - 1) * this._Font.Height, this._Font.Width, this._Font.Height);
+                        }
+                    }
+                }
+                if (updateBuffer) {
+                    var CharToUpdate = this._Buffer[y][x + i];
+                    CharToUpdate.Set(charInfo);
+                    CharToUpdate.Ch = Chars[i];
+                }
                 if (x + i >= this._ScreenSize.x) {
                     break;
                 }
@@ -3405,6 +3451,7 @@ var CrtFont = (function () {
     function CrtFont() {
         this.onchange = new TypedEvent();
         this._CharMap = [];
+        this._CharsMap = [];
         this._Name = 'CP437';
         this._Loading = 0;
         this._NewName = 'CP437';
@@ -3435,7 +3482,7 @@ var CrtFont = (function () {
         else if ((charCode < 0) || (charCode > 255) || (charInfo.Attr < 0) || (charInfo.Attr > 255)) {
             return undefined;
         }
-        var CharMapKey = charCode + '-' + charInfo.Fore24 + '-' + charInfo.Back24 + '-' + charInfo.Reverse;
+        var CharMapKey = this._Name + '-' + this._Size.x + '-' + this._Size.y + '-' + charCode + '-' + charInfo.Fore24 + '-' + charInfo.Back24 + '-' + charInfo.Reverse;
         if (!this._CharMap[CharMapKey]) {
             var NewChar = this._CanvasContext.getImageData(charCode * this._Size.x, 0, this._Size.x, this._Size.y);
             var Back;
@@ -3482,6 +3529,62 @@ var CrtFont = (function () {
             this._CharMap[CharMapKey] = NewChar;
         }
         return this._CharMap[CharMapKey];
+    };
+    CrtFont.prototype.GetChars = function (charInfo) {
+        if (this._Loading > 0) {
+            return undefined;
+        }
+        var CharsMapKey = this._Name + '-' + this._Size.x + '-' + this._Size.y + '-' + charInfo.Fore24 + '-' + charInfo.Back24 + '-' + charInfo.Reverse;
+        if (!this._CharsMap[CharsMapKey]) {
+            var NewChars = this._CanvasContext.getImageData(0, 0, this._Canvas.width, this._Canvas.height);
+            var Back;
+            var Fore;
+            if (this._Name.indexOf('C64') === 0) {
+                Back = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0xF0) >> 4];
+                Fore = CrtFont.PETSCII_COLOURS[(charInfo.Attr & 0x0F)];
+            }
+            else {
+                Back = charInfo.Back24;
+                Fore = charInfo.Fore24;
+            }
+            if (charInfo.Reverse) {
+                var Temp = Fore;
+                Fore = Back;
+                Back = Temp;
+            }
+            var BackR = Back >> 16;
+            var BackG = (Back >> 8) & 0xFF;
+            var BackB = Back & 0xFF;
+            var ForeR = Fore >> 16;
+            var ForeG = (Fore >> 8) & 0xFF;
+            var ForeB = Fore & 0xFF;
+            var R = 0;
+            var G = 0;
+            var B = 0;
+            var NewCharDataLength = NewChars.data.length;
+            for (var i = 0; i < NewCharDataLength; i += 4) {
+                if (NewChars.data[i] & 0x80) {
+                    R = ForeR;
+                    G = ForeG;
+                    B = ForeB;
+                }
+                else {
+                    R = BackR;
+                    G = BackG;
+                    B = BackB;
+                }
+                NewChars.data[i] = R;
+                NewChars.data[i + 1] = G;
+                NewChars.data[i + 2] = B;
+            }
+            var NewCanvas = document.createElement('canvas');
+            NewCanvas.width = NewChars.width;
+            NewCanvas.height = NewChars.height;
+            var NewContext = NewCanvas.getContext('2d');
+            NewContext.putImageData(NewChars, 0, 0);
+            this._CharsMap[CharsMapKey] = NewCanvas;
+        }
+        return this._CharsMap[CharsMapKey];
     };
     Object.defineProperty(CrtFont.prototype, "Height", {
         get: function () {
@@ -3555,7 +3658,6 @@ var CrtFont = (function () {
             this._Canvas.width = this._Png.width;
             this._Canvas.height = this._Png.height;
             this._CanvasContext.drawImage(this._Png, 0, 0);
-            this._CharMap = [];
             this._Loading -= 1;
             this.onchange.trigger(oldSize);
         }
@@ -6349,7 +6451,11 @@ var fTelnetClient = (function () {
             }
             catch (e) {
             }
-            if ((this._Options.Emulation === 'RIP') && (typeof RIP !== 'undefined')) {
+            if (this._Options.Emulation === 'C64') {
+                this._Options.Font = 'C64-Lower';
+                this._Options.ScreenColumns = 40;
+            }
+            else if ((this._Options.Emulation === 'RIP') && (typeof RIP !== 'undefined')) {
                 this._Options.Font = 'RIP_8x8';
                 this._Options.ScreenRows = 43;
             }
@@ -6417,6 +6523,7 @@ var fTelnetClient = (function () {
         this._Crt.onmousereport.on(function (position) { _this.OnCrtMouseReport(position); });
         this._Crt.onscreensizechange.on(function () { _this.OnCrtScreenSizeChanged(); });
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
+        this._Crt.C64 = (this._Options.Emulation === 'C64');
         this._Crt.LocalEcho = this._Options.LocalEcho;
         this._Crt.SkipRedrawWhenSameFontSize = this._Options.SkipRedrawWhenSameFontSize;
         this._Crt.SetScreenSize(this._Options.ScreenColumns, this._Options.ScreenRows);
@@ -6643,7 +6750,17 @@ var fTelnetClient = (function () {
         this._VirtualKeyboard.VibrateDurationInMilliseconds = this._Options.VirtualKeyboardVibrateDuration;
         this._VirtualKeyboard.Visible = this._Options.VirtualKeyboardVisible;
         this.OnCrtScreenSizeChanged();
-        if (this._Options.Emulation === 'RIP') {
+        if (this._Options.Emulation === 'C64') {
+            if (this._Options.SplashScreen === '') {
+                this._Crt.Write(atob('DQpGdEVMTkVUIC0tIHRFTE5FVCBGT1IgVEhFIHdFQg0KICB3RUIgQkFTRUQgYmJzIFRFUk1JTkFMIENMSUVOVA0KDQpjT1BZUklHSFQgKGMpIDIwMDkt'));
+                this._Crt.Write(new Date().getFullYear().toString());
+                this._Crt.Write(atob('IHImbSBzT0ZUV0FSRS4NCmFMTCBySUdIVFMgckVTRVJWRUQNCg0K'));
+            }
+            else {
+                this._Crt.Write(atob(this._Options.SplashScreen));
+            }
+        }
+        else if (this._Options.Emulation === 'RIP') {
             if (this._Options.SplashScreen === '') {
                 this._RIP.Parse(atob('G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bWZUZWxuZXQgLS0gVGVsbmV0IGZvciB0aGUgV2ViICAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDkt'));
                 this._RIP.Parse(new Date().getFullYear().toString());
