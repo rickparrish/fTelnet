@@ -4351,7 +4351,7 @@ var TelnetConnection = (function (_super) {
                     if (status === 200) {
                         _this.SendWill(TelnetOption.SendLocation);
                         _this.SendSubnegotiate(TelnetOption.SendLocation);
-                        var ToSendString = xhr.responseText;
+                        var ToSendString = xhr.responseText.trim();
                         var ToSendBytes = [];
                         for (var i = 0; i < ToSendString.length; i++) {
                             var CharCode = ToSendString.charCodeAt(i);
@@ -4410,7 +4410,7 @@ var TelnetConnection = (function (_super) {
                     _this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
                     var SixtyFourBits = [];
                     SixtyFourBits.push(0);
-                    var octets = xhr.responseText.split('.');
+                    var octets = xhr.responseText.trim().split('.');
                     SixtyFourBits.push(parseInt(octets[0], 10) & 0xFF);
                     SixtyFourBits.push(parseInt(octets[1], 10) & 0xFF);
                     SixtyFourBits.push(parseInt(octets[2], 10) & 0xFF);

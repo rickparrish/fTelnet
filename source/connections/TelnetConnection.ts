@@ -98,7 +98,7 @@ class TelnetConnection extends WebSocketConnection {
                         this.SendWill(TelnetOption.SendLocation);
                         this.SendSubnegotiate(TelnetOption.SendLocation);
 
-                        var ToSendString: string = xhr.responseText;
+                        var ToSendString: string = xhr.responseText.trim();
                         var ToSendBytes: number[] = [];
                         for (var i: number = 0; i < ToSendString.length; i++) {
                             var CharCode: number = ToSendString.charCodeAt(i);
@@ -166,7 +166,7 @@ class TelnetConnection extends WebSocketConnection {
                     SixtyFourBits.push(0); 
 
                     // IP address as bytes
-                    var octets: string[] = xhr.responseText.split('.');
+                    var octets: string[] = xhr.responseText.trim().split('.');
                     SixtyFourBits.push(parseInt(octets[0], 10) & 0xFF);
                     SixtyFourBits.push(parseInt(octets[1], 10) & 0xFF);
                     SixtyFourBits.push(parseInt(octets[2], 10) & 0xFF);
