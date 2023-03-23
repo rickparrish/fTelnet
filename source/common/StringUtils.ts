@@ -43,19 +43,6 @@ class StringUtils {
         return fTelnetScriptPath + '/' + filename + '?' + fTelnetVersion;
     }
 
-    // From: http://jsperf.com/ipaddress-to-decimal-and-back
-    public static IPtoInteger(ipAddress: string): number {
-        var parts: string[] = ipAddress.split('.');
-        var res: number = 0;
-
-        res += (parseInt(parts[0], 10) << 24) >>> 0;
-        res += (parseInt(parts[1], 10) << 16) >>> 0;
-        res += (parseInt(parts[2], 10) << 8) >>> 0;
-        res += parseInt(parts[3], 10) >>> 0;
-
-        return res;
-    }
-
     public static NewString(ch: string, length: number): string {
         if (ch.length === 0) { return ''; }
 

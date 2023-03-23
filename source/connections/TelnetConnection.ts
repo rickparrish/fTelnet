@@ -160,19 +160,23 @@ class TelnetConnection extends WebSocketConnection {
                     this.SendWill(TelnetOption.TerminalLocationNumber);
                     this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
 
-                    var InternetHostNumber: number = StringUtils.IPtoInteger(xhr.responseText);
-                    var TerminalNumber: number = 0xFFFFFFFF; // Indicates "unknown" terminal number
-
                     var SixtyFourBits: number[] = [];
-                    SixtyFourBits.push(0); // Format 0 to indicate we'll send two 32bit numbers
-                    SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
-                    SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
-                    SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
-                    SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
-                    SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
-                    SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
-                    SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
-                    SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
+
+                    // Format 0 to indicate we'll send two 32bit numbers
+                    SixtyFourBits.push(0); 
+
+                    // IP address as bytes
+                    var octets: string[] = xhr.responseText.split('.');
+                    SixtyFourBits.push(parseInt(octets[0], 10) & 0xFF);
+                    SixtyFourBits.push(parseInt(octets[1], 10) & 0xFF);
+                    SixtyFourBits.push(parseInt(octets[2], 10) & 0xFF);
+                    SixtyFourBits.push(parseInt(octets[3], 10) & 0xFF);
+
+                    // Indicates "unknown" terminal number
+                    SixtyFourBits.push(0xFF);
+                    SixtyFourBits.push(0xFF);
+                    SixtyFourBits.push(0xFF);
+                    SixtyFourBits.push(0xFF);
 
                     var ToSendBytes: number[] = [];
                     for (var i: number = 0; i < SixtyFourBits.length; i++) {

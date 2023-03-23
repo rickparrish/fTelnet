@@ -424,15 +424,6 @@ var StringUtils = (function () {
         var fTelnetVersion = (fTelnetScriptParts.length === 1) ? 'v=1' : fTelnetScriptParts[1];
         return fTelnetScriptPath + '/' + filename + '?' + fTelnetVersion;
     };
-    StringUtils.IPtoInteger = function (ipAddress) {
-        var parts = ipAddress.split('.');
-        var res = 0;
-        res += (parseInt(parts[0], 10) << 24) >>> 0;
-        res += (parseInt(parts[1], 10) << 16) >>> 0;
-        res += (parseInt(parts[2], 10) << 8) >>> 0;
-        res += parseInt(parts[3], 10) >>> 0;
-        return res;
-    };
     StringUtils.NewString = function (ch, length) {
         if (ch.length === 0) {
             return '';
@@ -4002,18 +3993,17 @@ var TelnetConnection = (function (_super) {
                 if (status === 200) {
                     _this.SendWill(TelnetOption.TerminalLocationNumber);
                     _this.SendSubnegotiate(TelnetOption.TerminalLocationNumber);
-                    var InternetHostNumber = StringUtils.IPtoInteger(xhr.responseText);
-                    var TerminalNumber = 0xFFFFFFFF;
                     var SixtyFourBits = [];
                     SixtyFourBits.push(0);
-                    SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
-                    SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
-                    SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
-                    SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
-                    SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
-                    SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
-                    SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
-                    SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
+                    var octets = xhr.responseText.split('.');
+                    SixtyFourBits.push(parseInt(octets[0], 10) & 0xFF);
+                    SixtyFourBits.push(parseInt(octets[1], 10) & 0xFF);
+                    SixtyFourBits.push(parseInt(octets[2], 10) & 0xFF);
+                    SixtyFourBits.push(parseInt(octets[3], 10) & 0xFF);
+                    SixtyFourBits.push(0xFF);
+                    SixtyFourBits.push(0xFF);
+                    SixtyFourBits.push(0xFF);
+                    SixtyFourBits.push(0xFF);
                     var ToSendBytes = [];
                     for (var i = 0; i < SixtyFourBits.length; i++) {
                         ToSendBytes.push(SixtyFourBits[i]);
