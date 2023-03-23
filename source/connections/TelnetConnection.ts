@@ -91,7 +91,7 @@ class TelnetConnection extends WebSocketConnection {
         if (this._SendLocation) {
             try {
                 var xhr: XMLHttpRequest = new XMLHttpRequest();
-                xhr.open('get', 'https://text.ipv4.wtfismyip.com/', true);
+                xhr.open('get', 'https://text.wtfismyip.com/', true);
                 xhr.onload = (): void => {
                     var status: number = xhr.status;
                     if (status === 200) {
@@ -151,6 +151,12 @@ class TelnetConnection extends WebSocketConnection {
     }
 
     private HandleTerminalLocationNumber(): void {
+        // TelnetOption.TerminalLocationNumber only supports sending a 32bit IP address, so only supports IPv4, so we're disabling it in favour of
+        // TelnetOption.SendLocation, which supports sending an ASCII string of arbitrary length, so supports both IPv4 and IPv6.
+        // TODOZ Could potentially add a new SendTerminalLocationNumber setting that is false by default but could be turned on if a sysop REALLY wants to
+        this.SendWont(TelnetOption.TerminalLocationNumber);
+        return;
+
         if (this._SendLocation) {
             var xhr: XMLHttpRequest = new XMLHttpRequest();
             xhr.open('get', 'https://text.ipv4.wtfismyip.com/', true);
@@ -362,7 +368,8 @@ class TelnetConnection extends WebSocketConnection {
 
         if (this._SendLocation) {
             this.SendWill(TelnetOption.SendLocation);
-            this.SendWill(TelnetOption.TerminalLocationNumber);
+            // TODOZ See note in HandleTerminalLocationNumber
+            // this.SendWill(TelnetOption.TerminalLocationNumber);
         }
     }
 
