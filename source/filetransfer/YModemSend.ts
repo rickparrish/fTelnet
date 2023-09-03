@@ -29,12 +29,14 @@ class YModemSend {
     private NAK: number = 0x15;
     private CAN: number = 0x18;
     private SUB: number = 0x1A;
+    private CAPC: number = 'C'.charCodeAt(0);
     private CAPG: number = 'G'.charCodeAt(0);
 
     // Private variables
     private _Block: number = 0;
     private _Connection: WebSocketConnection;
     private _Crt: Crt;
+    private _Debug: boolean = (window.location.hash.indexOf('ymodemdebug=1') >= 0);
     private _EOTCount: number = 0;
     private _File: FileRecord;
     private _FileBytesSent: number = 0;
@@ -63,6 +65,8 @@ class YModemSend {
     }
 
     private Cancel(reason: string): void {
+        this.DebugLog('Cancel at state ' + this._State + ': ' + reason);
+
         // Send the cancel request
         try {
             this._Connection.writeByte(this.CAN);
@@ -98,6 +102,12 @@ class YModemSend {
         setTimeout((): void => { this.Dispatch(); }, 3000);
     }
 
+    private DebugLog(message: string): void {
+        if (this._Debug) {
+            console.log(message);
+        }
+    }
+
     private Dispatch(): void {
         // Remove the panel
         this.pnlMain.Hide();
@@ -107,7 +117,7 @@ class YModemSend {
     }
 
     private HandleIOError(ioe: Error): void {
-        console.log('I/O Error: ' + ioe);
+        this.DebugLog('I/O Error: ' + ioe);
 
         if (this._Connection.connected) {
             this.CleanUp('Unhandled I/O error');
@@ -125,8 +135,8 @@ class YModemSend {
             }
         }
 
-        // Break if no data is waiting (unless we're in the YModemSendState.SendingData state)
-        if ((this._State !== YModemSendState.SendingData) && (this._Connection.bytesAvailable === 0)) {
+        // Break if no data is waiting
+        if (this._Connection.bytesAvailable === 0) {
             return;
         }
 
@@ -134,7 +144,7 @@ class YModemSend {
         var B: number = 0;
         switch (this._State) {
             case YModemSendState.WaitingForHeaderRequest:
-                // Check for G
+                // Check for C
                 try {
                     B = this._Connection.readUnsignedByte();
                 } catch (ioe1) {
@@ -142,13 +152,17 @@ class YModemSend {
                     return;
                 }
 
-                // Make sure we got the G and not something else
-                if (B !== this.CAPG) {
-                    this.Cancel('Expecting G got ' + B.toString() + ' (State=' + this._State + ')');
+                // Make sure we got the C and not something else
+                if (B !== this.CAPC) {
+                    if (B === this.CAPG) {
+                        this.Cancel('Use plain YMODEM, not YMODEM-G');
+                    } else {
+                        this.Cancel('Expecting C got ' + B.toString() + ' (State=' + this._State + ')');
+                    }
                     return;
                 }
 
-                // Drain the input buffer so that we're synchronized (Receiver may have sent multiple G's while we were browsing for the file)
+                // Drain the input buffer so that we're synchronized (Receiver may have sent multiple C's while we were browsing for the file)
                 try {
                     this._Connection.readString();
                 } catch (ioe2) {
@@ -183,11 +197,11 @@ class YModemSend {
                 this._FileBytesSent = 0;
 
                 // Move to next state
-                this._State = YModemSendState.WaitingForHeaderAck;
+                this.SetState(YModemSendState.WaitingForHeaderAck);
                 return;
 
             case YModemSendState.WaitingForHeaderAck:
-                // Check for ACK or G
+                // Check for ACK or C
                 try {
                     B = this._Connection.readUnsignedByte();
                 } catch (ioe3) {
@@ -195,24 +209,25 @@ class YModemSend {
                     return;
                 }
 
-                // Make sure we got the ACK or G and not something else
-                if ((B !== this.ACK) && (B !== this.CAPG)) {
-                    this.Cancel('Expecting ACK/G got ' + B.toString() + ' (State=' + this._State + ')');
+                // Make sure we got the ACK or C and not something else
+                if ((B !== this.ACK) && (B !== this.CAPC)) {
+                    this.Cancel('Expecting ACK or C got ' + B.toString() + ' (State=' + this._State + ')');
                     return;
                 }
 
                 if (B === this.ACK) {
                     // Move to next state
-                    this._State = YModemSendState.WaitingForFileRequest;
-                } else if (B === this.CAPG) {
-                    // Async PRO doesn't ACK the header packet, so we can only assume this G is a request for the file to start, not for a re-send of the header
+                    this.SetState(YModemSendState.WaitingForFileRequest)
+                } else if (B === this.CAPC) {
+                    // Async PRO doesn't ACK the header packet, so we can only assume this C is a request for the file to start, not for a re-send of the header
                     // Move to next state
-                    this._State = YModemSendState.SendingData;
+                    this.DebugLog('Got C, sending a data block');
+                    this.SendDataBlock(); // Will set new state within the method
                 }
                 return;
 
             case YModemSendState.WaitingForFileRequest:
-                // Check for G
+                // Check for C
                 try {
                     B = this._Connection.readUnsignedByte();
                 } catch (ioe4) {
@@ -220,21 +235,43 @@ class YModemSend {
                     return;
                 }
 
-                // Make sure we got the G and not something else
-                if (B !== this.CAPG) {
-                    this.Cancel('Expecting G got ' + B.toString() + ' (State=' + this._State + ')');
+                // Make sure we got the C and not something else
+                if (B !== this.CAPC) {
+                    this.Cancel('Expecting C got ' + B.toString() + ' (State=' + this._State + ')');
                     return;
                 }
 
                 // Move to next state
-                this._State = YModemSendState.SendingData;
+                this.DebugLog('Got C, sending a data block');
+                this.SendDataBlock(); // Will set state within the method
                 return;
 
-            case YModemSendState.SendingData:
-                if (this.SendDataBlocks(16)) {
-                    // SendDataBlocks returns true when the whole file has been sent
-                    this._State = YModemSendState.WaitingForFileAck;
+            case YModemSendState.WaitingForBlockAck:
+                // Check for ACK
+                try {
+                    B = this._Connection.readUnsignedByte();
+                } catch (ioe4) {
+                    this.HandleIOError(ioe4);
+                    return;
                 }
+
+                // Ignore if we get a C, could have been sent after we started sending the first block
+                if (B === this.CAPC) {
+                    this.DebugLog('Got unexpected C while waiting for block ack, ignoring');
+                    return;
+                }
+
+                // Make sure we got the ACK (or NAK) and not something else
+                if ((B !== this.ACK) && (B !== this.NAK)) {
+                    this.Cancel('Expecting (N)ACK got ' + B.toString() + ' (State=' + this._State + ')');
+                    return;
+                }
+
+                // TODOX Shouldn't we cancel on NAK?
+
+                // Move to next state
+                this.DebugLog('Got ACK, sending a data block');
+                this.SendDataBlock(); // Will set state within the method
                 return;
 
             case YModemSendState.WaitingForFileAck:
@@ -255,16 +292,27 @@ class YModemSend {
                 // Move to next state
                 if (B === this.ACK) {
                     // Waiting for them to request the next header
-                    this._State = YModemSendState.WaitingForHeaderRequest;
+                    this.SetState(YModemSendState.WaitingForHeaderRequest);
                 } else if (B === this.NAK) {
                     // Re-send the EOT
+                    this.DebugLog('Got NAK, re-sending EOT');
                     this.SendEOT();
                 }
                 return;
         }
     }
 
+    private SendDataBlock(): void {
+        if (this.SendDataBlocks(1)) {
+            this.SetState(YModemSendState.WaitingForFileAck);
+        } else {
+            this.SetState(YModemSendState.WaitingForBlockAck);
+        }
+    }
+
     private SendDataBlocks(blocks: number): boolean {
+        this.DebugLog('SendDataBlocks sending ' + blocks.toString() + ' data block(s)');
+
         // Loop ABlocks times for ABlocks k per timer event
         for (var loop: number = 0; loop < blocks; loop++) {
             // Determine how many bytes to read (max 1024 per block)
@@ -320,6 +368,8 @@ class YModemSend {
     }
 
     private SendEmptyHeaderBlock(): void {
+        this.DebugLog('SendEmptyHeaderBlock');
+
         var Packet: ByteArray = new ByteArray();
 
         // Add 128 null bytes
@@ -341,6 +391,8 @@ class YModemSend {
     }
 
     private SendEOT(): void {
+        this.DebugLog('SendEOT');
+
         try {
             this._Connection.writeByte(this.EOT);
             this._Connection.flush();
@@ -352,6 +404,8 @@ class YModemSend {
     }
 
     private SendHeaderBlock(): void {
+        this.DebugLog('SendHeaderBlock');
+
         var i: number = 0;
         var Packet: ByteArray = new ByteArray();
 
@@ -405,6 +459,13 @@ class YModemSend {
         }
     }
 
+    private SetState(state: YModemSendState) {
+        if (state != this._State) {
+            this.DebugLog('Moving from state ' + this._State.toString() + ' to ' + state.toString());
+            this._State = state;
+        }
+    }
+
     public Upload(file: FileRecord, fileCount: number): void {
         this._FileCount = fileCount;
 
@@ -414,7 +475,7 @@ class YModemSend {
         // If the queue has just this one item, start the timers and listeners
         if (this._Files.length === fileCount) {
             // Create our main timer
-            this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
+            this._Timer = setInterval((): void => { this.OnTimer(); }, 0);
 
             // Determine the number of total bytes
             for (var i: number = 0; i < this._Files.length; i++) {
@@ -423,7 +484,7 @@ class YModemSend {
 
             // Create the transfer dialog
             this._Crt.HideCursor();
-            this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 16, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Send Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
+            this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 16, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem Send Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
             this.lblFileCount = new CrtLabel(this._Crt, this.pnlMain, 2, 2, 56, 'Sending file 1 of ' + this._FileCount.toString(), ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
             this.lblFileName = new CrtLabel(this._Crt, this.pnlMain, 2, 4, 56, 'File Name: ' + this._Files[0].name, ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
             this.lblFileSize = new CrtLabel(this._Crt, this.pnlMain, 2, 5, 56, 'File Size: ' + StringUtils.AddCommas(this._Files[0].size) + ' bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);

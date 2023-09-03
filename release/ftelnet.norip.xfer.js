@@ -5552,12 +5552,13 @@ var YModemReceive = (function () {
         this.EOT = 0x04;
         this.ACK = 0x06;
         this.CAN = 0x18;
-        this.CAPG = 'G'.charCodeAt(0);
+        this.CAPC = 'C'.charCodeAt(0);
+        this._Debug = (window.location.hash.indexOf('ymodemdebug=1') >= 0);
         this._ExpectingHeader = true;
         this._Files = [];
-        this._LastGTime = 0;
+        this._LastCTime = 0;
         this._NextByte = 0;
-        this._ShouldSendG = true;
+        this._ShouldSendC = true;
         this._TotalBytesReceived = 0;
         this._Crt = crt;
         this._Connection = connection;
@@ -5590,6 +5591,11 @@ var YModemReceive = (function () {
         this.lblStatus.Text = 'Status: ' + message;
         setTimeout(function () { _this.Dispatch(); }, 3000);
     };
+    YModemReceive.prototype.DebugLog = function (message) {
+        if (this._Debug) {
+            console.log(message);
+        }
+    };
     YModemReceive.prototype.Dispatch = function () {
         this.pnlMain.Hide();
         this._Crt.ShowCursor();
@@ -5599,7 +5605,7 @@ var YModemReceive = (function () {
         var _this = this;
         this._Timer = setInterval(function () { _this.OnTimer(); }, 50);
         this._Crt.HideCursor();
-        this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 14, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Receive Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
+        this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 14, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem Receive Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
         this.lblFileCount = new CrtLabel(this._Crt, this.pnlMain, 2, 2, 56, 'Receiving file 1', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
         this.lblFileName = new CrtLabel(this._Crt, this.pnlMain, 2, 4, 56, 'File Name: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
         this.lblFileSize = new CrtLabel(this._Crt, this.pnlMain, 2, 5, 56, 'File Size: ', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
@@ -5634,131 +5640,141 @@ var YModemReceive = (function () {
                 this.Cancel('User requested abort');
             }
         }
-        while (true) {
-            if (this._NextByte === 0) {
-                if (this._Connection.bytesAvailable === 0) {
-                    if (this._ShouldSendG && ((new Date()).getTime() - this._LastGTime > 3000)) {
-                        try {
-                            this._Connection.writeByte(this.CAPG);
-                            this._Connection.flush();
-                        }
-                        catch (ioe1) {
-                            this.HandleIOError(ioe1);
-                            return;
-                        }
-                        this._LastGTime = new Date().getTime();
+        if (this._NextByte === 0) {
+            if (this._Connection.bytesAvailable === 0) {
+                if (this._ShouldSendC && ((new Date()).getTime() - this._LastCTime > 3000)) {
+                    try {
+                        this._Connection.writeByte(this.CAPC);
+                        this._Connection.flush();
                     }
+                    catch (ioe1) {
+                        this.HandleIOError(ioe1);
+                        return;
+                    }
+                    this._LastCTime = new Date().getTime();
+                }
+                return;
+            }
+            else {
+                try {
+                    this._NextByte = this._Connection.readUnsignedByte();
+                }
+                catch (ioe2) {
+                    this.HandleIOError(ioe2);
                     return;
                 }
-                else {
-                    try {
-                        this._NextByte = this._Connection.readUnsignedByte();
+            }
+        }
+        this.DebugLog('Next byte is ' + this._NextByte.toString());
+        switch (this._NextByte) {
+            case this.CAN:
+                this.CleanUp('Sender requested abort');
+                break;
+            case this.SOH:
+            case this.STX:
+                this._ShouldSendC = false;
+                var BlockSize = (this._NextByte === this.STX) ? 1024 : 128;
+                var neededBytes = 1 + 1 + BlockSize + 1 + 1;
+                if (this._Connection.bytesAvailable < neededBytes) {
+                    this.DebugLog('Need ' + neededBytes.toString() + ' but only have ' + this._Connection.bytesAvailable.toString() + ' available');
+                    return;
+                }
+                this._NextByte = 0;
+                var InBlock = this._Connection.readUnsignedByte();
+                var InBlockInverse = this._Connection.readUnsignedByte();
+                if (InBlockInverse !== (255 - InBlock)) {
+                    this.Cancel('Bad block #: ' + InBlockInverse.toString() + ' !== 255-' + InBlock.toString());
+                    return;
+                }
+                var Packet = new ByteArray();
+                this._Connection.readBytes(Packet, 0, BlockSize);
+                var InCRC = this._Connection.readUnsignedShort();
+                var OurCRC = CRC.Calculate16(Packet);
+                if (InCRC !== OurCRC) {
+                    this.Cancel('Bad CRC: ' + InCRC.toString() + ' !== ' + OurCRC.toString());
+                    return;
+                }
+                if (this._ExpectingHeader) {
+                    if (InBlock !== 0) {
+                        this.Cancel('Expecting header got block ' + InBlock.toString());
+                        return;
                     }
-                    catch (ioe2) {
-                        this.HandleIOError(ioe2);
+                    this._ExpectingHeader = false;
+                    var FileName = '';
+                    var B = Packet.readUnsignedByte();
+                    while ((B !== 0) && (Packet.bytesAvailable > 0)) {
+                        FileName += String.fromCharCode(B);
+                        B = Packet.readUnsignedByte();
+                    }
+                    var Temp = '';
+                    var FileSize = 0;
+                    B = Packet.readUnsignedByte();
+                    while ((B >= 48) && (B <= 57) && (Packet.bytesAvailable > 0)) {
+                        Temp += String.fromCharCode(B);
+                        B = Packet.readUnsignedByte();
+                    }
+                    FileSize = parseInt(Temp, 10);
+                    if (FileName.length === 0) {
+                        this.CleanUp('File(s) successfully received!');
+                        return;
+                    }
+                    if (isNaN(FileSize) || (FileSize === 0)) {
+                        this.Cancel('File Size missing from header block');
+                        return;
+                    }
+                    this._File = new FileRecord(FileName, FileSize);
+                    this.lblFileCount.Text = 'Receiving file ' + (this._Files.length + 1).toString();
+                    this.lblFileName.Text = 'File Name: ' + FileName;
+                    this.lblFileSize.Text = 'File Size: ' + StringUtils.AddCommas(FileSize) + ' bytes';
+                    this.lblFileReceived.Text = 'File Recv: 0 bytes';
+                    this.pbFileReceived.Value = 0;
+                    this.pbFileReceived.Maximum = FileSize;
+                    try {
+                        this._Connection.writeByte(this.ACK);
+                        this._Connection.writeByte(this.CAPC);
+                        this._Connection.flush();
+                    }
+                    catch (ioe3) {
+                        this.HandleIOError(ioe3);
                         return;
                     }
                 }
-            }
-            switch (this._NextByte) {
-                case this.CAN:
-                    this.CleanUp('Sender requested abort');
-                    break;
-                case this.SOH:
-                case this.STX:
-                    this._ShouldSendG = false;
-                    var BlockSize = (this._NextByte === this.STX) ? 1024 : 128;
-                    if (this._Connection.bytesAvailable < (1 + 1 + BlockSize + 1 + 1)) {
-                        return;
-                    }
-                    this._NextByte = 0;
-                    var InBlock = this._Connection.readUnsignedByte();
-                    var InBlockInverse = this._Connection.readUnsignedByte();
-                    if (InBlockInverse !== (255 - InBlock)) {
-                        this.Cancel('Bad block #: ' + InBlockInverse.toString() + ' !== 255-' + InBlock.toString());
-                        return;
-                    }
-                    var Packet = new ByteArray();
-                    this._Connection.readBytes(Packet, 0, BlockSize);
-                    var InCRC = this._Connection.readUnsignedShort();
-                    var OurCRC = CRC.Calculate16(Packet);
-                    if (InCRC !== OurCRC) {
-                        this.Cancel('Bad CRC: ' + InCRC.toString() + ' !== ' + OurCRC.toString());
-                        return;
-                    }
-                    if (this._ExpectingHeader) {
-                        if (InBlock !== 0) {
-                            this.Cancel('Expecting header got block ' + InBlock.toString());
-                            return;
-                        }
-                        this._ExpectingHeader = false;
-                        var FileName = '';
-                        var B = Packet.readUnsignedByte();
-                        while ((B !== 0) && (Packet.bytesAvailable > 0)) {
-                            FileName += String.fromCharCode(B);
-                            B = Packet.readUnsignedByte();
-                        }
-                        var Temp = '';
-                        var FileSize = 0;
-                        B = Packet.readUnsignedByte();
-                        while ((B >= 48) && (B <= 57) && (Packet.bytesAvailable > 0)) {
-                            Temp += String.fromCharCode(B);
-                            B = Packet.readUnsignedByte();
-                        }
-                        FileSize = parseInt(Temp, 10);
-                        if (FileName.length === 0) {
-                            this.CleanUp('File(s) successfully received!');
-                            return;
-                        }
-                        if (isNaN(FileSize) || (FileSize === 0)) {
-                            this.Cancel('File Size missing from header block');
-                            return;
-                        }
-                        this._File = new FileRecord(FileName, FileSize);
-                        this.lblFileCount.Text = 'Receiving file ' + (this._Files.length + 1).toString();
-                        this.lblFileName.Text = 'File Name: ' + FileName;
-                        this.lblFileSize.Text = 'File Size: ' + StringUtils.AddCommas(FileSize) + ' bytes';
-                        this.lblFileReceived.Text = 'File Recv: 0 bytes';
-                        this.pbFileReceived.Value = 0;
-                        this.pbFileReceived.Maximum = FileSize;
-                        try {
-                            this._Connection.writeByte(this.CAPG);
-                            this._Connection.flush();
-                        }
-                        catch (ioe3) {
-                            this.HandleIOError(ioe3);
-                            return;
-                        }
-                    }
-                    else {
-                        var BytesToWrite = Math.min(BlockSize, this._File.size - this._File.data.length);
-                        this._File.data.writeBytes(Packet, 0, BytesToWrite);
-                        this._TotalBytesReceived += BytesToWrite;
-                        this.lblFileReceived.Text = 'File Recv: ' + StringUtils.AddCommas(this._File.data.length) + ' bytes';
-                        this.pbFileReceived.Value = this._File.data.length;
-                        this.lblTotalReceived.Text = 'Total Recv: ' + StringUtils.AddCommas(this._TotalBytesReceived) + ' bytes';
-                    }
-                    break;
-                case this.EOT:
-                    this._ShouldSendG = true;
+                else {
+                    var BytesToWrite = Math.min(BlockSize, this._File.size - this._File.data.length);
+                    this._File.data.writeBytes(Packet, 0, BytesToWrite);
+                    this._TotalBytesReceived += BytesToWrite;
+                    this.lblFileReceived.Text = 'File Recv: ' + StringUtils.AddCommas(this._File.data.length) + ' bytes';
+                    this.pbFileReceived.Value = this._File.data.length;
+                    this.lblTotalReceived.Text = 'Total Recv: ' + StringUtils.AddCommas(this._TotalBytesReceived) + ' bytes';
                     try {
                         this._Connection.writeByte(this.ACK);
-                        this._Connection.writeByte(this.CAPG);
                         this._Connection.flush();
                     }
                     catch (ioe4) {
                         this.HandleIOError(ioe4);
                         return;
                     }
-                    this._NextByte = 0;
-                    this._ExpectingHeader = true;
-                    this._Files.push(this._File);
-                    this.SaveFile(this._Files.length - 1);
-                    break;
-                default:
-                    this.Cancel('Unexpected byte: ' + this._NextByte.toString());
+                }
+                break;
+            case this.EOT:
+                this._ShouldSendC = true;
+                try {
+                    this._Connection.writeByte(this.ACK);
+                    this._Connection.writeByte(this.CAPC);
+                    this._Connection.flush();
+                }
+                catch (ioe5) {
+                    this.HandleIOError(ioe5);
                     return;
-            }
+                }
+                this._NextByte = 0;
+                this._ExpectingHeader = true;
+                this._Files.push(this._File);
+                this.SaveFile(this._Files.length - 1);
+                break;
+            default:
+                this.Cancel('Unexpected byte: ' + this._NextByte.toString());
+                return;
         }
     };
     YModemReceive.prototype.SaveFile = function (index) {
@@ -5783,8 +5799,10 @@ var YModemSend = (function () {
         this.NAK = 0x15;
         this.CAN = 0x18;
         this.SUB = 0x1A;
+        this.CAPC = 'C'.charCodeAt(0);
         this.CAPG = 'G'.charCodeAt(0);
         this._Block = 0;
+        this._Debug = (window.location.hash.indexOf('ymodemdebug=1') >= 0);
         this._EOTCount = 0;
         this._FileBytesSent = 0;
         this._FileCount = 0;
@@ -5796,6 +5814,7 @@ var YModemSend = (function () {
         this._Connection = connection;
     }
     YModemSend.prototype.Cancel = function (reason) {
+        this.DebugLog('Cancel at state ' + this._State + ': ' + reason);
         try {
             this._Connection.writeByte(this.CAN);
             this._Connection.writeByte(this.CAN);
@@ -5823,13 +5842,18 @@ var YModemSend = (function () {
         this.lblStatus.Text = 'Status: ' + message;
         setTimeout(function () { _this.Dispatch(); }, 3000);
     };
+    YModemSend.prototype.DebugLog = function (message) {
+        if (this._Debug) {
+            console.log(message);
+        }
+    };
     YModemSend.prototype.Dispatch = function () {
         this.pnlMain.Hide();
         this._Crt.ShowCursor();
         this.ontransfercomplete.trigger();
     };
     YModemSend.prototype.HandleIOError = function (ioe) {
-        console.log('I/O Error: ' + ioe);
+        this.DebugLog('I/O Error: ' + ioe);
         if (this._Connection.connected) {
             this.CleanUp('Unhandled I/O error');
         }
@@ -5844,7 +5868,7 @@ var YModemSend = (function () {
                 this.Cancel('User requested abort');
             }
         }
-        if ((this._State !== YModemSendState.SendingData) && (this._Connection.bytesAvailable === 0)) {
+        if (this._Connection.bytesAvailable === 0) {
             return;
         }
         var B = 0;
@@ -5857,8 +5881,13 @@ var YModemSend = (function () {
                     this.HandleIOError(ioe1);
                     return;
                 }
-                if (B !== this.CAPG) {
-                    this.Cancel('Expecting G got ' + B.toString() + ' (State=' + this._State + ')');
+                if (B !== this.CAPC) {
+                    if (B === this.CAPG) {
+                        this.Cancel('Use plain YMODEM, not YMODEM-G');
+                    }
+                    else {
+                        this.Cancel('Expecting C got ' + B.toString() + ' (State=' + this._State + ')');
+                    }
                     return;
                 }
                 try {
@@ -5885,7 +5914,7 @@ var YModemSend = (function () {
                 this._Block = 1;
                 this._EOTCount = 0;
                 this._FileBytesSent = 0;
-                this._State = YModemSendState.WaitingForHeaderAck;
+                this.SetState(YModemSendState.WaitingForHeaderAck);
                 return;
             case YModemSendState.WaitingForHeaderAck:
                 try {
@@ -5895,15 +5924,16 @@ var YModemSend = (function () {
                     this.HandleIOError(ioe3);
                     return;
                 }
-                if ((B !== this.ACK) && (B !== this.CAPG)) {
-                    this.Cancel('Expecting ACK/G got ' + B.toString() + ' (State=' + this._State + ')');
+                if ((B !== this.ACK) && (B !== this.CAPC)) {
+                    this.Cancel('Expecting ACK or C got ' + B.toString() + ' (State=' + this._State + ')');
                     return;
                 }
                 if (B === this.ACK) {
-                    this._State = YModemSendState.WaitingForFileRequest;
+                    this.SetState(YModemSendState.WaitingForFileRequest);
                 }
-                else if (B === this.CAPG) {
-                    this._State = YModemSendState.SendingData;
+                else if (B === this.CAPC) {
+                    this.DebugLog('Got C, sending a data block');
+                    this.SendDataBlock();
                 }
                 return;
             case YModemSendState.WaitingForFileRequest:
@@ -5914,16 +5944,31 @@ var YModemSend = (function () {
                     this.HandleIOError(ioe4);
                     return;
                 }
-                if (B !== this.CAPG) {
-                    this.Cancel('Expecting G got ' + B.toString() + ' (State=' + this._State + ')');
+                if (B !== this.CAPC) {
+                    this.Cancel('Expecting C got ' + B.toString() + ' (State=' + this._State + ')');
                     return;
                 }
-                this._State = YModemSendState.SendingData;
+                this.DebugLog('Got C, sending a data block');
+                this.SendDataBlock();
                 return;
-            case YModemSendState.SendingData:
-                if (this.SendDataBlocks(16)) {
-                    this._State = YModemSendState.WaitingForFileAck;
+            case YModemSendState.WaitingForBlockAck:
+                try {
+                    B = this._Connection.readUnsignedByte();
                 }
+                catch (ioe4) {
+                    this.HandleIOError(ioe4);
+                    return;
+                }
+                if (B === this.CAPC) {
+                    this.DebugLog('Got unexpected C while waiting for block ack, ignoring');
+                    return;
+                }
+                if ((B !== this.ACK) && (B !== this.NAK)) {
+                    this.Cancel('Expecting (N)ACK got ' + B.toString() + ' (State=' + this._State + ')');
+                    return;
+                }
+                this.DebugLog('Got ACK, sending a data block');
+                this.SendDataBlock();
                 return;
             case YModemSendState.WaitingForFileAck:
                 try {
@@ -5938,15 +5983,25 @@ var YModemSend = (function () {
                     return;
                 }
                 if (B === this.ACK) {
-                    this._State = YModemSendState.WaitingForHeaderRequest;
+                    this.SetState(YModemSendState.WaitingForHeaderRequest);
                 }
                 else if (B === this.NAK) {
+                    this.DebugLog('Got NAK, re-sending EOT');
                     this.SendEOT();
                 }
                 return;
         }
     };
+    YModemSend.prototype.SendDataBlock = function () {
+        if (this.SendDataBlocks(1)) {
+            this.SetState(YModemSendState.WaitingForFileAck);
+        }
+        else {
+            this.SetState(YModemSendState.WaitingForBlockAck);
+        }
+    };
     YModemSend.prototype.SendDataBlocks = function (blocks) {
+        this.DebugLog('SendDataBlocks sending ' + blocks.toString() + ' data block(s)');
         for (var loop = 0; loop < blocks; loop++) {
             var BytesToRead = Math.min(1024, this._File.data.bytesAvailable);
             if (BytesToRead === 0) {
@@ -5987,6 +6042,7 @@ var YModemSend = (function () {
         return false;
     };
     YModemSend.prototype.SendEmptyHeaderBlock = function () {
+        this.DebugLog('SendEmptyHeaderBlock');
         var Packet = new ByteArray();
         for (var i = 0; i < 128; i++) {
             Packet.writeByte(0);
@@ -6005,6 +6061,7 @@ var YModemSend = (function () {
         }
     };
     YModemSend.prototype.SendEOT = function () {
+        this.DebugLog('SendEOT');
         try {
             this._Connection.writeByte(this.EOT);
             this._Connection.flush();
@@ -6016,6 +6073,7 @@ var YModemSend = (function () {
         this._EOTCount++;
     };
     YModemSend.prototype.SendHeaderBlock = function () {
+        this.DebugLog('SendHeaderBlock');
         var i = 0;
         var Packet = new ByteArray();
         for (i = 0; i < this._File.name.length; i++) {
@@ -6059,17 +6117,23 @@ var YModemSend = (function () {
             return;
         }
     };
+    YModemSend.prototype.SetState = function (state) {
+        if (state != this._State) {
+            this.DebugLog('Moving from state ' + this._State.toString() + ' to ' + state.toString());
+            this._State = state;
+        }
+    };
     YModemSend.prototype.Upload = function (file, fileCount) {
         var _this = this;
         this._FileCount = fileCount;
         this._Files.push(file);
         if (this._Files.length === fileCount) {
-            this._Timer = setInterval(function () { _this.OnTimer(); }, 50);
+            this._Timer = setInterval(function () { _this.OnTimer(); }, 0);
             for (var i = 0; i < this._Files.length; i++) {
                 this._TotalBytes += this._Files[i].size;
             }
             this._Crt.HideCursor();
-            this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 16, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Send Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
+            this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 16, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem Send Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
             this.lblFileCount = new CrtLabel(this._Crt, this.pnlMain, 2, 2, 56, 'Sending file 1 of ' + this._FileCount.toString(), ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
             this.lblFileName = new CrtLabel(this._Crt, this.pnlMain, 2, 4, 56, 'File Name: ' + this._Files[0].name, ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
             this.lblFileSize = new CrtLabel(this._Crt, this.pnlMain, 2, 5, 56, 'File Size: ' + StringUtils.AddCommas(this._Files[0].size) + ' bytes', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
@@ -6089,7 +6153,7 @@ var YModemSendState;
     YModemSendState[YModemSendState["WaitingForHeaderRequest"] = 0] = "WaitingForHeaderRequest";
     YModemSendState[YModemSendState["WaitingForHeaderAck"] = 1] = "WaitingForHeaderAck";
     YModemSendState[YModemSendState["WaitingForFileRequest"] = 2] = "WaitingForFileRequest";
-    YModemSendState[YModemSendState["SendingData"] = 3] = "SendingData";
+    YModemSendState[YModemSendState["WaitingForBlockAck"] = 3] = "WaitingForBlockAck";
     YModemSendState[YModemSendState["WaitingForFileAck"] = 4] = "WaitingForFileAck";
 })(YModemSendState || (YModemSendState = {}));
 //# sourceMappingURL=filetransfer.js.map

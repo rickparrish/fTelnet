@@ -21,6 +21,6 @@ enum YModemSendState {
     WaitingForHeaderRequest,
     WaitingForHeaderAck,
     WaitingForFileRequest,
-    SendingData,
+    WaitingForBlockAck,
     WaitingForFileAck
 }
