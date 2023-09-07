@@ -104,7 +104,7 @@ class YModemReceive {
 
     public Download(): void {
         // Create our main timer
-        this._Timer = setInterval((): void => { this.OnTimer(); }, 50);
+        this._Timer = setInterval((): void => { this.OnTimer(); }, 0);
 
         // Create the transfer dialog
         this._Crt.HideCursor();
