@@ -3991,6 +3991,8 @@ var WebSocketConnection = (function () {
                     Protocols = ['binary', 'base64', 'plain'];
                 }
                 else {
+                    console.log('WebSocketSupportsBinaryType=' + WebSocketSupportsBinaryType);
+                    console.log('WebSocketSupportsTypedArrays=' + WebSocketSupportsTypedArrays);
                     Protocols = ['base64', 'plain'];
                 }
             }
@@ -4091,6 +4093,9 @@ var WebSocketConnection = (function () {
         this.onconnect.trigger();
     };
     WebSocketConnection.prototype.OnWebSocketMessage = function (e) {
+        if (this._LogIO) {
+            console.log('Incoming ' + (typeof e.data === 'string' ? 'text' : 'binary') + ' message');
+        }
         if (this._InputBuffer.bytesAvailable === 0) {
             this._InputBuffer.clear();
         }
@@ -4128,44 +4133,37 @@ var WebSocketConnection = (function () {
         return this._InputBuffer.readUnsignedShort();
     };
     WebSocketConnection.prototype.Send = function (data) {
-        var DebugLine = "";
         if (UseCordovaSocket) {
             this._CordovaSocket.write(new Uint8Array(data));
         }
         else {
-            var i = 0;
-            var ToSendString = '';
             if (this._Protocol === 'binary') {
                 this._WebSocket.send(new Uint8Array(data).buffer);
             }
-            else if (this._Protocol === 'base64') {
-                for (i = 0; i < data.length; i++) {
-                    var B = data[i];
-                    if (B >= 32 && B <= 126) {
-                        DebugLine += String.fromCharCode(B);
-                    }
-                    else {
-                        DebugLine += '~' + B.toString(10);
-                    }
-                    ToSendString += String.fromCharCode(data[i]);
-                }
-                this._WebSocket.send(btoa(ToSendString));
-            }
             else {
-                for (i = 0; i < data.length; i++) {
-                    var B = data[i];
-                    if (B >= 32 && B <= 126) {
-                        DebugLine += String.fromCharCode(B);
-                    }
-                    else {
-                        DebugLine += '~' + B.toString(10);
-                    }
+                var ToSendString = '';
+                for (var i = 0; i < data.length; i++) {
                     ToSendString += String.fromCharCode(data[i]);
                 }
-                this._WebSocket.send(ToSendString);
+                if (this._Protocol === 'base64') {
+                    this._WebSocket.send(btoa(ToSendString));
+                }
+                else {
+                    this._WebSocket.send(ToSendString);
+                }
             }
         }
         if (this._LogIO) {
+            var DebugLine = '';
+            for (var i = 0; i < data.length; i++) {
+                var B = data[i];
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                }
+                else {
+                    DebugLine += '~' + B.toString(10);
+                }
+            }
             console.log('SEND: ' + DebugLine);
         }
     };
@@ -5597,7 +5595,7 @@ var YModemReceive = (function () {
     };
     YModemReceive.prototype.Download = function () {
         var _this = this;
-        this._Timer = setInterval(function () { _this.OnTimer(); }, 50);
+        this._Timer = setInterval(function () { _this.OnTimer(); }, 0);
         this._Crt.HideCursor();
         this.pnlMain = new CrtPanel(this._Crt, undefined, 10, 5, 60, 14, BorderStyle.Single, Crt.WHITE, Crt.BLUE, 'YModem-G Receive Status (Hit CTRL+X to abort)', ContentAlignment.TopLeft);
         this.lblFileCount = new CrtLabel(this._Crt, this.pnlMain, 2, 2, 56, 'Receiving file 1', ContentAlignment.Left, Crt.YELLOW, Crt.BLUE);
@@ -6064,7 +6062,7 @@ var YModemSend = (function () {
         this._FileCount = fileCount;
         this._Files.push(file);
         if (this._Files.length === fileCount) {
-            this._Timer = setInterval(function () { _this.OnTimer(); }, 50);
+            this._Timer = setInterval(function () { _this.OnTimer(); }, 0);
             for (var i = 0; i < this._Files.length; i++) {
                 this._TotalBytes += this._Files[i].size;
             }

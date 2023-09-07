@@ -3576,6 +3576,8 @@ var WebSocketConnection = (function () {
                     Protocols = ['binary', 'base64', 'plain'];
                 }
                 else {
+                    console.log('WebSocketSupportsBinaryType=' + WebSocketSupportsBinaryType);
+                    console.log('WebSocketSupportsTypedArrays=' + WebSocketSupportsTypedArrays);
                     Protocols = ['base64', 'plain'];
                 }
             }
@@ -3676,6 +3678,9 @@ var WebSocketConnection = (function () {
         this.onconnect.trigger();
     };
     WebSocketConnection.prototype.OnWebSocketMessage = function (e) {
+        if (this._LogIO) {
+            console.log('Incoming ' + (typeof e.data === 'string' ? 'text' : 'binary') + ' message');
+        }
         if (this._InputBuffer.bytesAvailable === 0) {
             this._InputBuffer.clear();
         }
@@ -3713,44 +3718,37 @@ var WebSocketConnection = (function () {
         return this._InputBuffer.readUnsignedShort();
     };
     WebSocketConnection.prototype.Send = function (data) {
-        var DebugLine = "";
         if (UseCordovaSocket) {
             this._CordovaSocket.write(new Uint8Array(data));
         }
         else {
-            var i = 0;
-            var ToSendString = '';
             if (this._Protocol === 'binary') {
                 this._WebSocket.send(new Uint8Array(data).buffer);
             }
-            else if (this._Protocol === 'base64') {
-                for (i = 0; i < data.length; i++) {
-                    var B = data[i];
-                    if (B >= 32 && B <= 126) {
-                        DebugLine += String.fromCharCode(B);
-                    }
-                    else {
-                        DebugLine += '~' + B.toString(10);
-                    }
-                    ToSendString += String.fromCharCode(data[i]);
-                }
-                this._WebSocket.send(btoa(ToSendString));
-            }
             else {
-                for (i = 0; i < data.length; i++) {
-                    var B = data[i];
-                    if (B >= 32 && B <= 126) {
-                        DebugLine += String.fromCharCode(B);
-                    }
-                    else {
-                        DebugLine += '~' + B.toString(10);
-                    }
+                var ToSendString = '';
+                for (var i = 0; i < data.length; i++) {
                     ToSendString += String.fromCharCode(data[i]);
                 }
-                this._WebSocket.send(ToSendString);
+                if (this._Protocol === 'base64') {
+                    this._WebSocket.send(btoa(ToSendString));
+                }
+                else {
+                    this._WebSocket.send(ToSendString);
+                }
             }
         }
         if (this._LogIO) {
+            var DebugLine = '';
+            for (var i = 0; i < data.length; i++) {
+                var B = data[i];
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                }
+                else {
+                    DebugLine += '~' + B.toString(10);
+                }
+            }
             console.log('SEND: ' + DebugLine);
         }
     };
