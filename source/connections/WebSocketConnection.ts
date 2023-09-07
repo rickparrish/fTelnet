@@ -139,6 +139,8 @@ class WebSocketConnection {
                 if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
                     Protocols = ['binary', 'base64', 'plain'];
                 } else {
+                    console.log('WebSocketSupportsBinaryType=' + WebSocketSupportsBinaryType);
+                    console.log('WebSocketSupportsTypedArrays=' + WebSocketSupportsTypedArrays);
                     Protocols = ['base64', 'plain'];
                 }
             }
@@ -255,6 +257,10 @@ class WebSocketConnection {
     }
 
     private OnWebSocketMessage(e: any): void {
+        if (this._LogIO) {
+            console.log('Incoming ' + (typeof e.data === 'string' ? 'text' : 'binary') + ' message');
+        }
+        
         // Free up some memory if we're at the end of the buffer
         if (this._InputBuffer.bytesAvailable === 0) { this._InputBuffer.clear(); }
 
@@ -306,47 +312,36 @@ class WebSocketConnection {
     }
 
     public Send(data: number[]): void {
-        var DebugLine: string = "";
-
         if (UseCordovaSocket) {
             this._CordovaSocket.write(new Uint8Array(data));
         } else {
-            var i: number = 0;
-            var ToSendString: string = '';
-
             if (this._Protocol === 'binary') {
                 this._WebSocket.send(new Uint8Array(data).buffer);
-            } else if (this._Protocol === 'base64') {
-                // TODO Ensure btoa still works with websockify
-                for (i = 0; i < data.length; i++) {
-                    var B: number = data[i];
-
-                    if (B >= 32 && B <= 126) {
-                        DebugLine += String.fromCharCode(B);
-                    } else {
-                        DebugLine += '~' + B.toString(10);
-                    }
-
-                    ToSendString += String.fromCharCode(data[i]);
-                }
-                this._WebSocket.send(btoa(ToSendString));
             } else {
-                for (i = 0; i < data.length; i++) {
-                    var B: number = data[i];
-
-                    if (B >= 32 && B <= 126) {
-                        DebugLine += String.fromCharCode(B);
-                    } else {
-                        DebugLine += '~' + B.toString(10);
-                    }
-
+                var ToSendString: string = '';
+                for (var i = 0; i < data.length; i++) {
                     ToSendString += String.fromCharCode(data[i]);
                 }
-                this._WebSocket.send(ToSendString);
+    
+                if (this._Protocol === 'base64') {
+                    // TODO Ensure btoa still works with websockify
+                    this._WebSocket.send(btoa(ToSendString));
+                } else {
+                    this._WebSocket.send(ToSendString);
+                }
             }
         }
 
         if (this._LogIO) {
+            var DebugLine: string = '';
+            for (var i = 0; i < data.length; i++) {
+                var B: number = data[i];
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                } else {
+                    DebugLine += '~' + B.toString(10);
+                }
+            }
             console.log('SEND: ' + DebugLine);
         }
     }
