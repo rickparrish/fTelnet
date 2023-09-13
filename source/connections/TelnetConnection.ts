@@ -249,10 +249,13 @@ class TelnetConnection extends WebSocketConnection {
 
         while (data.bytesAvailable) {
             var B: number = data.readUnsignedByte();
-            if (B >= 32 && B <= 126) {
-                DebugLine += String.fromCharCode(B);
-            } else {
-                DebugLine += '~' + B.toString(10);
+            
+            if (this._LogIO) {
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                } else {
+                    DebugLine += '~' + B.toString(10);
+                }
             }
 
             if (this._NegotiationState === TelnetNegotiationState.Data) {

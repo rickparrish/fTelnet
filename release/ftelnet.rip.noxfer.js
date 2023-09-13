@@ -3796,8 +3796,17 @@ var RLoginConnection = (function (_super) {
         return _this;
     }
     RLoginConnection.prototype.NegotiateInbound = function (data) {
+        var DebugLine = "";
         while (data.bytesAvailable) {
             var B = data.readUnsignedByte();
+            if (this._LogIO) {
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                }
+                else {
+                    DebugLine += '~' + B.toString(10);
+                }
+            }
             if (this._NegotiationState === RLoginNegotiationState.Data) {
                 if (B === RLoginCommand.Cookie) {
                     this._NegotiationState = RLoginNegotiationState.Cookie1;
@@ -3835,6 +3844,11 @@ var RLoginConnection = (function (_super) {
                     this._SSBytes = 0;
                     this._NegotiationState = RLoginNegotiationState.Data;
                 }
+            }
+        }
+        if (this._LogIO) {
+            if (DebugLine.length > 0) {
+                console.log('IN: ' + DebugLine);
             }
         }
     };
@@ -4062,11 +4076,13 @@ var TelnetConnection = (function (_super) {
         var DebugLine = "";
         while (data.bytesAvailable) {
             var B = data.readUnsignedByte();
-            if (B >= 32 && B <= 126) {
-                DebugLine += String.fromCharCode(B);
-            }
-            else {
-                DebugLine += '~' + B.toString(10);
+            if (this._LogIO) {
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                }
+                else {
+                    DebugLine += '~' + B.toString(10);
+                }
             }
             if (this._NegotiationState === TelnetNegotiationState.Data) {
                 if (B === TelnetCommand.IAC) {

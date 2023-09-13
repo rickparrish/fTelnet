@@ -31,8 +31,18 @@ class RLoginConnection extends WebSocketConnection {
 
     public NegotiateInbound(data: ByteArray): void {
         // Get any waiting data and handle negotiation
+        var DebugLine: string = "";
+
         while (data.bytesAvailable) {
             var B: number = data.readUnsignedByte();
+
+            if (this._LogIO) {
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                } else {
+                    DebugLine += '~' + B.toString(10);
+                }
+            }
 
             if (this._NegotiationState === RLoginNegotiationState.Data) {
                 if (B === RLoginCommand.Cookie) {
@@ -63,6 +73,12 @@ class RLoginConnection extends WebSocketConnection {
                     this._SSBytes = 0;
                     this._NegotiationState = RLoginNegotiationState.Data;
                 }
+            }
+        }
+
+        if (this._LogIO) {
+            if (DebugLine.length > 0) {
+                console.log('IN: ' + DebugLine);
             }
         }
     }
