@@ -17,6 +17,7 @@
     }
 
 .fTelnetClientContainer {
+    border: 1px solid black;
     position: relative;
     margin: auto;
 }
@@ -43,6 +44,7 @@
 
 .fTelnetFocusWarning {
     background-color: red;
+    border: 1px solid red;
     color: white;
     font: 14px Arial, Helvetica, sans-serif;
     margin: auto;
@@ -105,6 +107,7 @@
 
 .fTelnetScrollback {
     background-color: green;
+    border: 1px solid green;
     color: white;
     font: 14px Arial, Helvetica, sans-serif;
     margin: auto;
@@ -120,6 +123,7 @@
 
 .fTelnetStatusBar {
     background-color: blue;
+    border: 1px solid blue;
     color: white;
     font: 14px Arial, Helvetica, sans-serif;
     margin: auto;
