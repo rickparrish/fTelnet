@@ -23,6 +23,8 @@ class fTelnetClient {
 
     // Private variables
     private _Ansi: Ansi;
+    private _AriaInput: HTMLInputElement;
+    private _AriaInputWrapper: HTMLDivElement;
     private _ClientContainer: HTMLDivElement;
     private _ConnectButton: HTMLAnchorElement;
     private _Connection: WebSocketConnection;
@@ -486,6 +488,19 @@ class fTelnetClient {
         this._UploadInput.style.display = 'none';
         this._fTelnetContainer.appendChild(this._UploadInput);
 
+        // Add our aria input control
+        if (this._Options.AriaInput) {
+            this._AriaInputWrapper = <HTMLDivElement>document.createElement('div');
+            this._AriaInputWrapper.className = 'fTelnetAriaInputWrapper';
+            this._fTelnetContainer.appendChild(this._AriaInputWrapper);
+            this._AriaInput = <HTMLInputElement>document.createElement('input');
+            this._AriaInput.id = 'fTelnetAriaInput';
+            this._AriaInput.placeholder = 'Focus me to enter ARIA application mode';
+            this._AriaInput.type = 'text';
+            this._AriaInput.setAttribute('role', 'application');
+            this._AriaInputWrapper.appendChild(this._AriaInput);
+        }
+
         // TODOX return true;
     }
 
@@ -797,6 +812,8 @@ class fTelnetClient {
     }
 
     private OnConnectionClose(): void {
+        if (typeof this._AriaInput !== 'undefined') { this._AriaInput.blur(); }
+
         this._ConnectButton.innerHTML = 'Reconnect';
         this._ConnectButton.style.display = 'inline';
 
@@ -806,6 +823,8 @@ class fTelnetClient {
     }
 
     private OnConnectionConnect(): void {
+        if (typeof this._AriaInput !== 'undefined') { this._AriaInput.focus(); }
+        
         this._Crt.ClrScr();
 
         if (this._Options.ProxyHostname === '') {
@@ -943,6 +962,8 @@ class fTelnetClient {
         }
 
         // TODO -10 is 5px of left and right padding -- would be good if this wasn't hardcoded since it can be customized in the .css
+        if (typeof this._AriaInputWrapper !== 'undefined') { this._AriaInputWrapper.style.width = NewWidth + 'px'; }
+        if (typeof this._AriaInput !== 'undefined') { this._AriaInput.style.width = NewWidth - 10 + 'px'; }
         if (typeof this._FocusWarningBar !== 'undefined') { this._FocusWarningBar.style.width = NewWidth - 10 + 'px'; }
         if (typeof this._ScrollbackBar !== 'undefined') { this._ScrollbackBar.style.width = NewWidth - 10 + 'px'; }
         if (typeof this._StatusBar !== 'undefined') { this._StatusBar.style.width = NewWidth - 10 + 'px'; }

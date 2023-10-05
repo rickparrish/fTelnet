@@ -19,6 +19,7 @@
 */
 class fTelnetOptions {
     public AllowModernScrollback: boolean = true;
+    public AriaInput: boolean = false;
     public BareLFtoCRLF: boolean = false;
     public BitsPerSecond: number = 57600;
     public ConnectionType: string = 'telnet';

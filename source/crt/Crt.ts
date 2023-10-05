@@ -71,6 +71,7 @@ class Crt {
 
     /* Private variables */
     private _AllowDynamicFontResize: boolean = true;
+    private _AriaText: string = '';
     private _Atari: boolean = false;
     private _ATASCIIEscaped: boolean = false;
     private _BareLFtoCRLF: boolean = false;
@@ -120,7 +121,7 @@ class Crt {
         // Create the canvas
         this._Canvas = document.createElement('canvas');
         this._Canvas.className = 'fTelnetCrtCanvas';
-        this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
+        this._Canvas.setAttribute('aria-live', 'assertive');
         this._Canvas.style.zIndex = '50'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
         if (this._UseModernScrollback) {
@@ -346,6 +347,9 @@ class Crt {
         /// </remarks>
         this.ScrollUpWindow(this.WindRows);
         this.GotoXY(1, 1);
+
+        this._AriaText = '';
+        this._Canvas.innerText = this._AriaText;
     }
 
     public Conceal(): void {
@@ -822,7 +826,11 @@ class Crt {
     private OnKeyDown(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
         if (!window.cordova) {
-            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
+            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { 
+                if ((ke.target as HTMLElement).id !== 'fTelnetAriaInput') {
+                    return; 
+                }
+            }
         }
 
         if (this._InScrollback) {
@@ -980,7 +988,11 @@ class Crt {
     private OnKeyPress(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
         if (!window.cordova) {
-            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
+            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { 
+                if ((ke.target as HTMLElement).id !== 'fTelnetAriaInput') {
+                    return; 
+                }
+            }
         }
 
         if (this._InScrollback) { return; }
@@ -1895,6 +1907,18 @@ class Crt {
             this.WritePETSCII(text);
         } else {
             this.WriteASCII(text);
+        }
+
+        var newAriaText = this._AriaText;
+        for (var i = 0; i < text.length; i++) {
+            var ch = text.charCodeAt(i);
+            if ((ch == 10) || (ch == 13) || ((ch >= 32) && (ch <= 126))) {
+                newAriaText += text[i];
+            }
+        }
+        if (this._AriaText != newAriaText) {
+            this._AriaText = newAriaText;
+            this._Canvas.innerText = this._AriaText;
         }
     }
 

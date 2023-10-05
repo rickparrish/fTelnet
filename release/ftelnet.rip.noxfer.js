@@ -1193,6 +1193,7 @@ var Crt = (function () {
         this.onmousereport = new TypedEvent();
         this.onscreensizechange = new TypedEvent();
         this._AllowDynamicFontResize = true;
+        this._AriaText = '';
         this._Atari = false;
         this._ATASCIIEscaped = false;
         this._BareLFtoCRLF = false;
@@ -1218,7 +1219,7 @@ var Crt = (function () {
         this._Font.onchange.on(function (oldSize) { _this.OnFontChanged(oldSize); });
         this._Canvas = document.createElement('canvas');
         this._Canvas.className = 'fTelnetCrtCanvas';
-        this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
+        this._Canvas.setAttribute('aria-live', 'assertive');
         this._Canvas.style.zIndex = '50';
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
         if (this._UseModernScrollback) {
@@ -1348,6 +1349,8 @@ var Crt = (function () {
     Crt.prototype.ClrScr = function () {
         this.ScrollUpWindow(this.WindRows);
         this.GotoXY(1, 1);
+        this._AriaText = '';
+        this._Canvas.innerText = this._AriaText;
     };
     Crt.prototype.Conceal = function () {
         this.TextColor((this.TextAttr & 0xF0) >> 4);
@@ -1668,7 +1671,9 @@ var Crt = (function () {
     Crt.prototype.OnKeyDown = function (ke) {
         if (!window.cordova) {
             if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) {
-                return;
+                if (ke.target.id !== 'fTelnetAriaInput') {
+                    return;
+                }
             }
         }
         if (this._InScrollback) {
@@ -1944,7 +1949,9 @@ var Crt = (function () {
     Crt.prototype.OnKeyPress = function (ke) {
         if (!window.cordova) {
             if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) {
-                return;
+                if (ke.target.id !== 'fTelnetAriaInput') {
+                    return;
+                }
             }
         }
         if (this._InScrollback) {
@@ -2570,6 +2577,17 @@ var Crt = (function () {
         }
         else {
             this.WriteASCII(text);
+        }
+        var newAriaText = this._AriaText;
+        for (var i = 0; i < text.length; i++) {
+            var ch = text.charCodeAt(i);
+            if ((ch == 10) || (ch == 13) || ((ch >= 32) && (ch <= 126))) {
+                newAriaText += text[i];
+            }
+        }
+        if (this._AriaText != newAriaText) {
+            this._AriaText = newAriaText;
+            this._Canvas.innerText = this._AriaText;
         }
     };
     Crt.prototype.WriteASCII = function (text) {
@@ -8450,6 +8468,17 @@ var fTelnetClient = (function () {
         this._UploadInput.onchange = function () { _this.OnUploadFileSelected(); };
         this._UploadInput.style.display = 'none';
         this._fTelnetContainer.appendChild(this._UploadInput);
+        if (this._Options.AriaInput) {
+            this._AriaInputWrapper = document.createElement('div');
+            this._AriaInputWrapper.className = 'fTelnetAriaInputWrapper';
+            this._fTelnetContainer.appendChild(this._AriaInputWrapper);
+            this._AriaInput = document.createElement('input');
+            this._AriaInput.id = 'fTelnetAriaInput';
+            this._AriaInput.placeholder = 'Focus me to enter ARIA application mode';
+            this._AriaInput.type = 'text';
+            this._AriaInput.setAttribute('role', 'application');
+            this._AriaInputWrapper.appendChild(this._AriaInput);
+        }
     }
     fTelnetClient.prototype.ClipboardCopy = function () {
         if (typeof this._MenuButtons !== 'undefined') {
@@ -8760,6 +8789,9 @@ var fTelnetClient = (function () {
     fTelnetClient.prototype.OnAnsiRIPEnable = function () {
     };
     fTelnetClient.prototype.OnConnectionClose = function () {
+        if (typeof this._AriaInput !== 'undefined') {
+            this._AriaInput.blur();
+        }
         this._ConnectButton.innerHTML = 'Reconnect';
         this._ConnectButton.style.display = 'inline';
         this._StatusBarLabel.innerHTML = 'Disconnected from ' + this._Options.Hostname + ':' + this._Options.Port;
@@ -8767,6 +8799,9 @@ var fTelnetClient = (function () {
         this._ClientContainer.style.opacity = '0.5';
     };
     fTelnetClient.prototype.OnConnectionConnect = function () {
+        if (typeof this._AriaInput !== 'undefined') {
+            this._AriaInput.focus();
+        }
         this._Crt.ClrScr();
         if (this._Options.ProxyHostname === '') {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port;
@@ -8887,6 +8922,12 @@ var fTelnetClient = (function () {
             else {
                 NewWidth = this._Crt.ScreenCols * this._Crt.Font.Width;
             }
+        }
+        if (typeof this._AriaInputWrapper !== 'undefined') {
+            this._AriaInputWrapper.style.width = NewWidth + 'px';
+        }
+        if (typeof this._AriaInput !== 'undefined') {
+            this._AriaInput.style.width = NewWidth - 10 + 'px';
         }
         if (typeof this._FocusWarningBar !== 'undefined') {
             this._FocusWarningBar.style.width = NewWidth - 10 + 'px';
@@ -9030,6 +9071,7 @@ var fTelnetClient = (function () {
 var fTelnetOptions = (function () {
     function fTelnetOptions() {
         this.AllowModernScrollback = true;
+        this.AriaInput = false;
         this.BareLFtoCRLF = false;
         this.BitsPerSecond = 57600;
         this.ConnectionType = 'telnet';
