@@ -71,7 +71,6 @@ class Crt {
 
     /* Private variables */
     private _AllowDynamicFontResize: boolean = true;
-    private _AriaText: string = '';
     private _Atari: boolean = false;
     private _ATASCIIEscaped: boolean = false;
     private _BareLFtoCRLF: boolean = false;
@@ -121,7 +120,7 @@ class Crt {
         // Create the canvas
         this._Canvas = document.createElement('canvas');
         this._Canvas.className = 'fTelnetCrtCanvas';
-        this._Canvas.setAttribute('aria-live', 'assertive');
+        this._Canvas.setAttribute('aria-live', 'polite');
         this._Canvas.style.zIndex = '50'; // TODO Maybe a constant from another file to help keep zindexes correct for different elements?
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
         if (this._UseModernScrollback) {
@@ -348,8 +347,11 @@ class Crt {
         this.ScrollUpWindow(this.WindRows);
         this.GotoXY(1, 1);
 
-        this._AriaText = '';
-        this._Canvas.innerText = this._AriaText;
+        var child = this._Canvas.lastElementChild;  
+        while (child) { 
+            this._Canvas.removeChild(child); 
+            child = this._Canvas.lastElementChild; 
+        } 
     }
 
     public Conceal(): void {
@@ -1909,16 +1911,25 @@ class Crt {
             this.WriteASCII(text);
         }
 
-        var newAriaText = this._AriaText;
+        var newAriaText = '';
         for (var i = 0; i < text.length; i++) {
             var ch = text.charCodeAt(i);
-            if ((ch == 10) || (ch == 13) || ((ch >= 32) && (ch <= 126))) {
+            if ((ch == 10) || (ch == 13)) {
+                if (newAriaText.trim() !== '') {
+                    var newDiv = <HTMLDivElement>document.createElement('div');
+                    newDiv.innerText = newAriaText;
+                    this._Canvas.appendChild(newDiv);
+                    newAriaText = '';
+                }
+            } else if ((ch >= 32) && (ch <= 126)) {
                 newAriaText += text[i];
             }
         }
-        if (this._AriaText != newAriaText) {
-            this._AriaText = newAriaText;
-            this._Canvas.innerText = this._AriaText;
+        if (newAriaText.trim() !== '') {
+            var newDiv = <HTMLDivElement>document.createElement('div');
+            newDiv.innerText = newAriaText;
+            this._Canvas.appendChild(newDiv);
+            newAriaText = '';
         }
     }
 

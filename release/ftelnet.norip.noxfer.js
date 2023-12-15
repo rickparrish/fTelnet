@@ -1193,7 +1193,6 @@ var Crt = (function () {
         this.onmousereport = new TypedEvent();
         this.onscreensizechange = new TypedEvent();
         this._AllowDynamicFontResize = true;
-        this._AriaText = '';
         this._Atari = false;
         this._ATASCIIEscaped = false;
         this._BareLFtoCRLF = false;
@@ -1219,7 +1218,7 @@ var Crt = (function () {
         this._Font.onchange.on(function (oldSize) { _this.OnFontChanged(oldSize); });
         this._Canvas = document.createElement('canvas');
         this._Canvas.className = 'fTelnetCrtCanvas';
-        this._Canvas.setAttribute('aria-live', 'assertive');
+        this._Canvas.setAttribute('aria-live', 'polite');
         this._Canvas.style.zIndex = '50';
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
         if (this._UseModernScrollback) {
@@ -1349,8 +1348,11 @@ var Crt = (function () {
     Crt.prototype.ClrScr = function () {
         this.ScrollUpWindow(this.WindRows);
         this.GotoXY(1, 1);
-        this._AriaText = '';
-        this._Canvas.innerText = this._AriaText;
+        var child = this._Canvas.lastElementChild;
+        while (child) {
+            this._Canvas.removeChild(child);
+            child = this._Canvas.lastElementChild;
+        }
     };
     Crt.prototype.Conceal = function () {
         this.TextColor((this.TextAttr & 0xF0) >> 4);
@@ -2578,16 +2580,26 @@ var Crt = (function () {
         else {
             this.WriteASCII(text);
         }
-        var newAriaText = this._AriaText;
+        var newAriaText = '';
         for (var i = 0; i < text.length; i++) {
             var ch = text.charCodeAt(i);
-            if ((ch == 10) || (ch == 13) || ((ch >= 32) && (ch <= 126))) {
+            if ((ch == 10) || (ch == 13)) {
+                if (newAriaText.trim() !== '') {
+                    var newDiv = document.createElement('div');
+                    newDiv.innerText = newAriaText;
+                    this._Canvas.appendChild(newDiv);
+                    newAriaText = '';
+                }
+            }
+            else if ((ch >= 32) && (ch <= 126)) {
                 newAriaText += text[i];
             }
         }
-        if (this._AriaText != newAriaText) {
-            this._AriaText = newAriaText;
-            this._Canvas.innerText = this._AriaText;
+        if (newAriaText.trim() !== '') {
+            var newDiv = document.createElement('div');
+            newDiv.innerText = newAriaText;
+            this._Canvas.appendChild(newDiv);
+            newAriaText = '';
         }
     };
     Crt.prototype.WriteASCII = function (text) {
@@ -5129,17 +5141,6 @@ var fTelnetClient = (function () {
         this._UploadInput.onchange = function () { _this.OnUploadFileSelected(); };
         this._UploadInput.style.display = 'none';
         this._fTelnetContainer.appendChild(this._UploadInput);
-        if (this._Options.AriaInput) {
-            this._AriaInputWrapper = document.createElement('div');
-            this._AriaInputWrapper.className = 'fTelnetAriaInputWrapper';
-            this._fTelnetContainer.appendChild(this._AriaInputWrapper);
-            this._AriaInput = document.createElement('input');
-            this._AriaInput.id = 'fTelnetAriaInput';
-            this._AriaInput.placeholder = 'Focus me to enter ARIA application mode';
-            this._AriaInput.type = 'text';
-            this._AriaInput.setAttribute('role', 'application');
-            this._AriaInputWrapper.appendChild(this._AriaInput);
-        }
     }
     fTelnetClient.prototype.ClipboardCopy = function () {
         if (typeof this._MenuButtons !== 'undefined') {

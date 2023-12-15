@@ -488,19 +488,6 @@ class fTelnetClient {
         this._UploadInput.style.display = 'none';
         this._fTelnetContainer.appendChild(this._UploadInput);
 
-        // Add our aria input control
-        if (this._Options.AriaInput) {
-            this._AriaInputWrapper = <HTMLDivElement>document.createElement('div');
-            this._AriaInputWrapper.className = 'fTelnetAriaInputWrapper';
-            this._fTelnetContainer.appendChild(this._AriaInputWrapper);
-            this._AriaInput = <HTMLInputElement>document.createElement('input');
-            this._AriaInput.id = 'fTelnetAriaInput';
-            this._AriaInput.placeholder = 'Focus me to enter ARIA application mode';
-            this._AriaInput.type = 'text';
-            this._AriaInput.setAttribute('role', 'application');
-            this._AriaInputWrapper.appendChild(this._AriaInput);
-        }
-
         // TODOX return true;
     }
 
