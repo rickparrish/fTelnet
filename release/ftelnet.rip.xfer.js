@@ -2803,16 +2803,11 @@ var Crt = (function () {
         this._Cursor.BlinkRate = milliSeconds;
     };
     Crt.prototype.SetFont = function (font) {
-        if (this._UseModernScrollback) {
-            if (this._Container.parentElement === null) {
-                return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
-            }
-            else {
-                return this._Font.Load(font, Math.floor(this._Container.parentElement.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
-            }
+        if (this._Container.parentElement === null) {
+            return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
         }
         else {
-            return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+            return this._Font.Load(font, Math.floor(this._Container.parentElement.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
         }
     };
     Crt.prototype.SetScreenSize = function (columns, rows) {
@@ -9860,6 +9855,10 @@ var fTelnetClient = (function () {
             this._ClientContainer.style.width = (this._Options.ScreenColumns * 9) + GetScrollbarWidth.Width + 'px';
             this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
         }
+        else {
+            this._ClientContainer.style.height = this._Options.ScreenRows * 16 + 'px';
+            this._ClientContainer.style.width = this._Options.ScreenColumns * 9 + 'px';
+        }
         this._Crt = new Crt(this._ClientContainer, this._UseModernScrollback);
         this._InitMessageBar.style.display = 'none';
         this._Crt.onfontchange.on(function () { _this.OnCrtScreenSizeChanged(); });
@@ -10558,15 +10557,17 @@ var fTelnetClient = (function () {
             NewWidth = 640;
         }
         else {
+            NewHeight = this._Crt.ScreenRows * this._Crt.Font.Height;
             if (this._UseModernScrollback) {
                 NewWidth = this._Crt.ScreenCols * this._Crt.Font.Width + GetScrollbarWidth.Width;
-                NewHeight = this._Crt.ScreenRows * this._Crt.Font.Height;
                 this._ClientContainer.style.width = NewWidth + 'px';
                 this._ClientContainer.style.height = NewHeight + 'px';
                 this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
             }
             else {
                 NewWidth = this._Crt.ScreenCols * this._Crt.Font.Width;
+                this._ClientContainer.style.width = NewWidth + 'px';
+                this._ClientContainer.style.height = NewHeight + 'px';
             }
         }
         if (typeof this._FocusWarningBar !== 'undefined') {

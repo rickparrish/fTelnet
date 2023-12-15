@@ -150,7 +150,7 @@ class fTelnetClient {
         this._ClientContainer.className = 'fTelnetClientContainer';
         this._fTelnetContainer.appendChild(this._ClientContainer);
 
-        // Setup the client container for modern scrollback on desktop devices
+        // Setup the client container
         this._UseModernScrollback = (this._Options.AllowModernScrollback && DetectMobileBrowser.SupportsModernScrollback && (this._Options.Emulation !== 'RIP'));
         if (this._UseModernScrollback) {
             this._ClientContainer.style.overflowX = 'hidden';
@@ -158,6 +158,11 @@ class fTelnetClient {
             this._ClientContainer.style.height = this._Options.ScreenRows * 16 + 'px'; // Default font is 9x16
             this._ClientContainer.style.width = (this._Options.ScreenColumns * 9) + GetScrollbarWidth.Width + 'px'; // Default font is 9x16
             this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
+        } else {
+            // Now that the client container has a black border around it, we also need to set the width and height for
+            // classic scrollback (otherwise there will be whitespace between the client and the border)
+            this._ClientContainer.style.height = this._Options.ScreenRows * 16 + 'px'; // Default font is 9x16
+            this._ClientContainer.style.width = this._Options.ScreenColumns * 9 + 'px'; // Default font is 9x16
         }
 
         // Seup the crt window
@@ -929,16 +934,22 @@ class fTelnetClient {
         if (this._Options.Emulation === 'RIP') {
             NewWidth = 640;
         } else {
+            NewHeight = this._Crt.ScreenRows * this._Crt.Font.Height;
+
             if (this._UseModernScrollback) {
                 // Non-mobile means modern scrollback, which needs both width and height to be set
                 NewWidth = this._Crt.ScreenCols * this._Crt.Font.Width + GetScrollbarWidth.Width;
-                NewHeight = this._Crt.ScreenRows * this._Crt.Font.Height;
 
                 this._ClientContainer.style.width = NewWidth + 'px';
                 this._ClientContainer.style.height = NewHeight + 'px';
                 this._ClientContainer.scrollTop = this._ClientContainer.scrollHeight;
             } else {
+                // Now that the client container has a black border around it, we also need to set the width and height for
+                // classic scrollback (otherwise there will be whitespace between the client and the border)
                 NewWidth = this._Crt.ScreenCols * this._Crt.Font.Width;
+
+                this._ClientContainer.style.width = NewWidth + 'px';
+                this._ClientContainer.style.height = NewHeight + 'px';
             }
         }
 

@@ -1591,16 +1591,13 @@ class Crt {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Request the new font
-        if (this._UseModernScrollback) {
-            // With modern scrollbar the container is the same width as the canvas, so we need to look at the parent container to see the maximum client size
-            if (this._Container.parentElement === null) {
-                // This should never happen, but needs to be here to make the compiler happy
-                return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
-            } else {
-                return this._Font.Load(font, Math.floor(this._Container.parentElement.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
-            }
-        } else {
+        // Both classic and modern scrollback now set the client container to be the same width as the canvas, so we need to look at the parent element
+        // to get the available width
+        if (this._Container.parentElement === null) {
+            // This should never happen, but needs to be here to make the compiler happy
             return this._Font.Load(font, Math.floor(this._Container.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
+        } else {
+            return this._Font.Load(font, Math.floor(this._Container.parentElement.clientWidth / this._ScreenSize.x), Math.floor(window.innerHeight / this._ScreenSize.y));
         }
     }
 
