@@ -6451,7 +6451,10 @@ var fTelnetClient = (function () {
             }
             catch (e) {
             }
-            if (this._Options.Emulation === 'C64') {
+            if (this._Options.Emulation === 'Atari') {
+                this._Options.ScreenColumns = 40;
+            }
+            else if (this._Options.Emulation === 'C64') {
                 this._Options.Font = 'C64-Lower';
                 this._Options.ScreenColumns = 40;
             }
@@ -6526,6 +6529,7 @@ var fTelnetClient = (function () {
         this._Crt.onkeypressed.on(function () { _this.OnCrtKeyPressed(); });
         this._Crt.onmousereport.on(function (position) { _this.OnCrtMouseReport(position); });
         this._Crt.onscreensizechange.on(function () { _this.OnCrtScreenSizeChanged(); });
+        this._Crt.Atari = (this._Options.Emulation === 'Atari');
         this._Crt.BareLFtoCRLF = this._Options.BareLFtoCRLF;
         this._Crt.C64 = (this._Options.Emulation === 'C64');
         this._Crt.LocalEcho = this._Options.LocalEcho;
