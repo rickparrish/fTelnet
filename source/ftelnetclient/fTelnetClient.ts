@@ -81,6 +81,9 @@ class fTelnetClient {
 
             // Handle options that need to do something pre-init
             if (this._Options.Emulation === 'Atari') {
+                // Atari needs to force a specific enter key, font, and screen size
+                this._Options.Enter = '\x9B';
+                this._Options.Font = 'Atari-Graphics';
                 this._Options.ScreenColumns = 40;
             } else if (this._Options.Emulation === 'C64') {
                 // Commodore 64 needs to force a specific font and screen size
@@ -445,7 +448,16 @@ class fTelnetClient {
         // Size the scrollback and button divs
         this.OnCrtScreenSizeChanged();
 
-        if (this._Options.Emulation === 'C64') {
+        if (this._Options.Emulation === 'Atari') {
+            if (this._Options.SplashScreen === '') {
+                // TODOX Need the base64 encoded Atari screen
+                this._Crt.Write(atob('m2ZUZWxuZXQgLS0gVGVsbmV0IGZvciB0aGUgV2VimyAgV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnSbm0NvcHlyaWdodCAoYykgMjAwOS0'));
+                this._Crt.Write(new Date().getFullYear().toString());
+                this._Crt.Write(atob('IFImTSBTb2Z0d2FyZS6bQWxsIFJpZ2h0cyBSZXNlcnZlZJub'));
+            } else {
+                this._Crt.Write(atob(this._Options.SplashScreen));
+            }
+        } else if (this._Options.Emulation === 'C64') {
             if (this._Options.SplashScreen === '') {
                 // TODOX Need the base64 encoded C64 screen
                 this._Crt.Write(atob('DQpGdEVMTkVUIC0tIHRFTE5FVCBGT1IgVEhFIHdFQg0KICB3RUIgQkFTRUQgYmJzIFRFUk1JTkFMIENMSUVOVA0KDQpjT1BZUklHSFQgKGMpIDIwMDkt'));

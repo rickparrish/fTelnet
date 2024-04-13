@@ -9791,6 +9791,8 @@ var fTelnetClient = (function () {
             catch (e) {
             }
             if (this._Options.Emulation === 'Atari') {
+                this._Options.Enter = '\x9B';
+                this._Options.Font = 'Atari-Graphics';
                 this._Options.ScreenColumns = 40;
             }
             else if (this._Options.Emulation === 'C64') {
@@ -10097,7 +10099,17 @@ var fTelnetClient = (function () {
         this._VirtualKeyboard.VibrateDurationInMilliseconds = this._Options.VirtualKeyboardVibrateDuration;
         this._VirtualKeyboard.Visible = this._Options.VirtualKeyboardVisible;
         this.OnCrtScreenSizeChanged();
-        if (this._Options.Emulation === 'C64') {
+        if (this._Options.Emulation === 'Atari') {
+            if (this._Options.SplashScreen === '') {
+                this._Crt.Write(atob('m2ZUZWxuZXQgLS0gVGVsbmV0IGZvciB0aGUgV2VimyAgV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnSbm0NvcHlyaWdodCAoYykgMjAwOS0'));
+                this._Crt.Write(new Date().getFullYear().toString());
+                this._Crt.Write(atob('IFImTSBTb2Z0d2FyZS6bQWxsIFJpZ2h0cyBSZXNlcnZlZJub'));
+            }
+            else {
+                this._Crt.Write(atob(this._Options.SplashScreen));
+            }
+        }
+        else if (this._Options.Emulation === 'C64') {
             if (this._Options.SplashScreen === '') {
                 this._Crt.Write(atob('DQpGdEVMTkVUIC0tIHRFTE5FVCBGT1IgVEhFIHdFQg0KICB3RUIgQkFTRUQgYmJzIFRFUk1JTkFMIENMSUVOVA0KDQpjT1BZUklHSFQgKGMpIDIwMDkt'));
                 this._Crt.Write(new Date().getFullYear().toString());
