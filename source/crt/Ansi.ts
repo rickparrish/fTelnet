@@ -266,9 +266,12 @@ class Ansi {
 	                        Cusror Position
 	                        Defaults: p1 = 1  p2 = 1
 	                        Moves the cursor to the p2th column of the p1th line.
+                            NB: If p1 or p2 are too large, they are reduced to the max allowed for the current Crt window
 	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
                 y = Math.max(1, this.GetNextParam(1));
+                y = Math.min(y, this._Crt.WindMaxY + 1);
                 x = Math.max(1, this.GetNextParam(1));
+                x = Math.min(x, this._Crt.WindMaxX + 1);
                 this._Crt.GotoXY(x, y);
                 break;
             case 'h':

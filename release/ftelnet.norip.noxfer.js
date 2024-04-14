@@ -610,7 +610,9 @@ var Ansi = (function () {
             case 'H':
             case 'f':
                 y = Math.max(1, this.GetNextParam(1));
+                y = Math.min(y, this._Crt.WindMaxY + 1);
                 x = Math.max(1, this.GetNextParam(1));
+                x = Math.min(x, this._Crt.WindMaxX + 1);
                 this._Crt.GotoXY(x, y);
                 break;
             case 'h':
