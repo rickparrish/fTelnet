@@ -7,8 +7,7 @@
     .fTelnetContainer .fTelnetScrollback,
     .fTelnetContainer .fTelnetFocusWarning,
     .fTelnetContainer .fTelnetClientContainer,
-    .fTelnetContainer .fTelnetStatusBar,
-    .fTelnetContainer #fTelnetAriaInputWrapper {
+    .fTelnetContainer .fTelnetStatusBar {
         box-sizing: content-box;
     }
 
@@ -131,13 +130,3 @@
     padding: 5px;
     text-align: left;
 }
-
-.fTelnetAriaInputWrapper {
-    margin: auto;
-    padding: 5px;
-    text-align: center;
-}
-
-    .fTelnetAriaInputWrapper #fTelnetAriaInput {
-        text-align: center;
-    }

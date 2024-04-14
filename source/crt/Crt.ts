@@ -828,11 +828,7 @@ class Crt {
     private OnKeyDown(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
         if (!window.cordova) {
-            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { 
-                if ((ke.target as HTMLElement).id !== 'fTelnetAriaInput') {
-                    return; 
-                }
-            }
+            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
         }
 
         if (this._InScrollback) {
@@ -990,11 +986,7 @@ class Crt {
     private OnKeyPress(ke: KeyboardEvent): void {
         // Skip out if we've focused an input element
         if (!window.cordova) {
-            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { 
-                if ((ke.target as HTMLElement).id !== 'fTelnetAriaInput') {
-                    return; 
-                }
-            }
+            if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) { return; }
         }
 
         if (this._InScrollback) { return; }

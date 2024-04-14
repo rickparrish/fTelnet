@@ -2088,9 +2088,7 @@ var Crt = (function () {
     Crt.prototype.OnKeyDown = function (ke) {
         if (!window.cordova) {
             if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) {
-                if (ke.target.id !== 'fTelnetAriaInput') {
-                    return;
-                }
+                return;
             }
         }
         if (this._InScrollback) {
@@ -2366,9 +2364,7 @@ var Crt = (function () {
     Crt.prototype.OnKeyPress = function (ke) {
         if (!window.cordova) {
             if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) {
-                if (ke.target.id !== 'fTelnetAriaInput') {
-                    return;
-                }
+                return;
             }
         }
         if (this._InScrollback) {
@@ -10471,9 +10467,6 @@ var fTelnetClient = (function () {
     fTelnetClient.prototype.OnAnsiRIPEnable = function () {
     };
     fTelnetClient.prototype.OnConnectionClose = function () {
-        if (typeof this._AriaInput !== 'undefined') {
-            this._AriaInput.blur();
-        }
         this._ConnectButton.innerHTML = 'Reconnect';
         this._ConnectButton.style.display = 'inline';
         this._StatusBarLabel.innerHTML = 'Disconnected from ' + this._Options.Hostname + ':' + this._Options.Port;
@@ -10481,9 +10474,6 @@ var fTelnetClient = (function () {
         this._ClientContainer.style.opacity = '0.5';
     };
     fTelnetClient.prototype.OnConnectionConnect = function () {
-        if (typeof this._AriaInput !== 'undefined') {
-            this._AriaInput.focus();
-        }
         this._Crt.ClrScr();
         if (this._Options.ProxyHostname === '') {
             this._StatusBarLabel.innerHTML = 'Connected to ' + this._Options.Hostname + ':' + this._Options.Port;
@@ -10604,12 +10594,6 @@ var fTelnetClient = (function () {
             else {
                 NewWidth = this._Crt.ScreenCols * this._Crt.Font.Width;
             }
-        }
-        if (typeof this._AriaInputWrapper !== 'undefined') {
-            this._AriaInputWrapper.style.width = NewWidth + 'px';
-        }
-        if (typeof this._AriaInput !== 'undefined') {
-            this._AriaInput.style.width = NewWidth - 10 + 'px';
         }
         if (typeof this._FocusWarningBar !== 'undefined') {
             this._FocusWarningBar.style.width = NewWidth - 10 + 'px';
@@ -10753,7 +10737,6 @@ var fTelnetClient = (function () {
 var fTelnetOptions = (function () {
     function fTelnetOptions() {
         this.AllowModernScrollback = true;
-        this.AriaInput = false;
         this.BareLFtoCRLF = false;
         this.BitsPerSecond = 57600;
         this.ConnectionType = 'telnet';
