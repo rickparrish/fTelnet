@@ -1218,7 +1218,7 @@ var Crt = (function () {
         this._Font.onchange.on(function (oldSize) { _this.OnFontChanged(oldSize); });
         this._Canvas = document.createElement('canvas');
         this._Canvas.className = 'fTelnetCrtCanvas';
-        this._Canvas.innerHTML = 'Your browser does not support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a></li><li><a href="http://www.google.com/chrome">Google Chrome</a></li><li><a href="http://www.apple.com/safari/">Apple Safari</a></li><li><a href="http://www.opera.com/">Opera</a></li><li><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home">MS Internet Explorer</a></li></ul>';
+        this._Canvas.setAttribute('aria-live', 'polite');
         this._Canvas.style.zIndex = '50';
         this._Canvas.width = this._Font.Width * this._ScreenSize.x;
         if (this._UseModernScrollback) {
@@ -1348,6 +1348,11 @@ var Crt = (function () {
     Crt.prototype.ClrScr = function () {
         this.ScrollUpWindow(this.WindRows);
         this.GotoXY(1, 1);
+        var child = this._Canvas.lastElementChild;
+        while (child) {
+            this._Canvas.removeChild(child);
+            child = this._Canvas.lastElementChild;
+        }
     };
     Crt.prototype.Conceal = function () {
         this.TextColor((this.TextAttr & 0xF0) >> 4);
@@ -2565,6 +2570,27 @@ var Crt = (function () {
         }
         else {
             this.WriteASCII(text);
+        }
+        var newAriaText = '';
+        for (var i = 0; i < text.length; i++) {
+            var ch = text.charCodeAt(i);
+            if ((ch == 10) || (ch == 13)) {
+                if (newAriaText.trim() !== '') {
+                    var newDiv = document.createElement('div');
+                    newDiv.innerText = newAriaText;
+                    this._Canvas.appendChild(newDiv);
+                    newAriaText = '';
+                }
+            }
+            else if ((ch >= 32) && (ch <= 126)) {
+                newAriaText += text[i];
+            }
+        }
+        if (newAriaText.trim() !== '') {
+            var newDiv = document.createElement('div');
+            newDiv.innerText = newAriaText;
+            this._Canvas.appendChild(newDiv);
+            newAriaText = '';
         }
     };
     Crt.prototype.WriteASCII = function (text) {
