@@ -191,6 +191,7 @@ class fTelnetClient {
         this._Ansi.onesc0c.on((): void => { this.OnAnsiESC0c(); });
         this._Ansi.onesc5n.on((): void => { this.OnAnsiESC5n(); });
         this._Ansi.onesc6n.on((): void => { this.OnAnsiESC6n(); });
+        this._Ansi.onesc8t.on((columns: number, rows: number): void => { this.OnAnsiESC8t(columns, rows); });
         this._Ansi.onesc255n.on((): void => { this.OnAnsiESC255n(); });
         this._Ansi.onescQ.on((font: string): void => { this.OnAnsiESCQ(font); });
         this._Ansi.onripdetect.on((): void => { this.OnAnsiRIPDetect(); });
@@ -786,6 +787,13 @@ class fTelnetClient {
         if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
         this._Connection.writeString(this._Ansi.CursorPosition());
+    }
+
+    private OnAnsiESC8t(columns: number, rows: number): void {
+        if (this._Options.Emulation !== 'RIP') {
+            this._Crt.SetScreenSize(columns, rows);
+            this._Crt.SetFont(this._Crt.Font.Name); 
+        }
     }
 
     private OnAnsiESC255n(): void {

@@ -22,6 +22,7 @@ class Ansi {
     public onesc0c: IEvent = new TypedEvent();
     public onesc5n: IEvent = new TypedEvent();
     public onesc6n: IEvent = new TypedEvent();
+    public onesc8t: IEvent = new TypedEvent();
     public onesc255n: IEvent = new TypedEvent();
     public onescQ: IEvent = new TypedEvent();
     public onripdetect: IEvent = new TypedEvent();
@@ -757,7 +758,7 @@ class Ansi {
                             Change the current font.
                             p1 is the code page
                             p2 is the width
-                            p2 is the height 
+                            p3 is the height 
                             SOURCE: fTelnet
                             NOT IN CTERM.TXT */
                 x = this.GetNextParam(0);
@@ -846,13 +847,38 @@ class Ansi {
                 this._Crt.ScrollDownWindow(y);
                 break;
             case 't': /* CSI p1 p2 p3 p4 t
-                            NON-STANDARD: http://picoe.ca/2014/03/07/24-bit-ansi/
+                            NON-STANDARD EXTENSION
                             24-bit colour
                             p1 = 0 for background, 1 for foreground
                             p2 = red
                             p3 = green
-                            p4 = blue */
-                if (this._AnsiParams.length === 4) {
+                            p4 = blue 
+                            SOURCE: http://picoe.ca/2014/03/07/24-bit-ansi/
+
+                            OR
+
+                            NON-STANDARD EXTENSION
+                            Window manipulation
+                            Resize the text area to given height and width in characters
+                            p1 = 8
+                            p2 = height in characters
+                            p3 = width in characters
+                            SOURCE: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html */
+                if (this._AnsiParams.length === 3) {
+                    z = this.GetNextParam(0);
+                    y = this.GetNextParam(0);
+                    x = this.GetNextParam(0);
+                    
+                    if (z === 8) {
+                        if ((x > 0) && (y > 0)) {
+                            this.onesc8t.trigger(x, y);
+                        } else {
+                            console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                        }
+                    } else {
+                        console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                    }
+                } else if (this._AnsiParams.length === 4) {
                     switch (this.GetNextParam(1)) {
                         case 0:
                             this._Crt.TextBackground24(this.GetNextParam(0), this.GetNextParam(0), this.GetNextParam(0));

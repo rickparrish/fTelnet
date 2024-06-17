@@ -917,6 +917,7 @@ var Ansi = (function () {
         this.onesc0c = new TypedEvent();
         this.onesc5n = new TypedEvent();
         this.onesc6n = new TypedEvent();
+        this.onesc8t = new TypedEvent();
         this.onesc255n = new TypedEvent();
         this.onescQ = new TypedEvent();
         this.onripdetect = new TypedEvent();
@@ -1378,7 +1379,23 @@ var Ansi = (function () {
                 this._Crt.ScrollDownWindow(y);
                 break;
             case 't':
-                if (this._AnsiParams.length === 4) {
+                if (this._AnsiParams.length === 3) {
+                    z = this.GetNextParam(0);
+                    y = this.GetNextParam(0);
+                    x = this.GetNextParam(0);
+                    if (z === 8) {
+                        if ((x > 0) && (y > 0)) {
+                            this.onesc8t.trigger(x, y);
+                        }
+                        else {
+                            console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                        }
+                    }
+                    else {
+                        console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                    }
+                }
+                else if (this._AnsiParams.length === 4) {
                     switch (this.GetNextParam(1)) {
                         case 0:
                             this._Crt.TextBackground24(this.GetNextParam(0), this.GetNextParam(0), this.GetNextParam(0));
@@ -9909,6 +9926,7 @@ var fTelnetClient = (function () {
         this._Ansi.onesc0c.on(function () { _this.OnAnsiESC0c(); });
         this._Ansi.onesc5n.on(function () { _this.OnAnsiESC5n(); });
         this._Ansi.onesc6n.on(function () { _this.OnAnsiESC6n(); });
+        this._Ansi.onesc8t.on(function (columns, rows) { _this.OnAnsiESC8t(columns, rows); });
         this._Ansi.onesc255n.on(function () { _this.OnAnsiESC255n(); });
         this._Ansi.onescQ.on(function (font) { _this.OnAnsiESCQ(font); });
         this._Ansi.onripdetect.on(function () { _this.OnAnsiRIPDetect(); });
@@ -10453,6 +10471,12 @@ var fTelnetClient = (function () {
             return;
         }
         this._Connection.writeString(this._Ansi.CursorPosition());
+    };
+    fTelnetClient.prototype.OnAnsiESC8t = function (columns, rows) {
+        if (this._Options.Emulation !== 'RIP') {
+            this._Crt.SetScreenSize(columns, rows);
+            this._Crt.SetFont(this._Crt.Font.Name);
+        }
     };
     fTelnetClient.prototype.OnAnsiESC255n = function () {
         if (typeof this._Connection === 'undefined') {
