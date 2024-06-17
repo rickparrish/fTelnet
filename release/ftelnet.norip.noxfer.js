@@ -2023,7 +2023,22 @@ var Crt = (function () {
                 this.onmousereport.trigger('\x1B[<' + me.button.toString() + ';' + this._MouseDownPoint.x.toString() + ';' + this._MouseDownPoint.y.toString() + 'M');
             }
             else {
-                this.onmousereport.trigger('\x1B[M ' + me.button.toString() + '!' + (this._MouseDownPoint.x - 1).toString() + '!' + (this._MouseDownPoint.y - 1).toString());
+                var button = ' '.charCodeAt(0) + me.button;
+                var x = '!'.charCodeAt(0) + this._MouseDownPoint.x - 1;
+                if (x < 0) {
+                    x = 0;
+                }
+                if (x > 222) {
+                    x = 222;
+                }
+                var y = '!'.charCodeAt(0) + this._MouseDownPoint.y - 1;
+                if (y < 0) {
+                    y = 0;
+                }
+                if (y > 222) {
+                    y = 222;
+                }
+                this.onmousereport.trigger('\x1B[M' + String.fromCharCode(button) + String.fromCharCode(x) + String.fromCharCode(y));
             }
         }
     };
@@ -2140,7 +2155,22 @@ var Crt = (function () {
                 this.onmousereport.trigger('\x1B[<' + me.button.toString() + ';' + UpPoint.x.toString() + ';' + UpPoint.y.toString() + 'm');
             }
             else {
-                this.onmousereport.trigger('\x1B[M 3!' + (UpPoint.x - 1).toString() + '!' + (UpPoint.y - 1).toString());
+                var button = ' '.charCodeAt(0) + 3;
+                var x = '!'.charCodeAt(0) + UpPoint.x - 1;
+                if (x < 0) {
+                    x = 0;
+                }
+                if (x > 222) {
+                    x = 222;
+                }
+                var y = '!'.charCodeAt(0) + UpPoint.y - 1;
+                if (y < 0) {
+                    y = 0;
+                }
+                if (y > 222) {
+                    y = 222;
+                }
+                this.onmousereport.trigger('\x1B[M' + String.fromCharCode(button) + String.fromCharCode(x) + String.fromCharCode(y));
             }
         }
     };
