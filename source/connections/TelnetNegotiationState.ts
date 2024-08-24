@@ -46,5 +46,21 @@ enum TelnetNegotiationState {
     /// <summary>
     /// The last received character was a WONT command
     /// </summary>
-    Wont = 5
+    Wont = 5,
+
+    /// <summary>
+    /// The last received character was a SB command
+    /// </summary>
+    Subnegotiation = 6,
+
+    /// <summary>
+    /// The last received character was the subnegotiation option, so now
+    /// we're reading the data/parameters
+    /// </summary>
+    SubnegotiationData = 7,
+
+    /// <summary>
+    /// The last received character was an IAC during subnegotiation
+    /// </summary>
+    SubnegotiationIAC = 8
 }

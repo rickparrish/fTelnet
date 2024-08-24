@@ -4463,7 +4463,6 @@ var TelnetConnection = (function (_super) {
         }
     };
     TelnetConnection.prototype.HandleTerminalType = function () {
-        this.SendWill(TelnetOption.TerminalType);
         this.SendSubnegotiate(TelnetOption.TerminalType);
         var TerminalType = this._TerminalTypes[this._TerminalTypeIndex];
         var ToSendBytes = [];
@@ -4610,6 +4609,9 @@ var TelnetConnection = (function (_super) {
                         case TelnetCommand.Wont:
                             this._NegotiationState = TelnetNegotiationState.Wont;
                             break;
+                        case TelnetCommand.Subnegotiation:
+                            this._NegotiationState = TelnetNegotiationState.Subnegotiation;
+                            break;
                         default:
                             this._NegotiationState = TelnetNegotiationState.Data;
                             break;
@@ -4635,7 +4637,7 @@ var TelnetConnection = (function (_super) {
                         this.HandleSendLocation();
                         break;
                     case TelnetOption.TerminalType:
-                        this.HandleTerminalType();
+                        this.SendWill(B);
                         break;
                     case TelnetOption.TerminalLocationNumber:
                         this.HandleTerminalLocationNumber();
@@ -4738,6 +4740,33 @@ var TelnetConnection = (function (_super) {
                         break;
                 }
                 this._NegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (this._NegotiationState === TelnetNegotiationState.Subnegotiation) {
+                this._SubnegotiationOption = B;
+                this._NegotiationState = TelnetNegotiationState.SubnegotiationData;
+                this._SubnegotiationData = new ByteArray();
+            }
+            else if (this._NegotiationState === TelnetNegotiationState.SubnegotiationData) {
+                if (B === TelnetCommand.IAC) {
+                    this._NegotiationState = TelnetNegotiationState.SubnegotiationIAC;
+                }
+                else {
+                    this._SubnegotiationData.writeByte(B);
+                }
+            }
+            else if (this._NegotiationState === TelnetNegotiationState.SubnegotiationIAC) {
+                if (B === TelnetCommand.IAC) {
+                    this._NegotiationState = TelnetNegotiationState.SubnegotiationData;
+                    this._SubnegotiationData.writeByte(B);
+                }
+                else {
+                    switch (this._SubnegotiationOption) {
+                        case TelnetOption.TerminalType:
+                            this.HandleTerminalType();
+                            break;
+                    }
+                    this._NegotiationState = TelnetNegotiationState.Data;
+                }
             }
             else {
                 this._NegotiationState = TelnetNegotiationState.Data;
@@ -4856,6 +4885,9 @@ var TelnetNegotiationState;
     TelnetNegotiationState[TelnetNegotiationState["Dont"] = 3] = "Dont";
     TelnetNegotiationState[TelnetNegotiationState["Will"] = 4] = "Will";
     TelnetNegotiationState[TelnetNegotiationState["Wont"] = 5] = "Wont";
+    TelnetNegotiationState[TelnetNegotiationState["Subnegotiation"] = 6] = "Subnegotiation";
+    TelnetNegotiationState[TelnetNegotiationState["SubnegotiationData"] = 7] = "SubnegotiationData";
+    TelnetNegotiationState[TelnetNegotiationState["SubnegotiationIAC"] = 8] = "SubnegotiationIAC";
 })(TelnetNegotiationState || (TelnetNegotiationState = {}));
 var TelnetOption;
 (function (TelnetOption) {

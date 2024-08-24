@@ -23,6 +23,8 @@ class TelnetConnection extends WebSocketConnection {
     private _Crt: Crt;
     private _NegotiatedOptions: number[];
     private _NegotiationState: TelnetNegotiationState;
+    private _SubnegotiationData: ByteArray;
+    private _SubnegotiationOption: TelnetOption;
     private _TerminalTypeIndex: number;
     private _TerminalTypes: string[];
 
@@ -128,7 +130,6 @@ class TelnetConnection extends WebSocketConnection {
     }
 
     private HandleTerminalType(): void {
-        this.SendWill(TelnetOption.TerminalType);
         this.SendSubnegotiate(TelnetOption.TerminalType);
 
         var TerminalType: string = this._TerminalTypes[this._TerminalTypeIndex];
@@ -289,6 +290,7 @@ class TelnetConnection extends WebSocketConnection {
                         case TelnetCommand.Dont: this._NegotiationState = TelnetNegotiationState.Dont; break;
                         case TelnetCommand.Will: this._NegotiationState = TelnetNegotiationState.Will; break;
                         case TelnetCommand.Wont: this._NegotiationState = TelnetNegotiationState.Wont; break;
+                        case TelnetCommand.Subnegotiation: this._NegotiationState = TelnetNegotiationState.Subnegotiation; break;
                         default: this._NegotiationState = TelnetNegotiationState.Data; break;
                     }
                 }
@@ -303,7 +305,7 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.Echo: this.HandleEcho(TelnetCommand.Do); break;
                     case TelnetOption.SuppressGoAhead: this.SendWill(B); break;
                     case TelnetOption.SendLocation: this.HandleSendLocation(); break;
-                    case TelnetOption.TerminalType: this.HandleTerminalType(); break;
+                    case TelnetOption.TerminalType: this.SendWill(B); break;
                     case TelnetOption.TerminalLocationNumber: this.HandleTerminalLocationNumber(); break;
                     case TelnetOption.WindowSize: this.HandleWindowSize(); break;
                     case TelnetOption.LineMode: this.SendWont(B); break;
@@ -346,6 +348,29 @@ class TelnetConnection extends WebSocketConnection {
                     default: this.SendDont(B); break;
                 }
                 this._NegotiationState = TelnetNegotiationState.Data;
+            } else if (this._NegotiationState === TelnetNegotiationState.Subnegotiation) {
+                this._SubnegotiationOption = B;
+                this._NegotiationState = TelnetNegotiationState.SubnegotiationData;
+                this._SubnegotiationData = new ByteArray();
+            } else if (this._NegotiationState === TelnetNegotiationState.SubnegotiationData) {
+                if (B === TelnetCommand.IAC) {
+                    this._NegotiationState = TelnetNegotiationState.SubnegotiationIAC;
+                } else {
+                    this._SubnegotiationData.writeByte(B);
+                }
+            } else if (this._NegotiationState === TelnetNegotiationState.SubnegotiationIAC) {
+                if (B === TelnetCommand.IAC) {
+                    this._NegotiationState = TelnetNegotiationState.SubnegotiationData;
+                    this._SubnegotiationData.writeByte(B);
+                } else {
+                    // Subnegotiation should end with IAC SE, but whether this
+                    // is an SE or not doesn't really matter, we're going to
+                    // process the option and switch back to Data state
+                    switch (this._SubnegotiationOption) {
+                        case TelnetOption.TerminalType: this.HandleTerminalType(); break;
+                    }
+                    this._NegotiationState = TelnetNegotiationState.Data;
+                }
             } else {
                 this._NegotiationState = TelnetNegotiationState.Data;
             }
