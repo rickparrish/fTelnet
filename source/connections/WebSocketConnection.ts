@@ -257,10 +257,6 @@ class WebSocketConnection {
     }
 
     private OnWebSocketMessage(e: any): void {
-        if (this._LogIO) {
-            console.log('Incoming ' + (typeof e.data === 'string' ? 'text' : 'binary') + ' message');
-        }
-        
         // Free up some memory if we're at the end of the buffer
         if (this._InputBuffer.bytesAvailable === 0) { this._InputBuffer.clear(); }
 
@@ -284,6 +280,24 @@ class WebSocketConnection {
             Data.writeString(e.data);
         }
         Data.position = 0;
+
+        if (this._LogIO) {
+            var DebugLine: string = "";
+
+            while (Data.bytesAvailable) {
+                var B: number = Data.readUnsignedByte();
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                } else {
+                    DebugLine += '~' + B.toString(10);
+                }
+            }
+            Data.position = 0;
+
+            if (DebugLine.length > 0) {
+                console.log('IN(' + (typeof e.data === 'string' ? 'text' : 'binary') + '): ' + DebugLine);
+            }
+        }
 
         this.NegotiateInbound(Data);
 
@@ -342,7 +356,7 @@ class WebSocketConnection {
                     DebugLine += '~' + B.toString(10);
                 }
             }
-            console.log('SEND: ' + DebugLine);
+            console.log('OUT: ' + DebugLine);
         }
     }
 

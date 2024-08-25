@@ -3748,9 +3748,6 @@ var WebSocketConnection = (function () {
         this.onconnect.trigger();
     };
     WebSocketConnection.prototype.OnWebSocketMessage = function (e) {
-        if (this._LogIO) {
-            console.log('Incoming ' + (typeof e.data === 'string' ? 'text' : 'binary') + ' message');
-        }
         if (this._InputBuffer.bytesAvailable === 0) {
             this._InputBuffer.clear();
         }
@@ -3771,6 +3768,22 @@ var WebSocketConnection = (function () {
             Data.writeString(e.data);
         }
         Data.position = 0;
+        if (this._LogIO) {
+            var DebugLine = "";
+            while (Data.bytesAvailable) {
+                var B = Data.readUnsignedByte();
+                if (B >= 32 && B <= 126) {
+                    DebugLine += String.fromCharCode(B);
+                }
+                else {
+                    DebugLine += '~' + B.toString(10);
+                }
+            }
+            Data.position = 0;
+            if (DebugLine.length > 0) {
+                console.log('IN(' + (typeof e.data === 'string' ? 'text' : 'binary') + '): ' + DebugLine);
+            }
+        }
         this.NegotiateInbound(Data);
         this._InputBuffer.position = OldPosition;
         this.ondata.trigger();
@@ -3819,7 +3832,7 @@ var WebSocketConnection = (function () {
                     DebugLine += '~' + B.toString(10);
                 }
             }
-            console.log('SEND: ' + DebugLine);
+            console.log('OUT: ' + DebugLine);
         }
     };
     Object.defineProperty(WebSocketConnection.prototype, "SendLocation", {
@@ -3866,17 +3879,8 @@ var RLoginConnection = (function (_super) {
         return _this;
     }
     RLoginConnection.prototype.NegotiateInbound = function (data) {
-        var DebugLine = "";
         while (data.bytesAvailable) {
             var B = data.readUnsignedByte();
-            if (this._LogIO) {
-                if (B >= 32 && B <= 126) {
-                    DebugLine += String.fromCharCode(B);
-                }
-                else {
-                    DebugLine += '~' + B.toString(10);
-                }
-            }
             if (this._NegotiationState === RLoginNegotiationState.Data) {
                 if (B === RLoginCommand.Cookie) {
                     this._NegotiationState = RLoginNegotiationState.Cookie1;
@@ -3914,11 +3918,6 @@ var RLoginConnection = (function (_super) {
                     this._SSBytes = 0;
                     this._NegotiationState = RLoginNegotiationState.Data;
                 }
-            }
-        }
-        if (this._LogIO) {
-            if (DebugLine.length > 0) {
-                console.log('IN: ' + DebugLine);
             }
         }
     };
@@ -4142,17 +4141,8 @@ var TelnetConnection = (function (_super) {
         configurable: true
     });
     TelnetConnection.prototype.NegotiateInbound = function (data) {
-        var DebugLine = "";
         while (data.bytesAvailable) {
             var B = data.readUnsignedByte();
-            if (this._LogIO) {
-                if (B >= 32 && B <= 126) {
-                    DebugLine += String.fromCharCode(B);
-                }
-                else {
-                    DebugLine += '~' + B.toString(10);
-                }
-            }
             if (this._NegotiationState === TelnetNegotiationState.Data) {
                 if (B === TelnetCommand.IAC) {
                     this._NegotiationState = TelnetNegotiationState.IAC;
@@ -4221,11 +4211,11 @@ var TelnetConnection = (function (_super) {
                     case TelnetOption.SendLocation:
                         this.HandleSendLocation();
                         break;
-                    case TelnetOption.TerminalType:
-                        this.SendWill(B);
-                        break;
                     case TelnetOption.TerminalLocationNumber:
                         this.HandleTerminalLocationNumber();
+                        break;
+                    case TelnetOption.TerminalType:
+                        this.SendWill(B);
                         break;
                     case TelnetOption.WindowSize:
                         this.HandleWindowSize();
@@ -4254,6 +4244,9 @@ var TelnetConnection = (function (_super) {
                         this.SendWont(B);
                         break;
                     case TelnetOption.TerminalLocationNumber:
+                        this.SendWont(B);
+                        break;
+                    case TelnetOption.TerminalType:
                         this.SendWont(B);
                         break;
                     case TelnetOption.WindowSize:
@@ -4285,6 +4278,9 @@ var TelnetConnection = (function (_super) {
                     case TelnetOption.TerminalLocationNumber:
                         this.SendDont(B);
                         break;
+                    case TelnetOption.TerminalType:
+                        this.SendDo(B);
+                        break;
                     case TelnetOption.WindowSize:
                         this.SendDont(B);
                         break;
@@ -4312,6 +4308,9 @@ var TelnetConnection = (function (_super) {
                         this.SendDont(B);
                         break;
                     case TelnetOption.TerminalLocationNumber:
+                        this.SendDont(B);
+                        break;
+                    case TelnetOption.TerminalType:
                         this.SendDont(B);
                         break;
                     case TelnetOption.WindowSize:
@@ -4355,11 +4354,6 @@ var TelnetConnection = (function (_super) {
             }
             else {
                 this._NegotiationState = TelnetNegotiationState.Data;
-            }
-        }
-        if (this._LogIO) {
-            if (DebugLine.length > 0) {
-                console.log('IN: ' + DebugLine);
             }
         }
     };

@@ -246,19 +246,9 @@ class TelnetConnection extends WebSocketConnection {
 
     public NegotiateInbound(data: ByteArray): void {
         // Get any waiting data and handle negotiation
-        var DebugLine: string = "";
-
         while (data.bytesAvailable) {
             var B: number = data.readUnsignedByte();
             
-            if (this._LogIO) {
-                if (B >= 32 && B <= 126) {
-                    DebugLine += String.fromCharCode(B);
-                } else {
-                    DebugLine += '~' + B.toString(10);
-                }
-            }
-
             if (this._NegotiationState === TelnetNegotiationState.Data) {
                 if (B === TelnetCommand.IAC) {
                     this._NegotiationState = TelnetNegotiationState.IAC;
@@ -305,8 +295,8 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.Echo: this.HandleEcho(TelnetCommand.Do); break;
                     case TelnetOption.SuppressGoAhead: this.SendWill(B); break;
                     case TelnetOption.SendLocation: this.HandleSendLocation(); break;
-                    case TelnetOption.TerminalType: this.SendWill(B); break;
                     case TelnetOption.TerminalLocationNumber: this.HandleTerminalLocationNumber(); break;
+                    case TelnetOption.TerminalType: this.SendWill(B); break;
                     case TelnetOption.WindowSize: this.HandleWindowSize(); break;
                     case TelnetOption.LineMode: this.SendWont(B); break;
                     default: this.SendWont(B); break;
@@ -319,6 +309,7 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.SuppressGoAhead: this.SendWill(B); break;
                     case TelnetOption.SendLocation: this.SendWont(B); break;
                     case TelnetOption.TerminalLocationNumber: this.SendWont(B); break;
+                    case TelnetOption.TerminalType: this.SendWont(B); break;
                     case TelnetOption.WindowSize: this.SendWont(B); break;
                     case TelnetOption.LineMode: this.SendWont(B); break;
                     default: this.SendWont(B); break;
@@ -331,6 +322,7 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.SuppressGoAhead: this.SendDo(B); break;
                     case TelnetOption.SendLocation: this.SendDont(B); break;
                     case TelnetOption.TerminalLocationNumber: this.SendDont(B); break;
+                    case TelnetOption.TerminalType: this.SendDo(B); break;
                     case TelnetOption.WindowSize: this.SendDont(B); break;
                     case TelnetOption.LineMode: this.SendDont(B); break;
                     default: this.SendDont(B); break;
@@ -343,6 +335,7 @@ class TelnetConnection extends WebSocketConnection {
                     case TelnetOption.SuppressGoAhead: this.SendDo(B); break;
                     case TelnetOption.SendLocation: this.SendDont(B); break;
                     case TelnetOption.TerminalLocationNumber: this.SendDont(B); break;
+                    case TelnetOption.TerminalType: this.SendDont(B); break;
                     case TelnetOption.WindowSize: this.SendDont(B); break;
                     case TelnetOption.LineMode: this.SendDont(B); break;
                     default: this.SendDont(B); break;
@@ -373,12 +366,6 @@ class TelnetConnection extends WebSocketConnection {
                 }
             } else {
                 this._NegotiationState = TelnetNegotiationState.Data;
-            }
-        }
-
-        if (this._LogIO) {
-            if (DebugLine.length > 0) {
-                console.log('IN: ' + DebugLine);
             }
         }
     }
