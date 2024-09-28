@@ -33,18 +33,22 @@
         var Client = new fTelnetClient('fTelnetContainer', Options);
     </script>
 
-    <button id="testResize" onclick="testResizeClick();">Test Resize</button>
+    <button id="test" onclick="testClick();">Test</button>
     <script>
-        var big = false;
-
-        function testResizeClick() {
-            big = !big;
-
-            if (big) {
-                Client._Ansi.Write('\x1B[8;52;132t');
-            } else {
-                Client._Ansi.Write('\x1B[8;25;80t');
-            }
+        function testClick() {
+            Client._Crt.PlaySound(247, 400);
+            Client._Crt.PlaySound(220, 400);
+            Client._Crt.PlaySound(196, 400);
+            Client._Crt.PlaySound(220, 400);
+            Client._Crt.PlaySound(247, 400);
+            Client._Crt.PlaySound(247, 400);
+            Client._Crt.PlaySound(247, 800);
+            Client._Crt.PlaySound(220, 400);
+            Client._Crt.PlaySound(220, 400);
+            Client._Crt.PlaySound(220, 800);
+            Client._Crt.PlaySound(247, 400);
+            Client._Crt.PlaySound(294, 400);
+            Client._Crt.PlaySound(294, 800);
         }
     </script>
 </body>

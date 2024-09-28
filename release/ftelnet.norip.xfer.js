@@ -598,6 +598,11 @@ var ByteArray = (function () {
         }
         return Result;
     };
+    ByteArray.prototype.write24Bit = function (value) {
+        this.writeByte((value & 0xFF0000) >> 16);
+        this.writeByte((value & 0x00FF00) >> 8);
+        this.writeByte(value & 0x0000FF);
+    };
     ByteArray.prototype.writeByte = function (value) {
         this._Bytes[this._Position++] = (value & 0xFF);
         if (this._Position > this._Length) {
@@ -647,6 +652,60 @@ var ByteArray = (function () {
         }
     };
     return ByteArray;
+}());
+var CRC = (function () {
+    function CRC() {
+    }
+    CRC.Calculate16 = function (bytes) {
+        var CRC = 0;
+        var OldPosition = bytes.position;
+        bytes.position = 0;
+        while (bytes.bytesAvailable > 0) {
+            CRC = this.UpdateCrc(bytes.readUnsignedByte(), CRC);
+        }
+        CRC = this.UpdateCrc(0, CRC);
+        CRC = this.UpdateCrc(0, CRC);
+        bytes.position = OldPosition;
+        return CRC;
+    };
+    CRC.UpdateCrc = function (curByte, curCrc) {
+        return (this.CRC_TABLE[(curCrc >> 8) & 0x00FF] ^ (curCrc << 8) ^ curByte) & 0xFFFF;
+    };
+    CRC.CRC_TABLE = [
+        0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
+        0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
+        0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
+        0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
+        0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485,
+        0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
+        0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4,
+        0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc,
+        0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823,
+        0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b,
+        0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12,
+        0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a,
+        0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41,
+        0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49,
+        0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70,
+        0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78,
+        0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f,
+        0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067,
+        0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e,
+        0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256,
+        0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d,
+        0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
+        0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c,
+        0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634,
+        0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab,
+        0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3,
+        0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a,
+        0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92,
+        0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
+        0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
+        0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
+        0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
+    ];
+    return CRC;
 }());
 var ClipboardHelper = (function () {
     function ClipboardHelper() {
@@ -914,6 +973,7 @@ var TypedEvent = (function () {
 //# sourceMappingURL=common.js.map
 var Ansi = (function () {
     function Ansi(crt) {
+        this.onDECRQCRA = new TypedEvent();
         this.onesc0c = new TypedEvent();
         this.onesc5n = new TypedEvent();
         this.onesc6n = new TypedEvent();
@@ -923,6 +983,7 @@ var Ansi = (function () {
         this.onripdetect = new TypedEvent();
         this.onripdisable = new TypedEvent();
         this.onripenable = new TypedEvent();
+        this.onXTSRGA = new TypedEvent();
         this.ANSI_COLORS = [0, 4, 2, 6, 1, 5, 3, 7];
         this.ANSI256_COLORS = [{ 'r': 0, 'g': 0, 'b': 0 }, { 'r': 128, 'g': 0, 'b': 0 }, { 'r': 0, 'g': 128, 'b': 0 }, { 'r': 128, 'g': 128, 'b': 0 }, { 'r': 0, 'g': 0, 'b': 128 }, { 'r': 128, 'g': 0, 'b': 128 }, { 'r': 0, 'g': 128, 'b': 128 }, { 'r': 192, 'g': 192, 'b': 192 }, { 'r': 128, 'g': 128, 'b': 128 }, { 'r': 255, 'g': 0, 'b': 0 }, { 'r': 0, 'g': 255, 'b': 0 }, { 'r': 255, 'g': 255, 'b': 0 }, { 'r': 0, 'g': 0, 'b': 255 }, { 'r': 255, 'g': 0, 'b': 255 }, { 'r': 0, 'g': 255, 'b': 255 }, { 'r': 255, 'g': 255, 'b': 255 }, { 'r': 0, 'g': 0, 'b': 0 }, { 'r': 0, 'g': 0, 'b': 95 }, { 'r': 0, 'g': 0, 'b': 135 }, { 'r': 0, 'g': 0, 'b': 175 }, { 'r': 0, 'g': 0, 'b': 215 }, { 'r': 0, 'g': 0, 'b': 255 }, { 'r': 0, 'g': 95, 'b': 0 }, { 'r': 0, 'g': 95, 'b': 95 }, { 'r': 0, 'g': 95, 'b': 135 }, { 'r': 0, 'g': 95, 'b': 175 }, { 'r': 0, 'g': 95, 'b': 215 }, { 'r': 0, 'g': 95, 'b': 255 }, { 'r': 0, 'g': 135, 'b': 0 }, { 'r': 0, 'g': 135, 'b': 95 }, { 'r': 0, 'g': 135, 'b': 135 }, { 'r': 0, 'g': 135, 'b': 175 }, { 'r': 0, 'g': 135, 'b': 215 }, { 'r': 0, 'g': 135, 'b': 255 }, { 'r': 0, 'g': 175, 'b': 0 }, { 'r': 0, 'g': 175, 'b': 95 }, { 'r': 0, 'g': 175, 'b': 135 }, { 'r': 0, 'g': 175, 'b': 175 }, { 'r': 0, 'g': 175, 'b': 215 }, { 'r': 0, 'g': 175, 'b': 255 }, { 'r': 0, 'g': 215, 'b': 0 }, { 'r': 0, 'g': 215, 'b': 95 }, { 'r': 0, 'g': 215, 'b': 135 }, { 'r': 0, 'g': 215, 'b': 175 }, { 'r': 0, 'g': 215, 'b': 215 }, { 'r': 0, 'g': 215, 'b': 255 }, { 'r': 0, 'g': 255, 'b': 0 }, { 'r': 0, 'g': 255, 'b': 95 }, { 'r': 0, 'g': 255, 'b': 135 }, { 'r': 0, 'g': 255, 'b': 175 }, { 'r': 0, 'g': 255, 'b': 215 }, { 'r': 0, 'g': 255, 'b': 255 }, { 'r': 95, 'g': 0, 'b': 0 }, { 'r': 95, 'g': 0, 'b': 95 }, { 'r': 95, 'g': 0, 'b': 135 }, { 'r': 95, 'g': 0, 'b': 175 }, { 'r': 95, 'g': 0, 'b': 215 }, { 'r': 95, 'g': 0, 'b': 255 }, { 'r': 95, 'g': 95, 'b': 0 }, { 'r': 95, 'g': 95, 'b': 95 }, { 'r': 95, 'g': 95, 'b': 135 }, { 'r': 95, 'g': 95, 'b': 175 }, { 'r': 95, 'g': 95, 'b': 215 }, { 'r': 95, 'g': 95, 'b': 255 }, { 'r': 95, 'g': 135, 'b': 0 }, { 'r': 95, 'g': 135, 'b': 95 }, { 'r': 95, 'g': 135, 'b': 135 }, { 'r': 95, 'g': 135, 'b': 175 }, { 'r': 95, 'g': 135, 'b': 215 }, { 'r': 95, 'g': 135, 'b': 255 }, { 'r': 95, 'g': 175, 'b': 0 }, { 'r': 95, 'g': 175, 'b': 95 }, { 'r': 95, 'g': 175, 'b': 135 }, { 'r': 95, 'g': 175, 'b': 175 }, { 'r': 95, 'g': 175, 'b': 215 }, { 'r': 95, 'g': 175, 'b': 255 }, { 'r': 95, 'g': 215, 'b': 0 }, { 'r': 95, 'g': 215, 'b': 95 }, { 'r': 95, 'g': 215, 'b': 135 }, { 'r': 95, 'g': 215, 'b': 175 }, { 'r': 95, 'g': 215, 'b': 215 }, { 'r': 95, 'g': 215, 'b': 255 }, { 'r': 95, 'g': 255, 'b': 0 }, { 'r': 95, 'g': 255, 'b': 95 }, { 'r': 95, 'g': 255, 'b': 135 }, { 'r': 95, 'g': 255, 'b': 175 }, { 'r': 95, 'g': 255, 'b': 215 }, { 'r': 95, 'g': 255, 'b': 255 }, { 'r': 135, 'g': 0, 'b': 0 }, { 'r': 135, 'g': 0, 'b': 95 }, { 'r': 135, 'g': 0, 'b': 135 }, { 'r': 135, 'g': 0, 'b': 175 }, { 'r': 135, 'g': 0, 'b': 215 }, { 'r': 135, 'g': 0, 'b': 255 }, { 'r': 135, 'g': 95, 'b': 0 }, { 'r': 135, 'g': 95, 'b': 95 }, { 'r': 135, 'g': 95, 'b': 135 }, { 'r': 135, 'g': 95, 'b': 175 }, { 'r': 135, 'g': 95, 'b': 215 }, { 'r': 135, 'g': 95, 'b': 255 }, { 'r': 135, 'g': 135, 'b': 0 }, { 'r': 135, 'g': 135, 'b': 95 }, { 'r': 135, 'g': 135, 'b': 135 }, { 'r': 135, 'g': 135, 'b': 175 }, { 'r': 135, 'g': 135, 'b': 215 }, { 'r': 135, 'g': 135, 'b': 255 }, { 'r': 135, 'g': 175, 'b': 0 }, { 'r': 135, 'g': 175, 'b': 95 }, { 'r': 135, 'g': 175, 'b': 135 }, { 'r': 135, 'g': 175, 'b': 175 }, { 'r': 135, 'g': 175, 'b': 215 }, { 'r': 135, 'g': 175, 'b': 255 }, { 'r': 135, 'g': 215, 'b': 0 }, { 'r': 135, 'g': 215, 'b': 95 }, { 'r': 135, 'g': 215, 'b': 135 }, { 'r': 135, 'g': 215, 'b': 175 }, { 'r': 135, 'g': 215, 'b': 215 }, { 'r': 135, 'g': 215, 'b': 255 }, { 'r': 135, 'g': 255, 'b': 0 }, { 'r': 135, 'g': 255, 'b': 95 }, { 'r': 135, 'g': 255, 'b': 135 }, { 'r': 135, 'g': 255, 'b': 175 }, { 'r': 135, 'g': 255, 'b': 215 }, { 'r': 135, 'g': 255, 'b': 255 }, { 'r': 175, 'g': 0, 'b': 0 }, { 'r': 175, 'g': 0, 'b': 95 }, { 'r': 175, 'g': 0, 'b': 135 }, { 'r': 175, 'g': 0, 'b': 175 }, { 'r': 175, 'g': 0, 'b': 215 }, { 'r': 175, 'g': 0, 'b': 255 }, { 'r': 175, 'g': 95, 'b': 0 }, { 'r': 175, 'g': 95, 'b': 95 }, { 'r': 175, 'g': 95, 'b': 135 }, { 'r': 175, 'g': 95, 'b': 175 }, { 'r': 175, 'g': 95, 'b': 215 }, { 'r': 175, 'g': 95, 'b': 255 }, { 'r': 175, 'g': 135, 'b': 0 }, { 'r': 175, 'g': 135, 'b': 95 }, { 'r': 175, 'g': 135, 'b': 135 }, { 'r': 175, 'g': 135, 'b': 175 }, { 'r': 175, 'g': 135, 'b': 215 }, { 'r': 175, 'g': 135, 'b': 255 }, { 'r': 175, 'g': 175, 'b': 0 }, { 'r': 175, 'g': 175, 'b': 95 }, { 'r': 175, 'g': 175, 'b': 135 }, { 'r': 175, 'g': 175, 'b': 175 }, { 'r': 175, 'g': 175, 'b': 215 }, { 'r': 175, 'g': 175, 'b': 255 }, { 'r': 175, 'g': 215, 'b': 0 }, { 'r': 175, 'g': 215, 'b': 95 }, { 'r': 175, 'g': 215, 'b': 135 }, { 'r': 175, 'g': 215, 'b': 175 }, { 'r': 175, 'g': 215, 'b': 215 }, { 'r': 175, 'g': 215, 'b': 255 }, { 'r': 175, 'g': 255, 'b': 0 }, { 'r': 175, 'g': 255, 'b': 95 }, { 'r': 175, 'g': 255, 'b': 135 }, { 'r': 175, 'g': 255, 'b': 175 }, { 'r': 175, 'g': 255, 'b': 215 }, { 'r': 175, 'g': 255, 'b': 255 }, { 'r': 215, 'g': 0, 'b': 0 }, { 'r': 215, 'g': 0, 'b': 95 }, { 'r': 215, 'g': 0, 'b': 135 }, { 'r': 215, 'g': 0, 'b': 175 }, { 'r': 215, 'g': 0, 'b': 215 }, { 'r': 215, 'g': 0, 'b': 255 }, { 'r': 215, 'g': 95, 'b': 0 }, { 'r': 215, 'g': 95, 'b': 95 }, { 'r': 215, 'g': 95, 'b': 135 }, { 'r': 215, 'g': 95, 'b': 175 }, { 'r': 215, 'g': 95, 'b': 215 }, { 'r': 215, 'g': 95, 'b': 255 }, { 'r': 215, 'g': 135, 'b': 0 }, { 'r': 215, 'g': 135, 'b': 95 }, { 'r': 215, 'g': 135, 'b': 135 }, { 'r': 215, 'g': 135, 'b': 175 }, { 'r': 215, 'g': 135, 'b': 215 }, { 'r': 215, 'g': 135, 'b': 255 }, { 'r': 215, 'g': 175, 'b': 0 }, { 'r': 215, 'g': 175, 'b': 95 }, { 'r': 215, 'g': 175, 'b': 135 }, { 'r': 215, 'g': 175, 'b': 175 }, { 'r': 215, 'g': 175, 'b': 215 }, { 'r': 215, 'g': 175, 'b': 255 }, { 'r': 215, 'g': 215, 'b': 0 }, { 'r': 215, 'g': 215, 'b': 95 }, { 'r': 215, 'g': 215, 'b': 135 }, { 'r': 215, 'g': 215, 'b': 175 }, { 'r': 215, 'g': 215, 'b': 215 }, { 'r': 215, 'g': 215, 'b': 255 }, { 'r': 215, 'g': 255, 'b': 0 }, { 'r': 215, 'g': 255, 'b': 95 }, { 'r': 215, 'g': 255, 'b': 135 }, { 'r': 215, 'g': 255, 'b': 175 }, { 'r': 215, 'g': 255, 'b': 215 }, { 'r': 215, 'g': 255, 'b': 255 }, { 'r': 255, 'g': 0, 'b': 0 }, { 'r': 255, 'g': 0, 'b': 95 }, { 'r': 255, 'g': 0, 'b': 135 }, { 'r': 255, 'g': 0, 'b': 175 }, { 'r': 255, 'g': 0, 'b': 215 }, { 'r': 255, 'g': 0, 'b': 255 }, { 'r': 255, 'g': 95, 'b': 0 }, { 'r': 255, 'g': 95, 'b': 95 }, { 'r': 255, 'g': 95, 'b': 135 }, { 'r': 255, 'g': 95, 'b': 175 }, { 'r': 255, 'g': 95, 'b': 215 }, { 'r': 255, 'g': 95, 'b': 255 }, { 'r': 255, 'g': 135, 'b': 0 }, { 'r': 255, 'g': 135, 'b': 95 }, { 'r': 255, 'g': 135, 'b': 135 }, { 'r': 255, 'g': 135, 'b': 175 }, { 'r': 255, 'g': 135, 'b': 215 }, { 'r': 255, 'g': 135, 'b': 255 }, { 'r': 255, 'g': 175, 'b': 0 }, { 'r': 255, 'g': 175, 'b': 95 }, { 'r': 255, 'g': 175, 'b': 135 }, { 'r': 255, 'g': 175, 'b': 175 }, { 'r': 255, 'g': 175, 'b': 215 }, { 'r': 255, 'g': 175, 'b': 255 }, { 'r': 255, 'g': 215, 'b': 0 }, { 'r': 255, 'g': 215, 'b': 95 }, { 'r': 255, 'g': 215, 'b': 135 }, { 'r': 255, 'g': 215, 'b': 175 }, { 'r': 255, 'g': 215, 'b': 215 }, { 'r': 255, 'g': 215, 'b': 255 }, { 'r': 255, 'g': 255, 'b': 0 }, { 'r': 255, 'g': 255, 'b': 95 }, { 'r': 255, 'g': 255, 'b': 135 }, { 'r': 255, 'g': 255, 'b': 175 }, { 'r': 255, 'g': 255, 'b': 215 }, { 'r': 255, 'g': 255, 'b': 255 }, { 'r': 8, 'g': 8, 'b': 8 }, { 'r': 18, 'g': 18, 'b': 18 }, { 'r': 28, 'g': 28, 'b': 28 }, { 'r': 38, 'g': 38, 'b': 38 }, { 'r': 48, 'g': 48, 'b': 48 }, { 'r': 58, 'g': 58, 'b': 58 }, { 'r': 68, 'g': 68, 'b': 68 }, { 'r': 78, 'g': 78, 'b': 78 }, { 'r': 88, 'g': 88, 'b': 88 }, { 'r': 98, 'g': 98, 'b': 98 }, { 'r': 108, 'g': 108, 'b': 108 }, { 'r': 118, 'g': 118, 'b': 118 }, { 'r': 128, 'g': 128, 'b': 128 }, { 'r': 138, 'g': 138, 'b': 138 }, { 'r': 148, 'g': 148, 'b': 148 }, { 'r': 158, 'g': 158, 'b': 158 }, { 'r': 168, 'g': 168, 'b': 168 }, { 'r': 178, 'g': 178, 'b': 178 }, { 'r': 188, 'g': 188, 'b': 188 }, { 'r': 198, 'g': 198, 'b': 198 }, { 'r': 208, 'g': 208, 'b': 208 }, { 'r': 218, 'g': 218, 'b': 218 }, { 'r': 228, 'g': 228, 'b': 228 }, { 'r': 238, 'g': 238, 'b': 238 }];
         this._AnsiAttr = 7;
@@ -957,16 +1018,40 @@ var Ansi = (function () {
                 }
                 break;
             case '@':
-                x = Math.max(1, this.GetNextParam(1));
-                this._Crt.InsChar(x);
+                if (this._AnsiIntermediates.length === 0) {
+                    x = Math.max(1, this.GetNextParam(1));
+                    this._Crt.InsChar(x);
+                }
+                else if (this._AnsiIntermediates.indexOf(' ') !== -1) {
+                    x = this._Crt.WhereX();
+                    y = this._Crt.WhereY();
+                    z = Math.max(1, this.GetNextParam(1));
+                    for (var i = this._Crt.WindMinY + 1; i <= this._Crt.WindMaxY + 1; i++) {
+                        this._Crt.GotoXY(1, i);
+                        this._Crt.DelChar(z);
+                    }
+                    this._Crt.GotoXY(x, y);
+                }
                 break;
             case '{':
                 console.log('Unhandled ESC sequence: Indicates that a font block is following');
                 break;
             case 'A':
-                y = Math.max(1, this.GetNextParam(1));
-                y = Math.max(1, this._Crt.WhereY() - y);
-                this._Crt.GotoXY(this._Crt.WhereX(), y);
+                if (this._AnsiIntermediates.length === 0) {
+                    y = Math.max(1, this.GetNextParam(1));
+                    y = Math.max(1, this._Crt.WhereY() - y);
+                    this._Crt.GotoXY(this._Crt.WhereX(), y);
+                }
+                else if (this._AnsiIntermediates.indexOf(' ') !== -1) {
+                    x = this._Crt.WhereX();
+                    y = this._Crt.WhereY();
+                    z = Math.max(1, this.GetNextParam(1));
+                    for (var i = this._Crt.WindMinY + 1; i <= this._Crt.WindMaxY + 1; i++) {
+                        this._Crt.GotoXY(1, i);
+                        this._Crt.InsChar(z);
+                    }
+                    this._Crt.GotoXY(x, y);
+                }
                 break;
             case 'B':
                 y = Math.max(1, this.GetNextParam(1));
@@ -1069,6 +1154,10 @@ var Ansi = (function () {
                         console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
                         break;
                 }
+                break;
+            case 'I':
+                x = Math.max(1, this.GetNextParam(1));
+                this._Crt.Write(StringUtils.NewString('\t', x));
                 break;
             case 'J':
                 switch (this.GetNextParam(0)) {
@@ -1363,8 +1452,13 @@ var Ansi = (function () {
                 }
                 break;
             case 'S':
-                y = Math.max(1, this.GetNextParam(1));
-                this._Crt.ScrollUpScreen(y);
+                if ((this._AnsiParams.length >= 2) && (this._AnsiParams[0] === '?2') && (this._AnsiParams[1] === '1')) {
+                    this.onXTSRGA.trigger();
+                }
+                else {
+                    y = Math.max(1, this.GetNextParam(1));
+                    this._Crt.ScrollUpScreen(y);
+                }
                 break;
             case 's':
                 if (this._AnsiIntermediates.length === 0) {
@@ -1425,7 +1519,26 @@ var Ansi = (function () {
                 break;
             case 'X':
                 x = Math.max(1, this.GetNextParam(1));
-                this._Crt.DelChar(x);
+                this._Crt.FastWrite(StringUtils.NewString(' ', x), this._Crt.WhereXA(), this._Crt.WhereYA(), this._Crt.CharInfo);
+                break;
+            case 'y':
+                if ((this._AnsiParams.length === 6) && (this._AnsiIntermediates.length > 0) && (this._AnsiIntermediates[0] === '*')) {
+                    x = this.GetNextParam(1);
+                    y = this.GetNextParam(1);
+                    if (y === 1) {
+                        var top = this.GetNextParam(1);
+                        var left = this.GetNextParam(1);
+                        var bottom = this.GetNextParam(1);
+                        var right = this.GetNextParam(1);
+                        this.onDECRQCRA.trigger(x, left, top, right, bottom);
+                    }
+                    else {
+                        console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                    }
+                }
+                else {
+                    console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
+                }
                 break;
             case 'Z':
                 console.log('Unhandled ESC sequnce: Cursor Backward Tabulation');
@@ -1434,6 +1547,9 @@ var Ansi = (function () {
                 console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
                 break;
         }
+    };
+    Ansi.prototype.Checksum = function (pid, x1, y1, x2, y2) {
+        return '\x1BP' + pid + '!~' + this._Crt.Checksum(x1, y1, x2, y2) + '\x1B\\';
     };
     Ansi.prototype.CursorPosition = function (x, y) {
         if (typeof x === 'undefined') {
@@ -1452,6 +1568,11 @@ var Ansi = (function () {
         else {
             return parseInt(Result, 10);
         }
+    };
+    Ansi.prototype.ScreenSizeInPixels = function () {
+        var xSize = this._Crt.ScreenCols * this._Crt.Font.Width;
+        var ySize = this._Crt.ScreenRows * this._Crt.Font.Height;
+        return '\x1B[?2;0;' + xSize.toString(10) + ';' + ySize.toString(10) + 'S';
     };
     Ansi.prototype.Write = function (text) {
         if (this._Crt.Atari || this._Crt.C64) {
@@ -1474,6 +1595,62 @@ var Ansi = (function () {
                             this._AnsiIntermediates.pop();
                         }
                     }
+                    else if (text.charAt(i) === ']') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        console.log('Unhandled ESC sequence: Operating System Command');
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
+                    else if (text.charAt(i) === '^') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        console.log('Unhandled ESC sequence: Privacy Message');
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
+                    else if (text.charAt(i) === '_') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        console.log('Unhandled ESC sequence: Application Program String');
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
+                    else if (text.charAt(i) === 'c') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        this._Crt.NormVideo();
+                        this._Crt.ClrScr();
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
+                    else if (text.charAt(i) === 'E') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        this._Crt.Write('\r\n');
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
+                    else if (text.charAt(i) === 'H') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        console.log('Unhandled ESC sequence: Sets a tab stop at the current column');
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
+                    else if (text.charAt(i) === 'M') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        var y = Math.max(1, this._Crt.WhereY() - 1);
+                        this._Crt.GotoXY(this._Crt.WhereX(), y);
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
+                    else if (text.charAt(i) === 'P') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        console.log('Unhandled ESC sequence: Device Control String');
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
+                    else if (text.charAt(i) === 'X') {
+                        this._Crt.Write(Buffer);
+                        Buffer = '';
+                        console.log('Unhandled ESC sequence: Start Of String');
+                        this._AnsiParserState = AnsiParserState.None;
+                    }
                     else {
                         Buffer += text.charAt(i);
                         this._AnsiParserState = AnsiParserState.None;
@@ -1487,11 +1664,17 @@ var Ansi = (function () {
                         this._AnsiParserState = AnsiParserState.None;
                     }
                     else if ((text.charAt(i) >= '0') && (text.charAt(i) <= '?')) {
-                        this._AnsiBuffer += text.charAt(i);
+                        if (text.charAt(i) === ';') {
+                            this._AnsiParams.push((this._AnsiBuffer === '') ? '0' : this._AnsiBuffer);
+                            this._AnsiBuffer = '';
+                        }
+                        else {
+                            this._AnsiBuffer += text.charAt(i);
+                        }
                         this._AnsiParserState = AnsiParserState.ParameterByte;
                     }
                     else if ((text.charAt(i) >= ' ') && (text.charAt(i) <= '/')) {
-                        this._AnsiBuffer += text.charAt(i);
+                        this._AnsiIntermediates.push(text.charAt(i));
                         this._AnsiParserState = AnsiParserState.IntermediateByte;
                     }
                     else if ((text.charAt(i) >= '@') && (text.charAt(i) <= '~')) {
@@ -1629,6 +1812,7 @@ var Crt = (function () {
         this._AllowDynamicFontResize = true;
         this._Atari = false;
         this._ATASCIIEscaped = false;
+        this._AudioContext = new AudioContext();
         this._BareLFtoCRLF = false;
         this._BlinkHidden = false;
         this._C64 = false;
@@ -1638,6 +1822,7 @@ var Crt = (function () {
         this._KeyBuf = [];
         this._LastChar = 0x00;
         this._LocalEcho = false;
+        this._PlaySoundQueue = [];
         this._ScreenSize = new Point(80, 25);
         this._ScrollbackPosition = -1;
         this._ScrollbackSize = 250;
@@ -1741,8 +1926,6 @@ var Crt = (function () {
         enumerable: true,
         configurable: true
     });
-    Crt.prototype.Beep = function () {
-    };
     Object.defineProperty(Crt.prototype, "C64", {
         get: function () {
             return this._C64;
@@ -1760,6 +1943,29 @@ var Crt = (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Crt.prototype, "CharInfo", {
+        get: function () {
+            return this._CharInfo;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Crt.prototype.Checksum = function (x1, y1, x2, y2) {
+        var data = new ByteArray();
+        for (var y = y1; y <= y2; y++) {
+            for (var x = x1; x <= x2; x++) {
+                data.writeByte(this._Buffer[y][x].Attr);
+                data.write24Bit(this._Buffer[y][x].Back24);
+                data.writeByte(this._Buffer[y][x].Blink ? 1 : 0);
+                data.writeByte(this._Buffer[y][x].Ch.charCodeAt(0));
+                data.write24Bit(this._Buffer[y][x].Fore24);
+                data.writeByte(this._Buffer[y][x].Reverse ? 1 : 0);
+                data.writeByte(this._Buffer[y][x].Underline ? 1 : 0);
+            }
+        }
+        data.writeString(this._Font.Name);
+        return StringUtils.PadLeft(CRC.Calculate16(data).toString(16).toUpperCase(), '0', 4);
+    };
     Crt.prototype.ClrBol = function () {
         this.FastWrite(StringUtils.NewString(' ', this.WhereX()), this.WindMinX + 1, this.WhereYA(), this._CharInfo);
     };
@@ -2622,6 +2828,39 @@ var Crt = (function () {
     Crt.prototype.OutputBenchmarks = function () {
         Benchmarks.Alert();
     };
+    Crt.prototype.PlayNextSound = function () {
+        if (this._PlaySoundQueue.length === 0) {
+            console.log('Aborting PlayNextSound, nothing left in queue');
+            return;
+        }
+        var freq = this._PlaySoundQueue[0].x;
+        var duration = this._PlaySoundQueue[0].y;
+        var osc = this._AudioContext.createOscillator();
+        var gain = this._AudioContext.createGain();
+        osc.connect(gain).connect(this._AudioContext.destination);
+        osc.frequency.value = freq;
+        var that = this;
+        osc.onended = function () {
+            that._PlaySoundQueue.shift();
+            if (that._PlaySoundQueue.length > 0) {
+                that.PlayNextSound();
+            }
+        };
+        var startTime = this._AudioContext.currentTime;
+        var endTime = startTime + (duration / 1000);
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(1, startTime + 0.05);
+        gain.gain.setValueAtTime(1, endTime - 0.05);
+        gain.gain.linearRampToValueAtTime(0, endTime);
+        osc.start(startTime);
+        osc.stop(endTime);
+    };
+    Crt.prototype.PlaySound = function (freq, duration) {
+        this._PlaySoundQueue.push(new Point(freq, duration));
+        if (this._PlaySoundQueue.length === 1) {
+            this.PlayNextSound();
+        }
+    };
     Crt.prototype.PushKeyDown = function (pushedCharCode, pushedKeyCode, ctrl, alt, shift) {
         this.OnKeyDown({
             altKey: alt,
@@ -2725,13 +2964,13 @@ var Crt = (function () {
             count = MaxLines;
         }
         var Left = (left - 1) * this._Font.Width;
-        var Top = (top - 1) * this._Font.Height;
+        var Top = (top - 1 + (this._UseModernScrollback ? this._ScrollbackSize : 0)) * this._Font.Height;
         var Width = (right - left + 1) * this._Font.Width;
         var Height = ((bottom - top + 1 - count) * this._Font.Height);
         if (Height > 0) {
             var Buf = this._CanvasContext.getImageData(Left, Top, Width, Height);
             Left = (left - 1) * this._Font.Width;
-            Top = (top - 1 + count) * this._Font.Height;
+            Top = (top - 1 + count + (this._UseModernScrollback ? this._ScrollbackSize : 0)) * this._Font.Height;
             this._CanvasContext.putImageData(Buf, Left, Top);
         }
         var Blanks = StringUtils.PadLeft('', ' ', right - left + 1);
@@ -2741,12 +2980,12 @@ var Crt = (function () {
         if (updateBuffer) {
             var X = 0;
             var Y = 0;
-            for (Y = bottom; Y > count; Y--) {
+            for (Y = bottom; Y >= top + count; Y--) {
                 for (X = left; X <= right; X++) {
                     this._Buffer[Y][X].Set(this._Buffer[Y - count][X]);
                 }
             }
-            for (Y = top; Y <= count; Y++) {
+            for (Y = top; Y < top + count; Y++) {
                 for (X = left; X <= right; X++) {
                     this._Buffer[Y][X].Set(charInfo);
                 }
@@ -2780,13 +3019,13 @@ var Crt = (function () {
                 }
                 else {
                     var Left = (left - 1) * this._Font.Width;
-                    var Top = (top - 1 + count) * this._Font.Height;
+                    var Top = (top - 1 + count + this._ScrollbackSize) * this._Font.Height;
                     var Width = (right - left + 1) * this._Font.Width;
                     var Height = ((bottom - top + 1 - count) * this._Font.Height);
                     if (Height > 0) {
                         var Buf = this._CanvasContext.getImageData(Left, Top, Width, Height);
                         Left = (left - 1) * this._Font.Width;
-                        Top = (top - 1) * this._Font.Height;
+                        Top = (top - 1 + this._ScrollbackSize) * this._Font.Height;
                         this._CanvasContext.putImageData(Buf, Left, Top);
                     }
                 }
@@ -3070,7 +3309,7 @@ var Crt = (function () {
                 i += 0;
             }
             else if (text.charCodeAt(i) === 0x07) {
-                this.Beep();
+                this.PlaySound(800, 200);
             }
             else if (text.charCodeAt(i) === 0x08) {
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
@@ -3239,7 +3478,7 @@ var Crt = (function () {
                 this.InsLine();
             }
             else if ((text.charCodeAt(i) === 0xFD) && (!this._ATASCIIEscaped)) {
-                this.Beep();
+                this.PlaySound(800, 200);
             }
             else if ((text.charCodeAt(i) === 0xFE) && (!this._ATASCIIEscaped)) {
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
@@ -3309,7 +3548,7 @@ var Crt = (function () {
                 this.TextColor(Crt.PETSCII_WHITE);
             }
             else if (text.charCodeAt(i) === 0x07) {
-                this.Beep();
+                this.PlaySound(800, 200);
             }
             else if (text.charCodeAt(i) === 0x08) {
                 console.log('PETSCII 0x08');
@@ -5569,60 +5808,6 @@ var ProgressBarStyle;
     ProgressBarStyle[ProgressBarStyle["Marquee"] = 0] = "Marquee";
 })(ProgressBarStyle || (ProgressBarStyle = {}));
 //# sourceMappingURL=crtcontrols.js.map
-var CRC = (function () {
-    function CRC() {
-    }
-    CRC.Calculate16 = function (bytes) {
-        var CRC = 0;
-        var OldPosition = bytes.position;
-        bytes.position = 0;
-        while (bytes.bytesAvailable > 0) {
-            CRC = this.UpdateCrc(bytes.readUnsignedByte(), CRC);
-        }
-        CRC = this.UpdateCrc(0, CRC);
-        CRC = this.UpdateCrc(0, CRC);
-        bytes.position = OldPosition;
-        return CRC;
-    };
-    CRC.UpdateCrc = function (curByte, curCrc) {
-        return (this.CRC_TABLE[(curCrc >> 8) & 0x00FF] ^ (curCrc << 8) ^ curByte) & 0xFFFF;
-    };
-    CRC.CRC_TABLE = [
-        0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
-        0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
-        0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
-        0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
-        0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485,
-        0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
-        0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4,
-        0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc,
-        0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823,
-        0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b,
-        0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12,
-        0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a,
-        0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41,
-        0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49,
-        0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70,
-        0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78,
-        0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f,
-        0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067,
-        0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e,
-        0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256,
-        0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d,
-        0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
-        0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c,
-        0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634,
-        0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab,
-        0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3,
-        0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a,
-        0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92,
-        0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
-        0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
-        0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
-        0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
-    ];
-    return CRC;
-}());
 var FileRecord = (function () {
     function FileRecord(name, size) {
         this._Data = new ByteArray();
@@ -6640,6 +6825,7 @@ var fTelnetClient = (function () {
         this._Crt.SetScreenSize(this._Options.ScreenColumns, this._Options.ScreenRows);
         this._Crt.SetFont(this._Options.Font);
         this._Ansi = new Ansi(this._Crt);
+        this._Ansi.onDECRQCRA.on(function (pid, x1, y1, x2, y2) { _this.OnAnsiDECRQCRA(pid, x1, y1, x2, y2); });
         this._Ansi.onesc0c.on(function () { _this.OnAnsiESC0c(); });
         this._Ansi.onesc5n.on(function () { _this.OnAnsiESC5n(); });
         this._Ansi.onesc6n.on(function () { _this.OnAnsiESC6n(); });
@@ -6649,6 +6835,7 @@ var fTelnetClient = (function () {
         this._Ansi.onripdetect.on(function () { _this.OnAnsiRIPDetect(); });
         this._Ansi.onripdisable.on(function () { _this.OnAnsiRIPDisable(); });
         this._Ansi.onripenable.on(function () { _this.OnAnsiRIPEnable(); });
+        this._Ansi.onXTSRGA.on(function () { _this.OnAnsiXTSRGA(); });
         if (this._Options.Emulation === 'RIP') {
             this._RIP = new RIP(this._Crt, this._Ansi, this._ClientContainer);
         }
@@ -7162,6 +7349,15 @@ var fTelnetClient = (function () {
             this._LoadingProxySettings = 0;
         }
     };
+    fTelnetClient.prototype.OnAnsiDECRQCRA = function (pid, x1, y1, x2, y2) {
+        if (typeof this._Connection === 'undefined') {
+            return;
+        }
+        if (!this._Connection.connected) {
+            return;
+        }
+        this._Connection.writeString(this._Ansi.Checksum(pid, x1, y1, x2, y2));
+    };
     fTelnetClient.prototype.OnAnsiESC0c = function () {
         if (typeof this._Connection === 'undefined') {
             return;
@@ -7223,6 +7419,15 @@ var fTelnetClient = (function () {
     fTelnetClient.prototype.OnAnsiRIPDisable = function () {
     };
     fTelnetClient.prototype.OnAnsiRIPEnable = function () {
+    };
+    fTelnetClient.prototype.OnAnsiXTSRGA = function () {
+        if (typeof this._Connection === 'undefined') {
+            return;
+        }
+        if (!this._Connection.connected) {
+            return;
+        }
+        this._Connection.writeString(this._Ansi.ScreenSizeInPixels());
     };
     fTelnetClient.prototype.OnConnectionClose = function () {
         this._ConnectButton.innerHTML = 'Reconnect';

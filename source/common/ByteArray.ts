@@ -130,6 +130,12 @@ class ByteArray {
         return Result;
     }
 
+    public write24Bit(value: number): void {
+        this.writeByte((value & 0xFF0000) >> 16);
+        this.writeByte((value & 0x00FF00) >> 8);
+        this.writeByte(value & 0x0000FF);
+    }
+
     public writeByte(value: number): void {
         this._Bytes[this._Position++] = (value & 0xFF);
         if (this._Position > this._Length) { this._Length++; }

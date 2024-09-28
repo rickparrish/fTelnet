@@ -188,6 +188,7 @@ class fTelnetClient {
 
         // Create the ansi cursor position handler
         this._Ansi = new Ansi(this._Crt);
+        this._Ansi.onDECRQCRA.on((pid: number, x1: number, y1: number, x2: number, y2: number): void => { this.OnAnsiDECRQCRA(pid, x1, y1, x2, y2); });
         this._Ansi.onesc0c.on((): void => { this.OnAnsiESC0c(); });
         this._Ansi.onesc5n.on((): void => { this.OnAnsiESC5n(); });
         this._Ansi.onesc6n.on((): void => { this.OnAnsiESC6n(); });
@@ -197,6 +198,7 @@ class fTelnetClient {
         this._Ansi.onripdetect.on((): void => { this.OnAnsiRIPDetect(); });
         this._Ansi.onripdisable.on((): void => { this.OnAnsiRIPDisable(); });
         this._Ansi.onripenable.on((): void => { this.OnAnsiRIPEnable(); });
+        this._Ansi.onXTSRGA.on((): void => { this.OnAnsiXTSRGA(); });
 
         // Setup the RIP/Graph window, if necessary
         if (this._Options.Emulation === 'RIP') {
@@ -771,6 +773,12 @@ class fTelnetClient {
         }
     }
 
+    private OnAnsiDECRQCRA(pid: number, x1: number, y1: number, x2: number, y2: number): void {
+        if (typeof this._Connection === 'undefined') { return; }
+        if (!this._Connection.connected) { return; }
+        this._Connection.writeString(this._Ansi.Checksum(pid, x1, y1, x2, y2));
+    }
+
     private OnAnsiESC0c(): void {
         if (typeof this._Connection === 'undefined') { return; }
         if (!this._Connection.connected) { return; }
@@ -822,6 +830,12 @@ class fTelnetClient {
 
     private OnAnsiRIPEnable(): void {
         // TODO RIP.EnableParsing();
+    }
+
+    private OnAnsiXTSRGA(): void {
+        if (typeof this._Connection === 'undefined') { return; }
+        if (!this._Connection.connected) { return; }
+        this._Connection.writeString(this._Ansi.ScreenSizeInPixels());
     }
 
     private OnConnectionClose(): void {

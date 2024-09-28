@@ -73,6 +73,7 @@ class Crt {
     private _AllowDynamicFontResize: boolean = true;
     private _Atari: boolean = false;
     private _ATASCIIEscaped: boolean = false;
+    private _AudioContext: AudioContext = new AudioContext();
     private _BareLFtoCRLF: boolean = false;
     private _BlinkHidden: boolean = false;
     private _Buffer: CharInfo[][];
@@ -90,6 +91,7 @@ class Crt {
     private _LocalEcho: boolean = false;
     private _MouseDownPoint: Point;
     private _MouseMovePoint: Point;
+    private _PlaySoundQueue: Point[] = [];
     private _ReportMouse: boolean;
     private _ReportMouseSgr: boolean;
     private _ScreenSize: Point = new Point(80, 25);
@@ -229,14 +231,6 @@ class Crt {
         this._BareLFtoCRLF = value;
     }
 
-    public Beep(): void {
-        /*TODO
-        var Duration = 44100 * 0.3; // 0.3 = 300ms
-        var Frequency = 440; // 440hz
-
-        */
-    }
-
     public get C64(): boolean {
         return this._C64;
     }
@@ -247,6 +241,30 @@ class Crt {
 
     public get Canvas(): HTMLCanvasElement {
         return this._Canvas;
+    }
+
+    public get CharInfo(): CharInfo {
+        return this._CharInfo;
+    }
+
+    public Checksum(x1: number, y1: number, x2: number, y2: number): string {
+        var data: ByteArray = new ByteArray();
+
+        // TODOY Add range checks
+        for (var y: number = y1; y <= y2; y++) {
+            for (var x: number = x1; x <= x2; x++) {
+                data.writeByte(this._Buffer[y][x].Attr);
+                data.write24Bit(this._Buffer[y][x].Back24);
+                data.writeByte(this._Buffer[y][x].Blink ? 1 : 0);
+                data.writeByte(this._Buffer[y][x].Ch.charCodeAt(0));
+                data.write24Bit(this._Buffer[y][x].Fore24);
+                data.writeByte(this._Buffer[y][x].Reverse ? 1 : 0);
+                data.writeByte(this._Buffer[y][x].Underline ? 1 : 0);
+            }
+        }
+        data.writeString(this._Font.Name);
+
+        return StringUtils.PadLeft(CRC.Calculate16(data).toString(16).toUpperCase(), '0', 4);
     }
 
     public ClrBol(): void {
@@ -1279,6 +1297,60 @@ class Crt {
         //alert(text);
     }
 
+    private PlayNextSound(): void {
+        // Abort if the queue is empty
+        if (this._PlaySoundQueue.length === 0) {
+            console.log('Aborting PlayNextSound, nothing left in queue');
+            return;
+        }
+
+        // Read the next item in the queue
+        var freq: number = this._PlaySoundQueue[0].x;
+        var duration: number = this._PlaySoundQueue[0].y;
+
+        // Setup the OscillatorNode and GainNode
+        var osc: OscillatorNode = this._AudioContext.createOscillator();
+        var gain: GainNode = this._AudioContext.createGain();
+        osc.connect(gain).connect(this._AudioContext.destination);
+        osc.frequency.value = freq;
+
+        // Setup the callback
+        var that = this;
+        osc.onended = function() {
+            that._PlaySoundQueue.shift();
+            if (that._PlaySoundQueue.length > 0) {
+                that.PlayNextSound();
+            }
+        };
+
+        // Play the sound for the requested duration
+        // Use linearRampToValueAtTime to ramp up from 0 to 1 at the start, and down from 1 to 0
+        // at the end, to avoid clicking that occurs when ramping up and down is not used.
+        var startTime: number = this._AudioContext.currentTime;
+        var endTime: number = startTime + (duration / 1000);
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(1, startTime + 0.05);
+        gain.gain.setValueAtTime(1, endTime - 0.05);
+        gain.gain.linearRampToValueAtTime(0, endTime);
+        osc.start(startTime);
+        osc.stop(endTime);
+    }
+
+    public PlaySound(freq: number, duration: number): void {
+        /// <summary>
+        /// Plays a sound of a specified frequency and duration in the PC Speaker.
+        /// </summary>
+        
+        // Add the new sound request to the queue
+        this._PlaySoundQueue.push(new Point(freq, duration));
+
+        // If this new sound request is the only item in the queue, then call PlayNextSound() to play it right away
+        // (If this isn't the only item in the queue, then PlayNextSound will take care of playing it in turn)
+        if (this._PlaySoundQueue.length === 1) {
+            this.PlayNextSound();
+        }
+    }
+
     public PushKeyDown(pushedCharCode: number, pushedKeyCode: number, ctrl: boolean, alt: boolean, shift: boolean): void {
         this.OnKeyDown(<KeyboardEvent>{
             altKey: alt,
@@ -1398,26 +1470,19 @@ class Crt {
         var MaxLines: number = bottom - top + 1;
         if (count > MaxLines) { count = MaxLines; }
 
-        // Scroll -- TODO Hasn't been tested yet
+        // Scroll
         var Left: number = (left - 1) * this._Font.Width;
-        var Top: number = (top - 1) * this._Font.Height;
+        var Top: number = (top - 1 + (this._UseModernScrollback ? this._ScrollbackSize : 0)) * this._Font.Height;
         var Width: number = (right - left + 1) * this._Font.Width;
         var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
         if (Height > 0) {
             var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
             Left = (left - 1) * this._Font.Width;
-            Top = (top - 1 + count) * this._Font.Height;
+            Top = (top - 1 + count + (this._UseModernScrollback ? this._ScrollbackSize : 0)) * this._Font.Height;
             this._CanvasContext.putImageData(Buf, Left, Top);
         }
 
-        // Blank -- TODO Hasn't been tested yet
-        // TODO This fails for maskreet in Chrome -- looks like it sometimes decides to ignore the call to fillRect()
-        // this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
-        // Left = (left - 1) * this._Font.Width;
-        // Top = (top - 1) * this._Font.Height;
-        // Width = (right - left + 1) * this._Font.Width;
-        // Height = (count * this._Font.Height);
-        // this._CanvasContext.fillRect(Left, Top, Width, Height);
+        // Blank
         var Blanks: string = StringUtils.PadLeft('', ' ', right - left + 1);
         for (var Line: number = 0; Line < count; Line++) {
             this.FastWrite(Blanks, left, top + Line, charInfo, false);
@@ -1429,14 +1494,14 @@ class Crt {
             var Y: number = 0;
 
             // First, shuffle the contents that are still visible
-            for (Y = bottom; Y > count; Y--) {
+            for (Y = bottom; Y >= top + count; Y--) {
                 for (X = left; X <= right; X++) {
                     this._Buffer[Y][X].Set(this._Buffer[Y - count][X]);
                 }
             }
 
             // Then, blank the contents that are not
-            for (Y = top; Y <= count; Y++) {
+            for (Y = top; Y < top + count; Y++) {
                 for (X = left; X <= right; X++) {
                     this._Buffer[Y][X].Set(charInfo);
                 }
@@ -1495,15 +1560,14 @@ class Crt {
                     this._CanvasContext.drawImage(this._TempCanvas, 0, Top, Width, Height, 0, 0, Width, Height);
                 } else {
                     // Just scroll the selected region and leave scrollback alone
-                    // TODO Needs to be tested (likely needs Top to be adjusted for scrollback buffer size?)
                     var Left: number = (left - 1) * this._Font.Width;
-                    var Top: number = (top - 1 + count) * this._Font.Height;
+                    var Top: number = (top - 1 + count + this._ScrollbackSize) * this._Font.Height;
                     var Width: number = (right - left + 1) * this._Font.Width;
                     var Height: number = ((bottom - top + 1 - count) * this._Font.Height);
                     if (Height > 0) {
                         var Buf: ImageData = this._CanvasContext.getImageData(Left, Top, Width, Height);
                         Left = (left - 1) * this._Font.Width;
-                        Top = (top - 1) * this._Font.Height;
+                        Top = (top - 1 + this._ScrollbackSize) * this._Font.Height;
                         this._CanvasContext.putImageData(Buf, Left, Top);
                     }
                 }
@@ -1522,16 +1586,6 @@ class Crt {
                 }
             }
             BScrollUp.Stop();
-
-            // Blank
-            // TODOX This fails for maskreet in Chrome -- looks like it sometimes decides to ignore the call to fillRect()
-            // TODOX Been many versions since then, so maybe more reliable now, but needs Y-offset correction in modern scrollback mode
-            //this._CanvasContext.fillStyle = '#' + StringUtils.PadLeft(CrtFont.ANSI_COLOURS[(charInfo.Attr & 0xF0) >> 4].toString(16), '0', 6);
-            //Left = (left - 1) * this._Font.Width;
-            //Top = (bottom - count) * this._Font.Height;
-            //Width = (right - left + 1) * this._Font.Width;
-            //Height = (count * this._Font.Height);
-            //this._CanvasContext.fillRect(Left, Top, Width, Height);
 
             // Blank
             var BClearBottom: Benchmark = Benchmarks.Start('ClearBottom');
@@ -1956,7 +2010,7 @@ class Crt {
                 // NULL, ignore
                 i += 0; // Make JSLint happy (doesn't like empty block)
             } else if (text.charCodeAt(i) === 0x07) {
-                this.Beep();
+                this.PlaySound(800, 200);
             } else if (text.charCodeAt(i) === 0x08) {
                 // Backspace, need to flush buffer before moving cursor
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
@@ -2159,7 +2213,7 @@ class Crt {
                 this.GotoXY(X, Y);
                 this.InsLine();
             } else if ((text.charCodeAt(i) === 0xFD) && (!this._ATASCIIEscaped)) {
-                this.Beep();
+                this.PlaySound(800, 200);
             } else if ((text.charCodeAt(i) === 0xFE) && (!this._ATASCIIEscaped)) {
                 // Delete character, need to flush buffer before doing so
                 this.FastWrite(Buf, this.WhereXA(), this.WhereYA(), this._CharInfo);
@@ -2245,7 +2299,7 @@ class Crt {
                 this.TextColor(Crt.PETSCII_WHITE);
             } else if (text.charCodeAt(i) === 0x07) {
                 // Beep (extra, not documented)
-                this.Beep();
+                this.PlaySound(800, 200);
             } else if (text.charCodeAt(i) === 0x08) {
                 // TODO Disables changing the character set using the SHIFT + Commodore key combination. 
                 console.log('PETSCII 0x08');
