@@ -36,13 +36,23 @@ enum AnsiParserState {
 	/// </summary>
 	Bracket = 2,
 
-    /// <summary>
-    /// The last received character was a parameter byte (0 to ?)
-    /// </summary>
+  /// <summary>
+  /// The last received character was a parameter byte (0 to ?)
+  /// </summary>
 	ParameterByte = 3,
 
-    /// <summary>
-    /// The last received character was a intermediate byte (space to /)
-    /// </summary>
-	IntermediateByte = 4
+  /// <summary>
+  /// The last received character was a intermediate byte (space to /)
+  /// </summary>
+	IntermediateByte = 4,
+
+  /// <summary>
+  /// Reading a string of characters, terminated with ESC \
+  /// </summary>
+  ReadingString = 5,
+
+  /// <summary>
+  /// Reading a string of characters, and received an ESC
+  /// </summary>
+  ReadingStringEscape = 6,  
 }

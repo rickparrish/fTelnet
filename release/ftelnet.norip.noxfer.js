@@ -741,6 +741,7 @@ var Ansi = (function () {
                 }
                 break;
             case 'I':
+            case 'Y':
                 x = Math.max(1, this.GetNextParam(1));
                 this._Crt.Write(StringUtils.NewString('\t', x));
                 break;
@@ -1126,7 +1127,14 @@ var Ansi = (function () {
                 }
                 break;
             case 'Z':
-                console.log('Unhandled ESC sequnce: Cursor Backward Tabulation');
+                x = this._Crt.WhereX() - (this.GetNextParam(1) * 8);
+                if (x <= 1) {
+                    x = 1;
+                }
+                else if (x % 8 !== 0) {
+                    x += 8 - (x % 8);
+                }
+                this._Crt.GotoXY(x, this._Crt.WhereY());
                 break;
             default:
                 console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -1166,8 +1174,13 @@ var Ansi = (function () {
         else {
             var Buffer = '';
             for (var i = 0; i < text.length; i++) {
-                if (text.charAt(i) === '\x1B') {
-                    this._AnsiParserState = AnsiParserState.Escape;
+                if (this._AnsiParserState === AnsiParserState.None) {
+                    if (text.charAt(i) === '\x1B') {
+                        this._AnsiParserState = AnsiParserState.Escape;
+                    }
+                    else {
+                        Buffer += text.charAt(i);
+                    }
                 }
                 else if (this._AnsiParserState === AnsiParserState.Escape) {
                     if (text.charAt(i) === '[') {
@@ -1183,20 +1196,17 @@ var Ansi = (function () {
                     else if (text.charAt(i) === ']') {
                         this._Crt.Write(Buffer);
                         Buffer = '';
-                        console.log('Unhandled ESC sequence: Operating System Command');
-                        this._AnsiParserState = AnsiParserState.None;
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     }
                     else if (text.charAt(i) === '^') {
                         this._Crt.Write(Buffer);
                         Buffer = '';
-                        console.log('Unhandled ESC sequence: Privacy Message');
-                        this._AnsiParserState = AnsiParserState.None;
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     }
                     else if (text.charAt(i) === '_') {
                         this._Crt.Write(Buffer);
                         Buffer = '';
-                        console.log('Unhandled ESC sequence: Application Program String');
-                        this._AnsiParserState = AnsiParserState.None;
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     }
                     else if (text.charAt(i) === 'c') {
                         this._Crt.Write(Buffer);
@@ -1227,14 +1237,12 @@ var Ansi = (function () {
                     else if (text.charAt(i) === 'P') {
                         this._Crt.Write(Buffer);
                         Buffer = '';
-                        console.log('Unhandled ESC sequence: Device Control String');
-                        this._AnsiParserState = AnsiParserState.None;
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     }
                     else if (text.charAt(i) === 'X') {
                         this._Crt.Write(Buffer);
                         Buffer = '';
-                        console.log('Unhandled ESC sequence: Start Of String');
-                        this._AnsiParserState = AnsiParserState.None;
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     }
                     else {
                         Buffer += text.charAt(i);
@@ -1327,6 +1335,24 @@ var Ansi = (function () {
                         this._AnsiParserState = AnsiParserState.None;
                     }
                 }
+                else if (this._AnsiParserState === AnsiParserState.ReadingString) {
+                    if (text.charAt(i) === '\x1B') {
+                        this._AnsiParserState = AnsiParserState.ReadingStringEscape;
+                    }
+                    else {
+                        Buffer += text.charAt(i);
+                    }
+                }
+                else if (this._AnsiParserState === AnsiParserState.ReadingStringEscape) {
+                    if (text.charAt(i) === '\\') {
+                        console.log('Ansi.ts read string: ' + Buffer);
+                    }
+                    else {
+                        console.log('Ansi.ts unexpected post-ESC char while reading string: ' + text.charAt(i) + ' (Buffer=' + Buffer + ')');
+                    }
+                    Buffer = '';
+                    this._AnsiParserState = AnsiParserState.None;
+                }
                 else {
                     Buffer += text.charAt(i);
                 }
@@ -1346,6 +1372,8 @@ var AnsiParserState;
     AnsiParserState[AnsiParserState["Bracket"] = 2] = "Bracket";
     AnsiParserState[AnsiParserState["ParameterByte"] = 3] = "ParameterByte";
     AnsiParserState[AnsiParserState["IntermediateByte"] = 4] = "IntermediateByte";
+    AnsiParserState[AnsiParserState["ReadingString"] = 5] = "ReadingString";
+    AnsiParserState[AnsiParserState["ReadingStringEscape"] = 6] = "ReadingStringEscape";
 })(AnsiParserState || (AnsiParserState = {}));
 var BlinkState;
 (function (BlinkState) {

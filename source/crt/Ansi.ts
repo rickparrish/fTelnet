@@ -279,6 +279,8 @@ class Ansi {
                 y = Math.max(1, this._Crt.WhereY() - y);
                 this._Crt.GotoXY(1, y);
                 break;
+            // Handled under case 'H'
+            // case 'f': 
             case 'G': /* CSI [ p1 ] G
 	                        Cursor Character Absolute
 	                        Defaults: p1 = 1
@@ -389,7 +391,9 @@ class Ansi {
                 }
                 break;
             case 'I':
+            case 'Y':
                 // CSI Pn I Cursor Forward Tabulation (CHT) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-csi-pn-i-cursor-forward-tabulation-cht
+                // CSI Pn Y Cursor Line Tabulation (CVT) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-csi-pn-y-cursor-line-tabulation-cvt
                 x = Math.max(1, this.GetNextParam(1));
                 this._Crt.Write(StringUtils.NewString('\t', x));
                 break;
@@ -973,6 +977,8 @@ class Ansi {
                 x = Math.max(1, this.GetNextParam(1));
                 this._Crt.FastWrite(StringUtils.NewString(' ', x), this._Crt.WhereXA(), this._Crt.WhereYA(), this._Crt.CharInfo);
                 break;
+            // Handled under case 'I'
+            // case 'Y': 
             case 'y':
                 // CSI Pn1 ; Ps ; Pn2 ; Pn3 ; Pn4 ; Pn5 * y Request Checksum of Rectangular Area (DECRQCRA) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-csi-pn1-ps-pn2-pn3-pn4-pn5-y-request-checksum-of-rectangular-area-decrqcra
                 if ((this._AnsiParams.length === 6) && (this._AnsiIntermediates.length > 0) && (this._AnsiIntermediates[0] === '*')) {
@@ -992,13 +998,22 @@ class Ansi {
                 }
                 break;
         
-            case 'Z': /* CSI [ p1 ] Z
-	                        Cursor Backward Tabulation
-	                        Defaults: p1 = 1
-	                        Move the cursor to the p1th preceeding tab stop.  Will not go past the
-	                        start of the line.
-	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
-                console.log('Unhandled ESC sequnce: Cursor Backward Tabulation');
+            case 'Z':
+                // CSI Pn Z Cursor Backward Tabulation (CBT) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-csi-pn-z-cursor-backward-tabulation-cbt
+                // Get current x position and subtract the requested number of tab stops
+                x = this._Crt.WhereX() - (this.GetNextParam(1) * 8)
+
+                // Adjust to land at a valid tab stop
+                if (x <= 1) {
+                    // Don't allow going too far left
+                    x = 1;
+                } else if (x % 8 !== 0) {
+                    // Not exactly at a tab stop, which means we overshot to the left, so move to the next tab stop to the right
+                    x += 8 - (x % 8);
+                }
+
+                // Move cursor
+                this._Crt.GotoXY(x, this._Crt.WhereY());
                 break;
             default:
                 console.log('Unknown ESC sequence: PB(' + this._AnsiParams.toString() + ') IB(' + this._AnsiIntermediates.toString() + ') FB(' + finalByte + ')');
@@ -1157,8 +1172,12 @@ class Ansi {
             var Buffer: string = '';
 
             for (var i: number = 0; i < text.length; i++) {
-                if (text.charAt(i) === '\x1B') {
-                    this._AnsiParserState = AnsiParserState.Escape;
+                if (this._AnsiParserState === AnsiParserState.None) {
+                    if (text.charAt(i) === '\x1B') {
+                        this._AnsiParserState = AnsiParserState.Escape;
+                    } else {
+                        Buffer += text.charAt(i);
+                    }
                 } else if (this._AnsiParserState === AnsiParserState.Escape) {
                     if (text.charAt(i) === '[') {
                         this._AnsiParserState = AnsiParserState.Bracket;
@@ -1172,34 +1191,22 @@ class Ansi {
                         this._Crt.Write(Buffer);
                         Buffer = '';
 
-                        // Handle the command
-                        console.log('Unhandled ESC sequence: Operating System Command');
-
                         // Reset the parser state
-                        this._AnsiParserState = AnsiParserState.None;
-                        // TODOX Needs AnsiParserState.ReadingOSC that reads until "ESC \"
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     } else if (text.charAt(i) === '^') {
                         // ESC ^ Privacy Message (PM) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-esc-privacy-message-pm
                         this._Crt.Write(Buffer);
                         Buffer = '';
 
-                        // Handle the command
-                        console.log('Unhandled ESC sequence: Privacy Message');
-
                         // Reset the parser state
-                        this._AnsiParserState = AnsiParserState.None;
-                        // TODOX Needs AnsiParserState.ReadingPM that reads until "ESC \"                        
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     } else if (text.charAt(i) === '_') {
                         // ESC _ Application Program Command (APC) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-esc-_-application-program-command-apc
                         this._Crt.Write(Buffer);
                         Buffer = '';
 
-                        // Handle the command
-                        console.log('Unhandled ESC sequence: Application Program String');
-
                         // Reset the parser state
-                        this._AnsiParserState = AnsiParserState.None;
-                        // TODOX Needs AnsiParserState.ReadingAPS that reads until "ESC \"                        
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     } else if (text.charAt(i) === 'c') {
                         // ESC c Reset to Initial State (RIS) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-esc-c-reset-to-initial-state-ris
                         this._Crt.Write(Buffer);
@@ -1247,23 +1254,15 @@ class Ansi {
                         this._Crt.Write(Buffer);
                         Buffer = '';
 
-                        // Handle the command
-                        console.log('Unhandled ESC sequence: Device Control String');
-
                         // Reset the parser state
-                        this._AnsiParserState = AnsiParserState.None;
-                        // TODOX Needs AnsiParserState.ReadingEscDCS that reads until "ESC \"
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     } else if (text.charAt(i) === 'X') {
                         // ESC X Start Of String (SOS) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-esc-x-start-of-string-sos
                         this._Crt.Write(Buffer);
                         Buffer = '';
 
-                        // Handle the command
-                        console.log('Unhandled ESC sequence: Start Of String');
-
                         // Reset the parser state
-                        this._AnsiParserState = AnsiParserState.None;
-                        // TODOX Needs AnsiParserState.ReadingSOS that reads until "ESC \"                        
+                        this._AnsiParserState = AnsiParserState.ReadingString;
                     } else {
                         Buffer += text.charAt(i);
                         this._AnsiParserState = AnsiParserState.None;
@@ -1378,6 +1377,20 @@ class Ansi {
                         Buffer += text.charAt(i);
                         this._AnsiParserState = AnsiParserState.None;
                     }
+                } else if (this._AnsiParserState === AnsiParserState.ReadingString) {
+                    if (text.charAt(i) === '\x1B') {
+                        this._AnsiParserState = AnsiParserState.ReadingStringEscape;
+                    } else {
+                        Buffer += text.charAt(i);
+                    }
+                } else if (this._AnsiParserState === AnsiParserState.ReadingStringEscape) {
+                    if (text.charAt(i) === '\\') {
+                        console.log('Ansi.ts read string: ' + Buffer);
+                    } else {
+                        console.log('Ansi.ts unexpected post-ESC char while reading string: ' + text.charAt(i) + ' (Buffer=' + Buffer + ')');
+                    }
+                    Buffer = '';
+                    this._AnsiParserState = AnsiParserState.None;
                 } else {
                     Buffer += text.charAt(i);
                 }
