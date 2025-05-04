@@ -94,8 +94,8 @@ class fTelnetClient {
                 // RIP needs to force a specific font and screen size
                 this._Options.Font = 'RIP_8x8';
                 this._Options.ScreenRows = 43;
-            } else {
-                // Force ansi-bbs if they didn't ask for RIP (or if RIP is not enabled in this build)
+            } else if (this._Options.Emulation === '') {
+                // If no emulation was provided, set it to ansi-bbs
                 this._Options.Emulation = 'ansi-bbs';
             }
 
@@ -563,7 +563,7 @@ class fTelnetClient {
                 this._Connection = new WebSocketConnection();
                 break;
             default:
-                this._Connection = new TelnetConnection(this._Crt);
+                this._Connection = new TelnetConnection(this._Crt, this._Options.Emulation);
                 this._Connection.LocalEcho = this._Options.LocalEcho;
                 this._Connection.onlocalecho.on((value: boolean): void => { this.OnConnectionLocalEcho(value); });
                 this._Connection.SendLocation = this._Options.SendLocation;

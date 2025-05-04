@@ -28,7 +28,7 @@ class TelnetConnection extends WebSocketConnection {
     private _TerminalTypeIndex: number;
     private _TerminalTypes: string[];
 
-    constructor(crt: Crt) {
+    constructor(crt: Crt, emulation: string) {
         super();
 
         this._Crt = crt;
@@ -38,7 +38,17 @@ class TelnetConnection extends WebSocketConnection {
         }
         this._NegotiationState = TelnetNegotiationState.Data;
         this._TerminalTypeIndex = 0;
-        this._TerminalTypes = ['ansi-bbs', 'ansi', 'cp437', 'cp437']; // cp437 twice as a cheat since you're supposed to repeat the last item before going to the first item
+        this._TerminalTypes = [emulation];
+        if (this._TerminalTypes.indexOf('ansi-bbs') === -1) {
+            this._TerminalTypes.push('ansi-bbs');
+        }
+        if (this._TerminalTypes.indexOf('ansi') === -1) {
+            this._TerminalTypes.push('ansi');
+        }
+        if (this._TerminalTypes.indexOf('cp437') === -1) {
+            this._TerminalTypes.push('cp437');
+        }
+        this._TerminalTypes.push(this._TerminalTypes[this._TerminalTypes.length - 1]); // repeat the last item
     }
 
     public flush(): void {
