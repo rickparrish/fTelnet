@@ -1001,6 +1001,11 @@ var Ansi = (function () {
         var y = 0;
         var z = 0;
         switch (finalByte) {
+            case '`':
+                x = Math.max(1, this.GetNextParam(1));
+                x = Math.min(this._Crt.WindCols, x);
+                this._Crt.GotoXY(x, this._Crt.WhereY());
+                break;
             case '!':
                 switch (this.GetNextParam(0)) {
                     case 0:
@@ -1059,6 +1064,7 @@ var Ansi = (function () {
                 this._Crt.GotoXY(this._Crt.WhereX(), y);
                 break;
             case 'C':
+            case 'a':
                 x = Math.max(1, this.GetNextParam(1));
                 x = Math.min(this._Crt.WindCols, this._Crt.WhereX() + x);
                 this._Crt.GotoXY(x, this._Crt.WhereY());

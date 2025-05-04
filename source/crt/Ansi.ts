@@ -59,6 +59,12 @@ class Ansi {
         var z: number = 0;
 
         switch (finalByte) {
+            case '`':
+                // CSI Pn ` Character Position Absolute (HPA) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-csi-pn-character-position-absolute-hpa
+                x = Math.max(1, this.GetNextParam(1));
+                x = Math.min(this._Crt.WindCols, x);
+                this._Crt.GotoXY(x, this._Crt.WhereY());
+                break;
             case '!': /* CSI [ p1 ] !
                             RIP detect
                             Defaults: p1 = 0
@@ -138,6 +144,8 @@ class Ansi {
                     this._Crt.GotoXY(x, y);
                 }
                 break;                
+            // Handled under case 'C'
+            // case 'a': 
             case 'B': /* CSI [ p1 ] B
 	                        Cursor Down
 	                        Defaults: p1 = 1
@@ -149,13 +157,10 @@ class Ansi {
                 y = Math.min(this._Crt.WindRows, this._Crt.WhereY() + y);
                 this._Crt.GotoXY(this._Crt.WhereX(), y);
                 break;
-            case 'C': /* CSI [ p1 ] C
-	                        Cursor Right
-	                        Defaults: p1 = 1
-	                        Moves the cursor position right p1 columns from the current position.
-	                        Attempting to move past the screen boundaries stops the cursor
-	                        at the screen boundary.
-	                        SOURCE: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf */
+            case 'C':
+            case 'a':
+                // CSI Pn C Cursor Right (CUF) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-csi-pn-c-cursor-right-cuf
+                // CSI Pn a Cursor Position Forward (HPR) https://gitlab.synchro.net/main/sbbs/-/blob/master/src/conio/cterm.adoc#user-content-csi-pn-a-cursor-position-forward-hpr
                 x = Math.max(1, this.GetNextParam(1));
                 x = Math.min(this._Crt.WindCols, this._Crt.WhereX() + x);
                 this._Crt.GotoXY(x, this._Crt.WhereY());
