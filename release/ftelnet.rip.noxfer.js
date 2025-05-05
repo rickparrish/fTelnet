@@ -1837,6 +1837,9 @@ var Crt = (function () {
         this.TextAttr &= 0xF7;
     };
     Crt.prototype.MousePositionToScreenPosition = function (x, y) {
+        var rect = this._Canvas.getBoundingClientRect();
+        x *= this._Canvas.width / rect.width;
+        y *= this._Canvas.height / rect.height;
         if (this._UseModernScrollback) {
             y -= this._ScrollbackSize * this._Font.Height;
         }

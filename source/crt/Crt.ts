@@ -700,6 +700,11 @@ class Crt {
     }
 
     private MousePositionToScreenPosition(x: number, y: number): Point {
+        // Adjust for scaling
+        const rect = this._Canvas.getBoundingClientRect();
+        x *= this._Canvas.width / rect.width;
+        y *= this._Canvas.height / rect.height;
+
         // Adjust for modern scrollback offset
         if (this._UseModernScrollback) {
             y -= this._ScrollbackSize * this._Font.Height;
